@@ -1,0 +1,7 @@
+name: "five"
+
+stages:
+ -  name: testing
+    tasks:
+      - type: testTask
+        name: fail

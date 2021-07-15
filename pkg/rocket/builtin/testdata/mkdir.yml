@@ -1,0 +1,9 @@
+name: "say hello"
+stages:
+    - tasks:
+      - type: mkdir
+        name: create test data
+        log: true
+        dirs:
+          - 'testdata/dirtest'
+          

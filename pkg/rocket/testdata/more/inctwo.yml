@@ -1,0 +1,8 @@
+stages:
+ -  name: testing
+    tasks:
+      - type: testTask
+        name: task to test
+
+basicEnv:
+  DATA_THING2: yes

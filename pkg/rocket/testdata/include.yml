@@ -1,0 +1,12 @@
+
+env:
+  DATA_THING: 20
+
+includes:
+  path: more/inctwo.yml
+
+stages:
+ -  name: flying
+    tasks:
+      - type: testTask
+        name: task to test

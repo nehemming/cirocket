@@ -1,0 +1,17 @@
+name: "rungo"
+
+stages:
+ -  name: testing
+    tasks:
+      - type: run
+        name: run go version
+        command: go
+        args:
+          - version
+        logStdOut: true
+      - type: run
+        name: run go version
+        command: go
+        args:
+          - version
+        output: "testdata/out.tmp"

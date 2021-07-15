@@ -1,0 +1,9 @@
+name: "seven"
+
+stages:
+ -  name: testing
+    try: true
+    tasks:
+      - type: testTask
+        name: task to test
+        breakInRun: yes

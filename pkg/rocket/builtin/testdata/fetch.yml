@@ -1,0 +1,10 @@
+name: "fetcher"
+stages:
+    - tasks:
+      - type: fetch
+        name: fetch test data
+        log: true
+        resources:
+          - url: 'https://raw.githubusercontent.com/nehemming/oauthproxy/master/README.md'
+            output: 'testdata/readme.tmp'
+        

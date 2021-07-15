@@ -1,0 +1,6 @@
+cirocket
+ciroocket.exe
+.dist
+.artifacts
+.secrets
+*.tmp

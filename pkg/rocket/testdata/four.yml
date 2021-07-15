@@ -1,0 +1,7 @@
+name: "four"
+
+stages:
+ -  name: testing
+    tasks:
+      - type: noType
+        name: task to test

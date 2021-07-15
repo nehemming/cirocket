@@ -1,0 +1,10 @@
+name: "rungoError"
+
+stages:
+ -  name: testing
+    tasks:
+      - type: run
+        name: run go with error
+        command: go nowhere
+
+        

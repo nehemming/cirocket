@@ -1,0 +1,18 @@
+name: "check the project"
+version: '1.0'
+
+includes:
+  - path: stdbuild.yml
+
+params:
+  - name: projectName
+    value: cirocket
+  - name: description
+    value: 'Rocket powered task runner to assist delivering ci build missions'
+  - name: builtBy
+    value: cirocket
+  - name: repoUser
+    value: nehemming
+  - name: license
+    value: 'Apache 2.0'
+

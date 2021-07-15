@@ -1,0 +1,52 @@
+# circleci build
+version: 2.1
+
+jobs:
+  commit:
+    working_directory: ~/src
+    docker:
+      - image: ghcr.io/nehemming/gobuilder:latest
+    steps:
+      - checkout
+      - run:
+          name: "CI Rocket snapshot test on commit"
+          command: cirocket --config build/circleci.yml launch cicommit
+      - run:
+          name: "Report card"
+          command: |
+            curl -d "repo=github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME" https://goreportcard.com/checks > /dev/null 2>&1
+
+  release:
+    working_directory: ~/src
+    docker:
+      - image: ghcr.io/nehemming/gobuilder:latest
+    steps:
+      - checkout
+      - setup_remote_docker:
+          version: 20.10.6
+          docker_layer_caching: true
+      - run:
+          name: "CI Rocket release on new tag"
+          command: |
+            export SECURE_GITHUB_TOKEN=$GITHUB_TOKEN
+            cirocket --config build/circleci.yml launch cirelease
+
+workflows:
+  version: 2
+  testing:
+    jobs:
+      - commit:
+          filters:
+            tags:
+              ignore: 
+                - /^v\d+\.\d+\.\d+.*$/
+  release:
+    jobs:
+      - release:
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v\d+\.\d+\.\d+.*$/
+
+            

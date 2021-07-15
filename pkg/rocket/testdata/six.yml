@@ -1,0 +1,7 @@
+name: "six"
+
+stages:
+ -  name: testing
+    tasks:
+      - type: testTask
+        name: task to test cancel
