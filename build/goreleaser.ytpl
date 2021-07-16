@@ -106,10 +106,18 @@ changelog:
 dockers:
   - image_templates:
 [[if .includeGHCR]]
-      - 'ghcr.io/{{ .Env.REPO_USER }}/{{ .ProjectName }}:{{ .Tag }}-amd64'
+    - 'ghcr.io/{{ .Env.REPO_USER }}/{{ .ProjectName }}:{{ .Tag }}-amd64'
+[[if not .dockerUseManifests]]
+    - 'ghcr.io/{{ .Env.REPO_USER }}/{{ .ProjectName }}:{{ .Tag }}'
+    - 'ghcr.io/{{ .Env.REPO_USER }}/{{ .ProjectName }}:latest'
+[[end]]
 [[end]]
 [[if .includeDockerHub]] 
-      - '{{ .Env.REPO_USER }}/{{ .ProjectName }}:{{ .Tag }}-amd64'
+    - '{{ .Env.REPO_USER }}/{{ .ProjectName }}:{{ .Tag }}-amd64'
+[[if not .dockerUseManifests]]
+    - '{{ .Env.REPO_USER }}/{{ .ProjectName }}:{{ .Tag }}'
+    - '{{ .Env.REPO_USER }}/{{ .ProjectName }}:latest'
+[[end]]
 [[end]]
     dockerfile: [[ .dockerfile ]]
     [[if .dockerUse]]
@@ -123,27 +131,37 @@ dockers:
       - "--label=org.opencontainers.image.version={{.Version}}"
       - "--label=org.opencontainers.image.source=https://github.com/{{ .Env.REPO_USER }}/{{ .ProjectName }}"
       - "--platform=linux/amd64"
+    goarch: amd64
   - image_templates:
 [[if .includeGHCR]]
     - 'ghcr.io/{{ .Env.REPO_USER }}/{{ .ProjectName }}:{{ .Tag }}-arm64'
+[[if not .dockerUseManifests]]
+    - 'ghcr.io/{{ .Env.REPO_USER }}/{{ .ProjectName }}:{{ .Tag }}'
+    - 'ghcr.io/{{ .Env.REPO_USER }}/{{ .ProjectName }}:latest'
+[[end]]
 [[end]]
 [[if .includeDockerHub]] 
     - '{{ .Env.REPO_USER }}/{{ .ProjectName }}:{{ .Tag }}-arm64'
+[[if not .dockerUseManifests]]
+    - '{{ .Env.REPO_USER }}/{{ .ProjectName }}:{{ .Tag }}'
+    - '{{ .Env.REPO_USER }}/{{ .ProjectName }}:latest'
+[[end]]
 [[end]]
     dockerfile: [[ .dockerfile ]]
     [[if .dockerUse]]
     use: [[ .dockerUse ]]
     [[end]] 
     build_flag_templates:
-    - "--pull"
-    - "--label=org.opencontainers.image.created={{.Date}}"
-    - "--label=org.opencontainers.image.name={{.ProjectName}}"
-    - "--label=org.opencontainers.image.revision={{.FullCommit}}"
-    - "--label=org.opencontainers.image.version={{.Version}}"
-    - "--label=org.opencontainers.image.source=https://github.com/{{ .Env.REPO_USER }}/{{ .ProjectName }}"
-    - "--platform=linux/arm64"
+      - "--pull"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.name={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--label=org.opencontainers.image.source=https://github.com/{{ .Env.REPO_USER }}/{{ .ProjectName }}"
+      - "--platform=linux/arm64"
     goarch: arm64
 
+[[if .dockerUseManifests]]
 docker_manifests:
 [[if .includeGHCR]]
   - name_template: 'ghcr.io/{{ .Env.REPO_USER }}/{{ .ProjectName }}:{{ .Tag }}'
@@ -164,6 +182,7 @@ docker_manifests:
     image_templates:
     - '{{ .Env.REPO_USER }}/{{ .ProjectName }}:{{ .Tag }}-amd64'
     - '{{ .Env.REPO_USER }}/{{ .ProjectName }}:{{ .Tag }}-arm64'
+[[end]]
 [[end]]
 [[end]]
 

@@ -28,9 +28,8 @@ jobs:
       - run:
           name: "CI Rocket release on new tag"
           command: |
-            # echo "export GOROOT=$GOROOT" > /tmp/envs.sh
-            # echo "export GOPATH=$GOPATH" >> /tmp/envs.sh
-            # echo "export PATH=$PATH" >> /tmp/envs.sh
+            echo $DOCKER_TOKEN | docker login -u $CIRCLE_PROJECT_USERNAME --password-stdin
+            echo $GITHUB_TOKEN | docker login ghcr.io -u $CIRCLE_PROJECT_USERNAME --password-stdin
             cirocket --config build/circleci.yml launch cirelease
 
 workflows:
