@@ -1,4 +1,3 @@
-
 name: "release the project"
 version: '1.0'
 
@@ -11,17 +10,21 @@ params:
   - name: description
     value: 'Rocket powered task runner to assist delivering ci build missions'
   - name: builtBy
-    value: 'Circle CI'
+    value: CircleCI
   - name: repoUser
     value: '$CIRCLE_PROJECT_USERNAME'
   - name: license
     value: 'Apache 2.0'
+  - name: dockerUse
+    value: docker
 
   - name: includeChangeLog
     value: yes
   - name: includePackages
     value: yes
   - name: includeDocker
+    value: yes
+  - name: includeGHCR
     value: yes
   - name: includeBrews
     value: yes

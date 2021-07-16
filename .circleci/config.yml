@@ -28,7 +28,9 @@ jobs:
       - run:
           name: "CI Rocket release on new tag"
           command: |
-            export SECURE_GITHUB_TOKEN=$GITHUB_TOKEN
+            # echo "export GOROOT=$GOROOT" > /tmp/envs.sh
+            # echo "export GOPATH=$GOPATH" >> /tmp/envs.sh
+            # echo "export PATH=$PATH" >> /tmp/envs.sh
             cirocket --config build/circleci.yml launch cirelease
 
 workflows:

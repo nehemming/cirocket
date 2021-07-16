@@ -1,4 +1,3 @@
-
 name: "release the project"
 version: '1.0'
 
@@ -16,12 +15,15 @@ params:
     value: nehemming
   - name: license
     value: 'Apache 2.0'
-
+  - name: dockerUse
+    value: buildx
   - name: includeChangeLog
     value: yes
   - name: includePackages
     value: yes
   - name: includeDocker
+    value: yes
+  - name: includeGHCR
     value: yes
   - name: includeBrews
     value: yes

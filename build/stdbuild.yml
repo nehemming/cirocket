@@ -13,6 +13,12 @@ params:
   #   value: yes
   # - name: includeDocker
   #   value: yes
+  # - name: includeDockerHub
+  #   value: yes
+  # - name: dockerUse
+  #   value: buildx // !!note not used in circle !!
+  # - name: includeGHCR
+  #   value: yes
   # - name: includeBrews
   #   value: yes
   # - name: homebrewTap
@@ -168,7 +174,6 @@ stages:
             value: '--rm-dist'
         env:
           REPO_USER: '{{ .repoUser }}'
-          GITHUB_TOKEN: '{{ .Env.SECURE_GITHUB_TOKEN }}'
 
   # tag lists the current build tag
   - name: tag_display
