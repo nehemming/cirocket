@@ -17,7 +17,7 @@ import (
 )
 
 type (
-	// Run task is used to run a specific task
+	// Fetch task is used get one or more web resources.
 	Fetch struct {
 		Resources []FetchResource `mapstructure:"resources"`
 		Log       bool            `mapstructure:"log"`
@@ -42,7 +42,6 @@ func (fetchType) Type() string {
 }
 
 func (fetchType) Prepare(ctx context.Context, capComm *rocket.CapComm, task rocket.Task) (rocket.ExecuteFunc, error) {
-
 	fetchCfg := &Fetch{}
 
 	if err := mapstructure.Decode(task.Definition, fetchCfg); err != nil {
@@ -54,31 +53,12 @@ func (fetchType) Prepare(ctx context.Context, capComm *rocket.CapComm, task rock
 		return nil, err
 	}
 
-	resources := make([]urlFileTuple, 0, len(fetchCfg.Resources))
-	for index, res := range fetchCfg.Resources {
-
-		tup := urlFileTuple{}
-		if out, err := capComm.ExpandString(ctx, "out", res.Output); err != nil {
-			return nil, errors.Wrapf(err, "expanding output %d", index)
-		} else if out == "" {
-			return nil, fmt.Errorf("output %d is blank", index)
-		} else {
-			tup.out = out
-		}
-
-		if url, err := capComm.ExpandString(ctx, "url", res.URL); err != nil {
-			return nil, errors.Wrapf(err, "expanding url %d", index)
-		} else if url == "" {
-			return nil, fmt.Errorf("url %d is blank", index)
-		} else {
-			tup.url = url
-		}
-
-		resources = append(resources, tup)
+	resources, err := getResourcesList(ctx, capComm, fetchCfg.Resources)
+	if err != nil {
+		return nil, err
 	}
 
 	fn := func(execCtx context.Context) error {
-
 		// Create a context we can cancel
 		fetchCtx, cancel := context.WithCancel(execCtx)
 		defer cancel()
@@ -114,7 +94,6 @@ func (fetchType) Prepare(ctx context.Context, capComm *rocket.CapComm, task rock
 
 		// Run over requests
 		for _, res := range resources {
-
 			// Check if exit requested
 			if ctx.Err() != nil {
 				return nil
@@ -144,6 +123,32 @@ func (fetchType) Prepare(ctx context.Context, capComm *rocket.CapComm, task rock
 	return fn, nil
 }
 
+func getResourcesList(ctx context.Context, capComm *rocket.CapComm, list []FetchResource) ([]urlFileTuple, error) {
+	resources := make([]urlFileTuple, 0, len(list))
+	for index, res := range list {
+		tup := urlFileTuple{}
+		if out, err := capComm.ExpandString(ctx, "out", res.Output); err != nil {
+			return nil, errors.Wrapf(err, "expanding output %d", index)
+		} else if out == "" {
+			return nil, fmt.Errorf("output %d is blank", index)
+		} else {
+			tup.out = out
+		}
+
+		if url, err := capComm.ExpandString(ctx, "url", res.URL); err != nil {
+			return nil, errors.Wrapf(err, "expanding url %d", index)
+		} else if url == "" {
+			return nil, fmt.Errorf("url %d is blank", index)
+		} else {
+			tup.url = url
+		}
+
+		resources = append(resources, tup)
+	}
+
+	return resources, nil
+}
+
 func getTimeOut(cfgTimeout *int) (time.Duration, error) {
 	var timeout time.Duration
 	if cfgTimeout != nil {
@@ -159,7 +164,6 @@ func getTimeOut(cfgTimeout *int) (time.Duration, error) {
 }
 
 func fetchResource(ctx context.Context, res urlFileTuple, timeOut time.Duration, log bool) error {
-
 	ctxTimeout, cancel := context.WithTimeout(ctx, timeOut)
 	defer cancel()
 

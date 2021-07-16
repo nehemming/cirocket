@@ -2,8 +2,18 @@
 
 Rocket powered task runner to assist delivering ci build missions
 
-
 ## Status
+
+[![Build Status](https://img.shields.io/circleci/build/gh/nehemming/cirocket/master?style=for-the-badge)](https://github.com/nehemming/cirocket) 
+[![Release](https://img.shields.io/github/v/release/nehemming/cirocket.svg?style=for-the-badge)](https://github.com/nehemming/cirocket/releases/latest)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg?style=for-the-badge)](/LICENSE)
+[![GoReportCard](https://goreportcard.com/badge/github.com/nehemming/cirocket?test=0&style=for-the-badge)](https://goreportcard.com/report/github.com/nehemming/cirocket)
+[![Go Doc](https://img.shields.io/badge/godoc-reference-blue.svg?style=for-the-badge)](http://godoc.org/github.com/goreleaser/goreleaser)
+[![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg?style=for-the-badge)](https://conventionalcommits.org)
+[![Uses: cirocket](https://img.shields.io/badge/Uses-cirocket-orange?style=for-the-badge)](https://github.com/nehemming/cirocket)
+[![Uses: GoReleaser](https://img.shields.io/badge/uses-goreleaser-green.svg?style=for-the-badge)](https://github.com/goreleaser)
+
+
 
 This project is in its early alpha MVP stage.  It may be subject to change or redesign, but the hope is not to break any existing scripts using the tool.
 

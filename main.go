@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	// version is the built version of the software
+	// version is the built version of the software.
 	version                         = "dev build"
 	commit, date, builtBy, compName string
 )
@@ -34,7 +34,7 @@ func main() {
 	ctx = buildinfo.NewInfo(version, commit, date, builtBy, compName).NewContext(ctx)
 
 	// Main service entrypoint
-	var exitCode = cmd.Run(ctx)
+	exitCode := cmd.Run(ctx)
 
 	// Exit with the returned exit code
 	os.Exit(exitCode)

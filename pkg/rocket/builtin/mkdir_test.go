@@ -20,7 +20,6 @@ func TestMkDirType(t *testing.T) {
 }
 
 func TestMkDirRun(t *testing.T) {
-
 	loggee.SetLogger(stdlog.New())
 
 	mc := rocket.NewMissionControl()
@@ -32,11 +31,11 @@ func TestMkDirRun(t *testing.T) {
 
 	mission, cfgFile := loadMission("mkdir")
 
-	if err := mc.FlyMission(context.Background(), cfgFile, mission); err != nil {
+	if err := mc.LaunchMission(context.Background(), cfgFile, mission); err != nil {
 		t.Error("failure", err)
 	}
 
-	//Check dir exists
+	// Check dir exists
 	if _, err := os.Stat(dir); err != nil {
 		t.Error("dir missing", err)
 	}

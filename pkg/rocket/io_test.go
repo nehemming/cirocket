@@ -6,7 +6,6 @@ import (
 )
 
 func TestIOModes(t *testing.T) {
-
 	r := modeString(IOModeNone)
 	if r != "0:000000" {
 		t.Error("IOModeNone", r)
@@ -27,7 +26,7 @@ func TestIOModes(t *testing.T) {
 		t.Error("IOModeError", r)
 	}
 
-	r = modeString(IOModeCreate)
+	r = modeString(IOModeTruncate)
 	if r != "8:001000" {
 		t.Error("IOModeCreate", r)
 	}
@@ -43,7 +42,6 @@ func modeString(mode IOMode) string {
 }
 
 func TestNewCopy(t *testing.T) {
-
 	ios := newIOSettings()
 
 	ios.addFilePath(OutputIO, "test123", IOModeOutput)
@@ -58,7 +56,6 @@ func TestNewCopy(t *testing.T) {
 }
 
 func TestDuplicateErrorsOnMissing(t *testing.T) {
-
 	ios := newIOSettings()
 
 	if err := ios.duplicate(OutputIO, ErrorIO); err == nil {
@@ -67,7 +64,6 @@ func TestDuplicateErrorsOnMissing(t *testing.T) {
 }
 
 func TestReadFileFailsWrongType(t *testing.T) {
-
 	ios := newIOSettings()
 	fd := ios.addFilePath(OutputIO, "context.go", IOModeOutput)
 
@@ -77,7 +73,6 @@ func TestReadFileFailsWrongType(t *testing.T) {
 }
 
 func TestReadFileSucceedsForIInput(t *testing.T) {
-
 	ios := newIOSettings()
 	fd := ios.addFilePath(InputIO, "context.go", IOModeInput)
 
@@ -89,7 +84,6 @@ func TestReadFileSucceedsForIInput(t *testing.T) {
 }
 
 func TestOpenInputFailsWrongType(t *testing.T) {
-
 	ios := newIOSettings()
 	fd := ios.addFilePath(InputIO, "context.go", IOModeOutput)
 
@@ -99,7 +93,6 @@ func TestOpenInputFailsWrongType(t *testing.T) {
 }
 
 func TestOpenInputSucceedsForIInput(t *testing.T) {
-
 	ios := newIOSettings()
 	fd := ios.addFilePath(InputIO, "context.go", IOModeInput)
 
@@ -111,7 +104,6 @@ func TestOpenInputSucceedsForIInput(t *testing.T) {
 }
 
 func TestOpenOutput(t *testing.T) {
-
 	ios := newIOSettings()
 	fd := ios.addFilePath(InputIO, "dummy.txt", IOModeInput)
 

@@ -15,9 +15,9 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-const timeOut = time.Duration(time.Second * 10)
+const timeOut = time.Second * 10
 
-func loadMapFromUrl(ctx context.Context, url string) (map[string]interface{}, error) {
+func loadMapFromURL(ctx context.Context, url string) (map[string]interface{}, error) {
 	if url == "" {
 		return nil, errors.New("url empty")
 	}
@@ -50,20 +50,19 @@ func loadMapFromUrl(ctx context.Context, url string) (map[string]interface{}, er
 }
 
 func getConfigFileName(configFile string) (string, error) {
-
 	if configFile == "" {
-		if dir, err := os.Getwd(); err != nil {
+		dir, err := os.Getwd()
+		if err != nil {
 			return "", err
-		} else {
-			return filepath.Join(dir, "default"), nil
 		}
+
+		return filepath.Join(dir, "default"), nil
 	}
 
 	return configFile, nil
 }
 
 func mergePaths(base, rel string) string {
-
 	if path.IsAbs(rel) {
 		return rel
 	}
@@ -93,10 +92,8 @@ func loadMapFromPath(path, basePath string) (map[string]interface{}, string, err
 	return m, path, nil
 }
 
-func loadPreMissionMaps(ctx context.Context, spaceDust map[string]interface{}, configFile string) ([]map[string]interface{}, error) {
-	// Premission
+func decodeSpaceDust(spaceDust map[string]interface{}) ([]map[string]interface{}, []Include, error) {
 	preMission := &PreMission{}
-
 	cfgMaps := make([]map[string]interface{}, 0)
 
 	// Load in the mission from the spaceDust
@@ -105,51 +102,78 @@ func loadPreMissionMaps(ctx context.Context, spaceDust map[string]interface{}, c
 			WeaklyTypedInput: true,
 			Result:           preMission,
 		}); err != nil {
-		return nil, errors.Wrap(err, "setting up premission decoder")
+		return nil, nil, errors.Wrap(err, "setting up pre-mission decoder")
 	} else if err := d.Decode(spaceDust); err != nil {
-		return nil, errors.Wrap(err, "parsing mission premission profile")
+		return nil, nil, errors.Wrap(err, "parsing mission pre-mission profile")
 	}
 
 	cfgMaps = append(cfgMaps, preMission.Mission)
 
+	return cfgMaps, preMission.Includes, nil
+}
+
+func importURLInclude(ctx context.Context, index int, include Include, cfgMaps []map[string]interface{}) ([]map[string]interface{}, error) {
+	url := os.ExpandEnv(include.URL)
+	m, err := loadMapFromURL(ctx, url)
+	if err != nil {
+		return nil, errors.Wrapf(err, "include[%d]", index)
+	}
+	cfgMaps = append(cfgMaps, m)
+
+	return cfgMaps, nil
+}
+
+func importPathInclude(ctx context.Context, index int, include Include, basePath string, cfgMaps []map[string]interface{}) ([]map[string]interface{}, error) {
+	path := os.ExpandEnv(include.Path)
+	m, cfgFile, err := loadMapFromPath(path, basePath)
+	if err != nil {
+		return nil, errors.Wrapf(err, "include[%d]", index)
+	}
+
+	// if m has its own includes need to load its includes too
+	if _, ok := m["includes"]; ok {
+		// nested includes
+		pm, err := loadPreMissionMaps(ctx, m, cfgFile)
+		if err != nil {
+			return nil, errors.Wrapf(err, "include[%d]", index)
+		}
+
+		cfgMaps = append(cfgMaps, pm...)
+	} else {
+		cfgMaps = append(cfgMaps, m)
+	}
+
+	return cfgMaps, nil
+}
+
+func loadPreMissionMaps(ctx context.Context, spaceDust map[string]interface{}, configFile string) ([]map[string]interface{}, error) {
+	cfgMaps, includes, err := decodeSpaceDust(spaceDust)
+	if err != nil {
+		return nil, err
+	}
+
 	// No includes, exit here
-	if len(preMission.Includes) == 0 {
+	if len(includes) == 0 {
 		return cfgMaps, nil
 	}
 
 	// Get the base path of the config file so includes are relative to it
 	basePath := filepath.Dir(configFile)
 
-	for index, include := range preMission.Includes {
-
-		if include.Path != "" && include.Url != "" {
+	for index, include := range includes {
+		if include.Path != "" && include.URL != "" {
 			return nil, fmt.Errorf("include[%d] has both url and path specified", index)
 		}
 
 		if include.Path != "" {
-			path := os.ExpandEnv(include.Path)
-
-			if m, cfgFile, err := loadMapFromPath(path, basePath); err != nil {
-				return nil, errors.Wrapf(err, "include[%d]", index)
-			} else {
-				// if m has its own includes need to load its includes too
-				if _, ok := m["includes"]; ok {
-					// need too get its
-					if pm, err := loadPreMissionMaps(ctx, m, cfgFile); err != nil {
-						return nil, errors.Wrapf(err, "include[%d]", index)
-					} else {
-						cfgMaps = append(cfgMaps, pm...)
-					}
-				} else {
-					cfgMaps = append(cfgMaps, m)
-				}
+			cfgMaps, err = importPathInclude(ctx, index, include, basePath, cfgMaps)
+			if err != nil {
+				return nil, err
 			}
-		} else if include.Url != "" {
-			url := os.ExpandEnv(include.Url)
-			if m, err := loadMapFromUrl(ctx, url); err != nil {
-				return nil, errors.Wrapf(err, "include[%d]", index)
-			} else {
-				cfgMaps = append(cfgMaps, m)
+		} else if include.URL != "" {
+			cfgMaps, err = importURLInclude(ctx, index, include, cfgMaps)
+			if err != nil {
+				return nil, err
 			}
 		} else {
 			return nil, fmt.Errorf("include[%d] has neither url nor path specified", index)
@@ -157,11 +181,9 @@ func loadPreMissionMaps(ctx context.Context, spaceDust map[string]interface{}, c
 	}
 
 	return cfgMaps, nil
-
 }
 
-func mergeMissions(mission, addition *Mission) {
-
+func mergeMissions(mission, addition *Mission) { //nolint complexity
 	if addition.Name != "" {
 		mission.Name = addition.Name
 	}
@@ -208,7 +230,6 @@ func mergeMissions(mission, addition *Mission) {
 }
 
 func loadPreMission(ctx context.Context, spaceDust map[string]interface{}, configFile string) (*Mission, error) {
-
 	// Load all the includes as config maps
 	cfgMaps, err := loadPreMissionMaps(ctx, spaceDust, configFile)
 	if err != nil {
@@ -219,7 +240,6 @@ func loadPreMission(ctx context.Context, spaceDust map[string]interface{}, confi
 
 	// iterate through config maps loading their missions, merging as we go
 	for _, cfgMap := range cfgMaps {
-
 		partialMission := &Mission{}
 
 		// Load in the mission from the spaceDust

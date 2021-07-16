@@ -10,70 +10,8 @@ import (
 
 const testConfigFile = "testdir/file.yml"
 
-func TestNewCapCommFromEnvironment(t *testing.T) {
-
-	os.Setenv("TEST_ENV_CAPCOMM", "99")
-	defer os.Unsetenv("TEST_ENV_CAPCOMM")
-
-	ctx := context.Background()
-
-	capComm := newCapCommFromEnvironment(ctx, testConfigFile)
-
-	if capComm.data != nil {
-		t.Error("Unexpected non nil data")
-	}
-
-	if capComm.env == nil {
-		t.Error("Unexpected nil env")
-	}
-
-	if capComm.env.Get("TEST_ENV_CAPCOMM") != "99" {
-		t.Error("env not pulling from os env")
-	}
-
-	if capComm.env.Get("UNKNOWN_PARAM_FROM_OS") != "" {
-		t.Error("env returning empty string for missing os env")
-	}
-
-	if capComm.entrustedParentEnv != nil {
-		t.Error("Unexpected non nil entrustedParentEnv")
-	}
-
-	if capComm.funcMap == nil {
-		t.Error("Unexpected nil funcMap")
-	}
-
-	if capComm.additionalMissionData == nil {
-		t.Error("Unexpected nil additionalMissionData")
-	}
-
-	if len(capComm.additionalMissionData) != 0 {
-		t.Error("Unexpected nil additionalMissionData len not 0", len(capComm.additionalMissionData))
-	}
-
-	if capComm.params == nil {
-		t.Error("Unexpected nil params")
-	}
-
-	if capComm.runtime.GOARCH != runtime.GOARCH {
-		t.Error("Unexpected GOARCH in runtime", capComm.runtime.GOARCH)
-	}
-
-	if capComm.runtime.GOOS != runtime.GOOS {
-		t.Error("Unexpected GOOS in runtime", capComm.runtime.GOOS)
-	}
-
-	if !capComm.sealed {
-		t.Error("Unexpected unsealed root")
-	}
-
-	if capComm.mission != nil {
-		t.Error("Unexpected non nil mission")
-	}
-
-	if capComm.ioSettings == nil {
-		t.Error("Unexpected nil ioSettings")
-	}
+func TestCapCommConfigFile(t *testing.T) {
+	capComm := newCapCommFromEnvironment(testConfigFile)
 
 	if capComm.params.Get(ConfigFileFullPath) == "" {
 		t.Error("Base params missing ", ConfigFileFullPath)
@@ -89,18 +27,23 @@ func TestNewCapCommFromEnvironment(t *testing.T) {
 	}
 }
 
-func TestCopyTrusted(t *testing.T) {
+func TestCapCommRuntime(t *testing.T) {
+	capComm := newCapCommFromEnvironment(testConfigFile)
 
+	if capComm.runtime.GOARCH != runtime.GOARCH {
+		t.Error("Unexpected GOARCH in runtime", capComm.runtime.GOARCH)
+	}
+
+	if capComm.runtime.GOOS != runtime.GOOS {
+		t.Error("Unexpected GOOS in runtime", capComm.runtime.GOOS)
+	}
+}
+
+func TestCapCommEnv(t *testing.T) {
 	os.Setenv("TEST_ENV_CAPCOMM", "99")
 	defer os.Unsetenv("TEST_ENV_CAPCOMM")
 
-	ctx := context.Background()
-	root := newCapCommFromEnvironment(ctx, testConfigFile)
-	capComm := root.Copy(false)
-
-	if capComm.data != nil {
-		t.Error("Unexpected non nil data")
-	}
+	capComm := newCapCommFromEnvironment(testConfigFile)
 
 	if capComm.env == nil {
 		t.Error("Unexpected nil env")
@@ -108,6 +51,22 @@ func TestCopyTrusted(t *testing.T) {
 
 	if capComm.env.Get("TEST_ENV_CAPCOMM") != "99" {
 		t.Error("env not pulling from os env")
+	}
+
+	if capComm.env.Get("UNKNOWN_PARAM_FROM_OS") != "" {
+		t.Error("env returning empty string for missing os env")
+	}
+}
+
+func TestNewCapCommFromEnvironment(t *testing.T) {
+	capComm := newCapCommFromEnvironment(testConfigFile)
+
+	if capComm.data != nil {
+		t.Error("Unexpected non nil data")
+	}
+
+	if len(capComm.additionalMissionData) != 0 {
+		t.Error("Unexpected nil additionalMissionData len not 0", len(capComm.additionalMissionData))
 	}
 
 	if capComm.entrustedParentEnv != nil {
@@ -122,24 +81,12 @@ func TestCopyTrusted(t *testing.T) {
 		t.Error("Unexpected nil additionalMissionData")
 	}
 
-	if len(capComm.additionalMissionData) != 0 {
-		t.Error("Unexpected nil additionalMissionData len not 0", len(capComm.additionalMissionData))
-	}
-
 	if capComm.params == nil {
 		t.Error("Unexpected nil params")
 	}
 
-	if capComm.runtime.GOARCH != runtime.GOARCH {
-		t.Error("Unexpected GOARCH in runtime", capComm.runtime.GOARCH)
-	}
-
-	if capComm.runtime.GOOS != runtime.GOOS {
-		t.Error("Unexpected GOOS in runtime", capComm.runtime.GOOS)
-	}
-
-	if capComm.sealed {
-		t.Error("Unexpected sealed copy")
+	if !capComm.sealed {
+		t.Error("Unexpected unsealed root")
 	}
 
 	if capComm.mission != nil {
@@ -149,26 +96,34 @@ func TestCopyTrusted(t *testing.T) {
 	if capComm.ioSettings == nil {
 		t.Error("Unexpected nil ioSettings")
 	}
-
-	capComm.Seal()
-
-	if !capComm.sealed {
-		t.Error("Unexpected unsealed post Seal call")
-	}
 }
 
-func TestCopyNoTrust(t *testing.T) {
-
+func TestCapCommCopyEnvTrusted(t *testing.T) {
 	os.Setenv("TEST_ENV_CAPCOMM", "99")
 	defer os.Unsetenv("TEST_ENV_CAPCOMM")
 
-	ctx := context.Background()
-	root := newCapCommFromEnvironment(ctx, testConfigFile)
-	capComm := root.Copy(true)
+	root := newCapCommFromEnvironment(testConfigFile)
+	capComm := root.Copy(false)
 
-	if capComm.data != nil {
-		t.Error("Unexpected non nil data")
+	if capComm.env == nil {
+		t.Error("Unexpected nil env")
 	}
+
+	if capComm.env.Get("TEST_ENV_CAPCOMM") != "99" {
+		t.Error("env not pulling from os env")
+	}
+
+	if capComm.env.Get("UNKNOWN_PARAM_FROM_OS") != "" {
+		t.Error("env returning empty string for missing os env")
+	}
+}
+
+func TestCapCommCopyEnvNotTrusted(t *testing.T) {
+	os.Setenv("TEST_ENV_CAPCOMM", "99")
+	defer os.Unsetenv("TEST_ENV_CAPCOMM")
+
+	root := newCapCommFromEnvironment(testConfigFile)
+	capComm := root.Copy(true)
 
 	if capComm.env == nil {
 		t.Error("Unexpected nil env")
@@ -185,6 +140,63 @@ func TestCopyNoTrust(t *testing.T) {
 	if capComm.entrustedParentEnv.Get("TEST_ENV_CAPCOMM") != "99" {
 		t.Error("entrustedParentEnv not pulling from os env")
 	}
+}
+
+func TestCapCommRuntimeCopyTrusted(t *testing.T) {
+	root := newCapCommFromEnvironment(testConfigFile)
+	capComm := root.Copy(false)
+
+	if capComm.runtime.GOARCH != runtime.GOARCH {
+		t.Error("Unexpected GOARCH in runtime", capComm.runtime.GOARCH)
+	}
+
+	if capComm.runtime.GOOS != runtime.GOOS {
+		t.Error("Unexpected GOOS in runtime", capComm.runtime.GOOS)
+	}
+}
+
+func TestCapCommRuntimeCopyTNotrusted(t *testing.T) {
+	root := newCapCommFromEnvironment(testConfigFile)
+	capComm := root.Copy(true)
+
+	if capComm.runtime.GOARCH != runtime.GOARCH {
+		t.Error("Unexpected GOARCH in runtime", capComm.runtime.GOARCH)
+	}
+
+	if capComm.runtime.GOOS != runtime.GOOS {
+		t.Error("Unexpected GOOS in runtime", capComm.runtime.GOOS)
+	}
+}
+
+func TestCapCommCopyUnSealed(t *testing.T) {
+	root := newCapCommFromEnvironment(testConfigFile)
+	capComm := root.Copy(false)
+
+	if capComm.sealed {
+		t.Error("Unexpected sealed copy")
+	}
+
+	capComm.Seal()
+
+	if !capComm.sealed {
+		t.Error("Unexpected unsealed post Seal call")
+	}
+}
+
+func TestCopyTrusted(t *testing.T) {
+	os.Setenv("TEST_ENV_CAPCOMM", "99")
+	defer os.Unsetenv("TEST_ENV_CAPCOMM")
+
+	root := newCapCommFromEnvironment(testConfigFile)
+	capComm := root.Copy(false)
+
+	if capComm.data != nil {
+		t.Error("Unexpected non nil data")
+	}
+
+	if capComm.entrustedParentEnv != nil {
+		t.Error("Unexpected non nil entrustedParentEnv")
+	}
 
 	if capComm.funcMap == nil {
 		t.Error("Unexpected nil funcMap")
@@ -202,12 +214,40 @@ func TestCopyNoTrust(t *testing.T) {
 		t.Error("Unexpected nil params")
 	}
 
-	if capComm.runtime.GOARCH != runtime.GOARCH {
-		t.Error("Unexpected GOARCH in runtime", capComm.runtime.GOARCH)
+	if capComm.mission != nil {
+		t.Error("Unexpected non nil mission")
 	}
 
-	if capComm.runtime.GOOS != runtime.GOOS {
-		t.Error("Unexpected GOOS in runtime", capComm.runtime.GOOS)
+	if capComm.ioSettings == nil {
+		t.Error("Unexpected nil ioSettings")
+	}
+}
+
+func TestCopyNoTrust(t *testing.T) {
+	os.Setenv("TEST_ENV_CAPCOMM", "99")
+	defer os.Unsetenv("TEST_ENV_CAPCOMM")
+
+	root := newCapCommFromEnvironment(testConfigFile)
+	capComm := root.Copy(true)
+
+	if capComm.data != nil {
+		t.Error("Unexpected non nil data")
+	}
+
+	if capComm.funcMap == nil {
+		t.Error("Unexpected nil funcMap")
+	}
+
+	if capComm.additionalMissionData == nil {
+		t.Error("Unexpected nil additionalMissionData")
+	}
+
+	if len(capComm.additionalMissionData) != 0 {
+		t.Error("Unexpected nil additionalMissionData len not 0", len(capComm.additionalMissionData))
+	}
+
+	if capComm.params == nil {
+		t.Error("Unexpected nil params")
 	}
 
 	if capComm.sealed {
@@ -224,8 +264,7 @@ func TestCopyNoTrust(t *testing.T) {
 }
 
 func TestWithMission(t *testing.T) {
-
-	capComm := newCapCommFromEnvironment(context.Background(), testConfigFile).Copy(false)
+	capComm := newCapCommFromEnvironment(testConfigFile).Copy(false)
 
 	if capComm.mission != nil {
 		t.Error("Unexpected non nil mission")
@@ -247,8 +286,7 @@ func TestWithMission(t *testing.T) {
 }
 
 func TestMergeBasicEnvMap(t *testing.T) {
-
-	capComm := newCapCommFromEnvironment(context.Background(), testConfigFile).Copy(false)
+	capComm := newCapCommFromEnvironment(testConfigFile).Copy(false)
 
 	envMap := make(EnvMap)
 
@@ -276,8 +314,7 @@ func TestMergeBasicEnvMap(t *testing.T) {
 }
 
 func TestAddAdditionalMissionData(t *testing.T) {
-
-	capComm := newCapCommFromEnvironment(context.Background(), testConfigFile).Copy(false)
+	capComm := newCapCommFromEnvironment(testConfigFile).Copy(false)
 
 	capComm.AddAdditionalMissionData(nil)
 
@@ -315,13 +352,12 @@ func TestAddAdditionalMissionData(t *testing.T) {
 	}
 }
 
-func TestAddFile(t *testing.T) {
-
+func TestAddFile(t *testing.T) { //nolint -- keep as one test
 	envMap := make(EnvMap)
 	envMap["something"] = "here"
 
 	ctx := context.Background()
-	capComm := newCapCommFromEnvironment(ctx, testConfigFile).Copy(false).MergeBasicEnvMap(envMap)
+	capComm := newCapCommFromEnvironment(testConfigFile).Copy(false).MergeBasicEnvMap(envMap)
 
 	if err := capComm.AddFile(ctx, OutputIO, "test123", IOModeOutput|IOModeAppend); err != nil {
 		t.Error("AddFile error", err)
@@ -377,9 +413,8 @@ func TestAddFile(t *testing.T) {
 }
 
 func TestAttachOutputCreateMode(t *testing.T) {
-
 	ctx := context.Background()
-	capComm := newCapCommFromEnvironment(ctx, testConfigFile).Copy(false)
+	capComm := newCapCommFromEnvironment(testConfigFile).Copy(false)
 
 	outSpec := OutputSpec{
 		Output: "test1234",
@@ -393,7 +428,7 @@ func TestAttachOutputCreateMode(t *testing.T) {
 	if fd == nil {
 		t.Error("No fd entry")
 	}
-	if !fd.InMode(IOModeOutput | IOModeCreate) {
+	if !fd.InMode(IOModeOutput | IOModeTruncate) {
 		t.Error("No fd file mode wrong", fd.fileMode)
 	}
 	if fd.filePath != "test1234" {
@@ -402,9 +437,8 @@ func TestAttachOutputCreateMode(t *testing.T) {
 }
 
 func TestAttachOutputAppendMode(t *testing.T) {
-
 	ctx := context.Background()
-	capComm := newCapCommFromEnvironment(ctx, testConfigFile).Copy(false)
+	capComm := newCapCommFromEnvironment(testConfigFile).Copy(false)
 
 	outSpec := OutputSpec{
 		Output:       "test1234",
@@ -427,9 +461,9 @@ func TestAttachOutputAppendMode(t *testing.T) {
 	}
 }
 
-func TestAttachRedirectNoMerge(t *testing.T) {
+func TestAttachRedirectNoMergeStdOut(t *testing.T) {
 	ctx := context.Background()
-	capComm := newCapCommFromEnvironment(ctx, testConfigFile).Copy(false)
+	capComm := newCapCommFromEnvironment(testConfigFile).Copy(false)
 
 	redirect := Redirection{
 		OutputSpec: OutputSpec{
@@ -454,16 +488,52 @@ func TestAttachRedirectNoMerge(t *testing.T) {
 	if fdOut.filePath != "test1234" {
 		t.Error("Output fdOut wrong", fdOut.filePath)
 	}
+}
+
+func TestAttachRedirectNoMergeStdErr(t *testing.T) {
+	ctx := context.Background()
+	capComm := newCapCommFromEnvironment(testConfigFile).Copy(false)
+
+	redirect := Redirection{
+		OutputSpec: OutputSpec{
+			Output:       "test1234",
+			AppendOutput: true,
+		},
+		Input: "in2020",
+		Error: "sometimes",
+	}
+
+	if err := capComm.AttachRedirect(ctx, redirect); err != nil {
+		t.Error("AttachRedirect error", err)
+	}
 
 	fdError := capComm.GetFileDetails(ErrorIO)
 	if fdError == nil {
 		t.Error("No fdError entry")
 	}
-	if !fdError.InMode(IOModeError | IOModeCreate) {
+	if !fdError.InMode(IOModeError | IOModeTruncate) {
 		t.Error("No fdError file mode wrong", fdError.fileMode)
 	}
 	if fdError.filePath != "sometimes" {
 		t.Error("Output fdError wrong", fdError.filePath)
+	}
+}
+
+func TestAttachRedirectNoMergeStdIn(t *testing.T) {
+	ctx := context.Background()
+	capComm := newCapCommFromEnvironment(testConfigFile).Copy(false)
+
+	redirect := Redirection{
+		OutputSpec: OutputSpec{
+			Output:       "test1234",
+			AppendOutput: true,
+		},
+		Input: "in2020",
+		Error: "sometimes",
+	}
+
+	if err := capComm.AttachRedirect(ctx, redirect); err != nil {
+		t.Error("AttachRedirect error", err)
 	}
 
 	fdIn := capComm.GetFileDetails(InputIO)
@@ -478,9 +548,9 @@ func TestAttachRedirectNoMerge(t *testing.T) {
 	}
 }
 
-func TestAttachRedirectErrorMerge(t *testing.T) {
+func TestAttachRedirectErrorMergeStdOut(t *testing.T) {
 	ctx := context.Background()
-	capComm := newCapCommFromEnvironment(ctx, testConfigFile).Copy(false)
+	capComm := newCapCommFromEnvironment(testConfigFile).Copy(false)
 
 	redirect := Redirection{
 		OutputSpec: OutputSpec{
@@ -506,6 +576,25 @@ func TestAttachRedirectErrorMerge(t *testing.T) {
 	if fdOut.filePath != "test1234" {
 		t.Error("Output fdOut wrong", fdOut.filePath)
 	}
+}
+
+func TestAttachRedirectErrorMergeStdErr(t *testing.T) {
+	ctx := context.Background()
+	capComm := newCapCommFromEnvironment(testConfigFile).Copy(false)
+
+	redirect := Redirection{
+		OutputSpec: OutputSpec{
+			Output:       "test1234",
+			AppendOutput: true,
+		},
+		Input:                "in2020",
+		Error:                "sometimes",
+		MergeErrorWithOutput: true,
+	}
+
+	if err := capComm.AttachRedirect(ctx, redirect); err != nil {
+		t.Error("AttachRedirect error", err)
+	}
 
 	fdError := capComm.GetFileDetails(ErrorIO)
 	if fdError == nil {
@@ -516,6 +605,25 @@ func TestAttachRedirectErrorMerge(t *testing.T) {
 	}
 	if fdError.filePath != "test1234" {
 		t.Error("Output fdError wrong", fdError.filePath)
+	}
+}
+
+func TestAttachRedirectErrorMergeStdIn(t *testing.T) {
+	ctx := context.Background()
+	capComm := newCapCommFromEnvironment(testConfigFile).Copy(false)
+
+	redirect := Redirection{
+		OutputSpec: OutputSpec{
+			Output:       "test1234",
+			AppendOutput: true,
+		},
+		Input:                "in2020",
+		Error:                "sometimes",
+		MergeErrorWithOutput: true,
+	}
+
+	if err := capComm.AttachRedirect(ctx, redirect); err != nil {
+		t.Error("AttachRedirect error", err)
 	}
 
 	fdIn := capComm.GetFileDetails(InputIO)
@@ -530,7 +638,7 @@ func TestAttachRedirectErrorMerge(t *testing.T) {
 	}
 }
 
-func TestAttachRedirectExpand(t *testing.T) {
+func TestAttachRedirectOutputExpand(t *testing.T) {
 	os.Setenv("TEST_ENV_CAPCOMM", "99")
 	defer os.Unsetenv("TEST_ENV_CAPCOMM")
 
@@ -538,7 +646,7 @@ func TestAttachRedirectExpand(t *testing.T) {
 	envMap["something"] = "here"
 
 	ctx := context.Background()
-	capComm := newCapCommFromEnvironment(ctx, testConfigFile).Copy(false).MergeBasicEnvMap(envMap)
+	capComm := newCapCommFromEnvironment(testConfigFile).Copy(false).MergeBasicEnvMap(envMap)
 
 	redirect := Redirection{
 		OutputSpec: OutputSpec{
@@ -558,11 +666,36 @@ func TestAttachRedirectExpand(t *testing.T) {
 	if fdOut == nil {
 		t.Error("No fdOut entry")
 	}
-	if !fdOut.InMode(IOModeOutput | IOModeCreate) {
+	if !fdOut.InMode(IOModeOutput | IOModeTruncate) {
 		t.Error("No fdOut file mode wrong", fdOut.fileMode)
 	}
 	if fdOut.filePath != "here-test1234" {
 		t.Error("Output fdOut wrong", fdOut.filePath)
+	}
+}
+
+func TestAttachRedirectErrorExpand(t *testing.T) {
+	os.Setenv("TEST_ENV_CAPCOMM", "99")
+	defer os.Unsetenv("TEST_ENV_CAPCOMM")
+
+	envMap := make(EnvMap)
+	envMap["something"] = "here"
+
+	ctx := context.Background()
+	capComm := newCapCommFromEnvironment(testConfigFile).Copy(false).MergeBasicEnvMap(envMap)
+
+	redirect := Redirection{
+		OutputSpec: OutputSpec{
+			Output:       "{{.Env.something}}-test1234",
+			AppendOutput: false,
+		},
+		Input:       "in2020",
+		Error:       "sometimes${TEST_ENV_CAPCOMM}",
+		AppendError: true,
+	}
+
+	if err := capComm.AttachRedirect(ctx, redirect); err != nil {
+		t.Error("AttachRedirect error", err)
 	}
 
 	fdError := capComm.GetFileDetails(ErrorIO)
@@ -574,6 +707,31 @@ func TestAttachRedirectExpand(t *testing.T) {
 	}
 	if fdError.filePath != "sometimes99" {
 		t.Error("Output fdError wrong", fdError.filePath)
+	}
+}
+
+func TestAttachRedirectInExpand(t *testing.T) {
+	os.Setenv("TEST_ENV_CAPCOMM", "99")
+	defer os.Unsetenv("TEST_ENV_CAPCOMM")
+
+	envMap := make(EnvMap)
+	envMap["something"] = "here"
+
+	ctx := context.Background()
+	capComm := newCapCommFromEnvironment(testConfigFile).Copy(false).MergeBasicEnvMap(envMap)
+
+	redirect := Redirection{
+		OutputSpec: OutputSpec{
+			Output:       "{{.Env.something}}-test1234",
+			AppendOutput: false,
+		},
+		Input:       "in2020",
+		Error:       "sometimes${TEST_ENV_CAPCOMM}",
+		AppendError: true,
+	}
+
+	if err := capComm.AttachRedirect(ctx, redirect); err != nil {
+		t.Error("AttachRedirect error", err)
 	}
 
 	fdIn := capComm.GetFileDetails(InputIO)
@@ -589,12 +747,11 @@ func TestAttachRedirectExpand(t *testing.T) {
 }
 
 func TestMergeParams(t *testing.T) {
-
 	os.Setenv("TEST_ENV_CAPCOMM", "99")
 	defer os.Unsetenv("TEST_ENV_CAPCOMM")
 
 	ctx := context.Background()
-	capComm := newCapCommFromEnvironment(ctx, testConfigFile).Copy(false)
+	capComm := newCapCommFromEnvironment(testConfigFile).Copy(false)
 
 	if err := capComm.MergeParams(ctx, nil); err != nil {
 		t.Error("nil MergeParams error", err)
@@ -632,12 +789,11 @@ func TestMergeParams(t *testing.T) {
 }
 
 func TestMergeParamsWithFile(t *testing.T) {
-
 	envMap := make(EnvMap)
 	envMap["name"] = "config"
 
 	ctx := context.Background()
-	capComm := newCapCommFromEnvironment(ctx, testConfigFile).Copy(false).MergeBasicEnvMap(envMap)
+	capComm := newCapCommFromEnvironment(testConfigFile).Copy(false).MergeBasicEnvMap(envMap)
 
 	params := make([]Param, 0)
 	params = append(params, Param{
@@ -656,12 +812,11 @@ func TestMergeParamsWithFile(t *testing.T) {
 }
 
 func TestMergeParamsWithOptionalFile(t *testing.T) {
-
 	envMap := make(EnvMap)
 	envMap["name"] = "notaconfig"
 
 	ctx := context.Background()
-	capComm := newCapCommFromEnvironment(ctx, testConfigFile).Copy(false).MergeBasicEnvMap(envMap)
+	capComm := newCapCommFromEnvironment(testConfigFile).Copy(false).MergeBasicEnvMap(envMap)
 
 	params := make([]Param, 0)
 	params = append(params, Param{
@@ -681,12 +836,11 @@ func TestMergeParamsWithOptionalFile(t *testing.T) {
 }
 
 func TestMergeParamsWithSkipTemplate(t *testing.T) {
-
 	envMap := make(EnvMap)
 	envMap["name"] = "notaconfig"
 
 	ctx := context.Background()
-	capComm := newCapCommFromEnvironment(ctx, testConfigFile).Copy(false).MergeBasicEnvMap(envMap)
+	capComm := newCapCommFromEnvironment(testConfigFile).Copy(false).MergeBasicEnvMap(envMap)
 
 	params := make([]Param, 0)
 	params = append(params, Param{
@@ -706,12 +860,11 @@ func TestMergeParamsWithSkipTemplate(t *testing.T) {
 }
 
 func TestMergeParamsWithParam(t *testing.T) {
-
 	envMap := make(EnvMap)
 	envMap["name"] = "config"
 
 	ctx := context.Background()
-	capComm := newCapCommFromEnvironment(ctx, testConfigFile).Copy(false).MergeBasicEnvMap(envMap)
+	capComm := newCapCommFromEnvironment(testConfigFile).Copy(false).MergeBasicEnvMap(envMap)
 
 	params := make([]Param, 0)
 	params = append(params, Param{
@@ -728,7 +881,7 @@ func TestMergeParamsWithParam(t *testing.T) {
 		t.Error("data is unexpected", data)
 	}
 
-	//new params
+	// new params
 	params = make([]Param, 0)
 	params = append(params, Param{
 		Name:  "gogo",
@@ -746,12 +899,11 @@ func TestMergeParamsWithParam(t *testing.T) {
 }
 
 func TestMergeTemplateEnvs(t *testing.T) {
-
 	os.Setenv("TEST_ENV_CAPCOMM", "99")
 	defer os.Unsetenv("TEST_ENV_CAPCOMM")
 
 	ctx := context.Background()
-	capComm := newCapCommFromEnvironment(ctx, testConfigFile).Copy(false)
+	capComm := newCapCommFromEnvironment(testConfigFile).Copy(false)
 
 	envMap := make(EnvMap)
 
@@ -773,9 +925,7 @@ func TestMergeTemplateEnvs(t *testing.T) {
 }
 
 func TestFuncMap(t *testing.T) {
-
-	ctx := context.Background()
-	capComm := newCapCommFromEnvironment(ctx, testConfigFile).Copy(false)
+	capComm := newCapCommFromEnvironment(testConfigFile).Copy(false)
 
 	fm := capComm.FuncMap()
 	if len(fm) != 1 {
@@ -784,12 +934,10 @@ func TestFuncMap(t *testing.T) {
 }
 
 func TestFGetExecEnvNoOSInherit(t *testing.T) {
-
 	os.Setenv("TEST_ENV_CAPCOMM", "99")
 	defer os.Unsetenv("TEST_ENV_CAPCOMM")
 
-	ctx := context.Background()
-	execEnv := newCapCommFromEnvironment(ctx, testConfigFile).Copy(true).GetExecEnv()
+	execEnv := newCapCommFromEnvironment(testConfigFile).Copy(true).GetExecEnv()
 
 	if len(execEnv) != 0 {
 		t.Error("execEnv len not 0", len(execEnv))
@@ -797,11 +945,9 @@ func TestFGetExecEnvNoOSInherit(t *testing.T) {
 }
 
 func TestGetExecEnv(t *testing.T) {
-
 	envMap := make(EnvMap)
 	envMap["TEST_ENV_CAPCOMM"] = "99"
-	ctx := context.Background()
-	execEnv := newCapCommFromEnvironment(ctx, testConfigFile).Copy(true).MergeBasicEnvMap(envMap).GetExecEnv()
+	execEnv := newCapCommFromEnvironment(testConfigFile).Copy(true).MergeBasicEnvMap(envMap).GetExecEnv()
 
 	if len(execEnv) != 1 {
 		t.Error("execEnv len not 1", len(execEnv))
@@ -810,10 +956,8 @@ func TestGetExecEnv(t *testing.T) {
 	}
 }
 
-func TestIsFiltered(t *testing.T) {
-
-	ctx := context.Background()
-	capComm := newCapCommFromEnvironment(ctx, testConfigFile).Copy(true)
+func TestIsFilteredInclude(t *testing.T) {
+	capComm := newCapCommFromEnvironment(testConfigFile).Copy(true)
 
 	if capComm.isFiltered(nil) != false {
 		t.Error("Nil should not filter")
@@ -832,9 +976,17 @@ func TestIsFiltered(t *testing.T) {
 	if capComm.isFiltered(f) != false {
 		t.Error("Same Arch should not filter")
 	}
+}
+
+func TestIsFilteredNotInclude(t *testing.T) {
+	capComm := newCapCommFromEnvironment(testConfigFile).Copy(true)
+
+	if capComm.isFiltered(nil) != false {
+		t.Error("Nil should not filter")
+	}
 
 	// Not included testing
-	f = &Filter{}
+	f := &Filter{}
 	f.IncludeOS = []string{runtime.GOOS + "nope"}
 	if capComm.isFiltered(f) != true {
 		t.Error("Diff Os should filter")
@@ -843,9 +995,17 @@ func TestIsFiltered(t *testing.T) {
 	if capComm.isFiltered(f) != true {
 		t.Error("Diff Arch should filter")
 	}
+}
 
-	// Excluded test
-	f = &Filter{}
+func TestIsFilteredExclude(t *testing.T) {
+	capComm := newCapCommFromEnvironment(testConfigFile).Copy(true)
+
+	if capComm.isFiltered(nil) != false {
+		t.Error("Nil should not filter")
+	}
+
+	// Exclude
+	f := &Filter{}
 	f.ExcludeOS = []string{runtime.GOOS}
 	if capComm.isFiltered(f) != true {
 		t.Error("Same Os should exclude filter")
@@ -855,9 +1015,17 @@ func TestIsFiltered(t *testing.T) {
 	if capComm.isFiltered(f) != true {
 		t.Error("Same Arch should exclude filter")
 	}
+}
+
+func TestIsFilteredNotExclude(t *testing.T) {
+	capComm := newCapCommFromEnvironment(testConfigFile).Copy(true)
+
+	if capComm.isFiltered(nil) != false {
+		t.Error("Nil should not filter")
+	}
 
 	// Non exclude test
-	f = &Filter{}
+	f := &Filter{}
 	f.ExcludeOS = []string{runtime.GOOS + "nope"}
 	if capComm.isFiltered(f) != false {
 		t.Error("Diff Os should exclude filter")
@@ -870,13 +1038,11 @@ func TestIsFiltered(t *testing.T) {
 }
 
 func TestMustNotBeSealed(t *testing.T) {
-
 	defer func() {
 		if r := recover(); r == nil {
 			t.Error("No panic")
 		}
 	}()
 
-	newCapCommFromEnvironment(context.Background(), testConfigFile).mustNotBeSealed()
-
+	newCapCommFromEnvironment(testConfigFile).mustNotBeSealed()
 }

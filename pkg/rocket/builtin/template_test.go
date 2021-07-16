@@ -18,7 +18,6 @@ func TestTemplateType(t *testing.T) {
 }
 
 func TestTemplateHelloWorld(t *testing.T) {
-
 	loggee.SetLogger(stdlog.New())
 
 	mc := rocket.NewMissionControl()
@@ -26,7 +25,7 @@ func TestTemplateHelloWorld(t *testing.T) {
 
 	mission, cfgFile := loadMission("hello")
 
-	if err := mc.FlyMission(context.Background(), cfgFile, mission); err != nil {
+	if err := mc.LaunchMission(context.Background(), cfgFile, mission); err != nil {
 		t.Error("failure", err)
 	}
 }

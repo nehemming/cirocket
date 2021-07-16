@@ -6,8 +6,7 @@ import (
 )
 
 func TestContextRoundTrip(t *testing.T) {
-
-	capComm := newCapCommFromEnvironment(context.Background(), "dir/file")
+	capComm := newCapCommFromEnvironment("dir/file")
 
 	ctx := NewContextWithCapComm(context.Background(), capComm)
 
@@ -16,15 +15,12 @@ func TestContextRoundTrip(t *testing.T) {
 	if ret != capComm {
 		t.Error("No round trip")
 	}
-
 }
 
 func TestGetCapCommContextWithNoneSet(t *testing.T) {
-
 	ret := GetCapCommContext(context.Background())
 
 	if ret != nil {
 		t.Error("ret should be nil")
 	}
-
 }

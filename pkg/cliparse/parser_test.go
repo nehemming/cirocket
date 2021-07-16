@@ -6,7 +6,6 @@ import (
 )
 
 func TestParseLineEmptyString(t *testing.T) {
-
 	p, a, err := parseLine("")
 
 	if err != nil || p != "" || len(a) != 0 {
@@ -15,7 +14,6 @@ func TestParseLineEmptyString(t *testing.T) {
 }
 
 func TestParseLineProgramOnly(t *testing.T) {
-
 	expectedProgram := "run.exe"
 	p, a, err := parseLine(expectedProgram)
 
@@ -25,7 +23,6 @@ func TestParseLineProgramOnly(t *testing.T) {
 }
 
 func TestParseLineProgramOnlyRemovesPadding(t *testing.T) {
-
 	expectedProgram := "run.exe"
 	p, a, err := parseLine("  " + expectedProgram + "  ")
 
@@ -35,7 +32,6 @@ func TestParseLineProgramOnlyRemovesPadding(t *testing.T) {
 }
 
 func TestParseLineProgramHasSpacesInQuotes(t *testing.T) {
-
 	expectedProgram := "run my.exe"
 	p, a, err := parseLine("  'run my'.exe  ")
 
@@ -45,7 +41,6 @@ func TestParseLineProgramHasSpacesInQuotes(t *testing.T) {
 }
 
 func TestParseLineProgramOnlySingleQuoted(t *testing.T) {
-
 	expectedProgram := "run.exe"
 	p, a, err := parseLine("'run.exe'")
 
@@ -55,7 +50,6 @@ func TestParseLineProgramOnlySingleQuoted(t *testing.T) {
 }
 
 func TestParseLineProgramOnlyDoubleQuoted(t *testing.T) {
-
 	expectedProgram := "run.exe"
 	p, a, err := parseLine("\"run.exe\"")
 
@@ -65,7 +59,6 @@ func TestParseLineProgramOnlyDoubleQuoted(t *testing.T) {
 }
 
 func TestParseLineProgramOnlyDSingleuotedMissingEnd(t *testing.T) {
-
 	expectedProgram := "'run.exe"
 	p, a, err := parseLine(expectedProgram)
 
@@ -75,7 +68,6 @@ func TestParseLineProgramOnlyDSingleuotedMissingEnd(t *testing.T) {
 }
 
 func TestParseLineProgramOnlyDoubleQuotedMissingEnd(t *testing.T) {
-
 	expectedProgram := "\"run.exe"
 	p, a, err := parseLine(expectedProgram)
 
@@ -85,7 +77,6 @@ func TestParseLineProgramOnlyDoubleQuotedMissingEnd(t *testing.T) {
 }
 
 func TestParseLineProgramOnlySingleQuotedMissingStart(t *testing.T) {
-
 	expectedProgram := "run.exe\""
 	p, a, err := parseLine(expectedProgram)
 
@@ -95,7 +86,6 @@ func TestParseLineProgramOnlySingleQuotedMissingStart(t *testing.T) {
 }
 
 func TestParseLineProgramOnlyDoubleQuotedMissingStart(t *testing.T) {
-
 	expectedProgram := "run.exe\""
 	p, a, err := parseLine(expectedProgram)
 
@@ -105,7 +95,6 @@ func TestParseLineProgramOnlyDoubleQuotedMissingStart(t *testing.T) {
 }
 
 func TestParseLineProgramOneArg(t *testing.T) {
-
 	expectedProgram := "run.exe"
 	expectedArgs := []string{"one"}
 	p, a, err := parseLine(expectedProgram + " one")
@@ -123,7 +112,6 @@ func TestParseLineProgramOneArg(t *testing.T) {
 }
 
 func TestParseLineProgramThreeArg(t *testing.T) {
-
 	expectedProgram := "run.exe"
 	expectedArgs := []string{"one", "two", "three"}
 	p, a, err := parseLine(expectedProgram + " one two three")
@@ -141,7 +129,6 @@ func TestParseLineProgramThreeArg(t *testing.T) {
 }
 
 func TestParseLineProgramThreeArgQuoted(t *testing.T) {
-
 	expectedProgram := "run.exe"
 	expectedArgs := []string{"one", "\"two\"", "'three'"}
 	p, a, err := parseLine(expectedProgram + " one \"two\" 'three'")
@@ -159,7 +146,6 @@ func TestParseLineProgramThreeArgQuoted(t *testing.T) {
 }
 
 func TestParseLineProgramTwoArgQuoted(t *testing.T) {
-
 	expectedProgram := "run.exe"
 	expectedArgs := []string{"one", "\"two 'three'\""}
 	p, a, err := parseLine(expectedProgram + " one \"two 'three'\"")
@@ -177,7 +163,6 @@ func TestParseLineProgramTwoArgQuoted(t *testing.T) {
 }
 
 func TestParseLineProgramTwoArgQuoted2(t *testing.T) {
-
 	expectedProgram := "run.exe"
 	expectedArgs := []string{"one", "'two \"thr\"ee'"}
 	p, a, err := parseLine(expectedProgram + "  one 'two \"thr\"ee'")
@@ -195,20 +180,23 @@ func TestParseLineProgramTwoArgQuoted2(t *testing.T) {
 }
 
 func TestParseLineProgramOnlyWithIllegalShellChar(t *testing.T) {
-
 	p, a, err := parseLine("run*.exe|")
 
 	if err == nil || p != "" || len(a) != 0 {
 		t.Error("unexpected", p, a, err)
 	}
+}
 
-	p, a, err = parseLine("run.exe|")
+func TestParseLineProgramOnlyWithIllegalShellCharPipe(t *testing.T) {
+	p, a, err := parseLine("run.exe|")
 
 	if err == nil || p != "" || len(a) != 0 {
 		t.Error("unexpected", p, a, err)
 	}
+}
 
-	p, a, err = parseLine("run.exe<")
+func TestParseLineProgramOnlyWithIllegalShellCharRedirect(t *testing.T) {
+	p, a, err := parseLine("run.exe<")
 
 	if err == nil || p != "" || len(a) != 0 {
 		t.Error("unexpected", p, a, err)
@@ -219,11 +207,9 @@ func TestParseLineProgramOnlyWithIllegalShellChar(t *testing.T) {
 	if err == nil || p != "" || len(a) != 0 {
 		t.Error("unexpected", p, a, err)
 	}
-
 }
 
 func TestParseLineProgramWitArgsWithPipe(t *testing.T) {
-
 	p, a, err := parseLine("run.exe | two")
 
 	if err == nil || p != "" || len(a) != 0 {
@@ -232,7 +218,6 @@ func TestParseLineProgramWitArgsWithPipe(t *testing.T) {
 }
 
 func TestParseLineProgramWitArgsWithLeadingChar(t *testing.T) {
-
 	p, a, err := parseLine(">run.exe|two")
 
 	if err == nil || p != "" || len(a) != 0 {
@@ -241,7 +226,6 @@ func TestParseLineProgramWitArgsWithLeadingChar(t *testing.T) {
 }
 
 func TestCleanQuotesBlank(t *testing.T) {
-
 	clean, globMode := cleanQuotes("", true)
 
 	if clean != "" && globMode != 0 {
@@ -256,7 +240,6 @@ func TestCleanQuotesBlank(t *testing.T) {
 }
 
 func TestCleanQuotesNoQuotes(t *testing.T) {
-
 	clean, globMode := cleanQuotes("hello", true)
 
 	if clean != "hello" && globMode != 0 {
@@ -271,7 +254,6 @@ func TestCleanQuotesNoQuotes(t *testing.T) {
 }
 
 func TestCleanQuotesNoWithQuotes(t *testing.T) {
-
 	clean, globMode := cleanQuotes("'hello'", true)
 
 	if clean != "hello" && globMode != 0 {
@@ -286,7 +268,6 @@ func TestCleanQuotesNoWithQuotes(t *testing.T) {
 }
 
 func TestCleanQuotesWildcardNoQuotes(t *testing.T) {
-
 	clean, globMode := cleanQuotes("hello*me", true)
 
 	if clean != "hello*me" && globMode != 1 {
@@ -301,7 +282,6 @@ func TestCleanQuotesWildcardNoQuotes(t *testing.T) {
 }
 
 func TestCleanQuotesWildcardQuotes(t *testing.T) {
-
 	clean, globMode := cleanQuotes("\"hello\"*me", true)
 
 	if clean != "hello*me" && globMode != 1 {
@@ -316,7 +296,6 @@ func TestCleanQuotesWildcardQuotes(t *testing.T) {
 }
 
 func TestCleanQuotesWildcardIndideQuotes(t *testing.T) {
-
 	clean, globMode := cleanQuotes("\"hello*\"me", true)
 
 	if clean != "hello*me" && globMode != -1 {
@@ -331,7 +310,6 @@ func TestCleanQuotesWildcardIndideQuotes(t *testing.T) {
 }
 
 func TestParserCreate(t *testing.T) {
-
 	p := NewParse()
 
 	if p.glob != nil {
@@ -356,7 +334,6 @@ func TestParserCreate(t *testing.T) {
 }
 
 func TestExpandArgIgnoresEmpty(t *testing.T) {
-
 	p := NewParse()
 
 	slice := make([]string, 0)
@@ -369,7 +346,6 @@ func TestExpandArgIgnoresEmpty(t *testing.T) {
 }
 
 func TestExpandArgReturnsArg(t *testing.T) {
-
 	p := NewParse()
 
 	slice := make([]string, 0)
@@ -382,7 +358,6 @@ func TestExpandArgReturnsArg(t *testing.T) {
 }
 
 func TestExpandArgGlobs(t *testing.T) {
-
 	p := NewParse().WithGlob(filepath.Glob)
 
 	slice := make([]string, 0)
@@ -395,7 +370,6 @@ func TestExpandArgGlobs(t *testing.T) {
 }
 
 func TestCombineArgsNoAdditionSucceeds(t *testing.T) {
-
 	p := NewParse().WithGlob(filepath.Glob)
 
 	args := []string{"'hello'", "'there'"}
@@ -407,7 +381,6 @@ func TestCombineArgsNoAdditionSucceeds(t *testing.T) {
 }
 
 func TestCombineArgsAdditionSucceeds(t *testing.T) {
-
 	p := NewParse().WithGlob(filepath.Glob)
 
 	args := []string{"'hello'", "'there'"}
@@ -419,7 +392,6 @@ func TestCombineArgsAdditionSucceeds(t *testing.T) {
 }
 
 func TestCombineArgsAdditionNoGlobSucceeds(t *testing.T) {
-
 	p := NewParse().WithGlob(filepath.Glob)
 
 	args := []string{"'*'", "'there'"}
@@ -431,7 +403,6 @@ func TestCombineArgsAdditionNoGlobSucceeds(t *testing.T) {
 }
 
 func TestCombineArgsAdditionGlobsSucceeds(t *testing.T) {
-
 	p := NewParse().WithGlob(filepath.Glob)
 
 	args := []string{"*", "'there'"}
@@ -443,7 +414,6 @@ func TestCombineArgsAdditionGlobsSucceeds(t *testing.T) {
 }
 
 func TestParseSucceeds(t *testing.T) {
-
 	c, err := NewParse().WithGlob(filepath.Glob).Parse("")
 
 	if err != nil || len(c.Args) > 0 || c.ProgramPath != "" {
@@ -452,7 +422,6 @@ func TestParseSucceeds(t *testing.T) {
 }
 
 func TestParseNoGlobSucceeds(t *testing.T) {
-
 	c, err := NewParse().WithGlob(filepath.Glob).Parse("hello there \"this spans\" '*'")
 
 	if err != nil || len(c.Args) != 3 || c.ProgramPath != "hello" {
@@ -461,7 +430,6 @@ func TestParseNoGlobSucceeds(t *testing.T) {
 }
 
 func TestParseGlobsSucceeds(t *testing.T) {
-
 	c, err := NewParse().WithGlob(filepath.Glob).Parse("hello there \"this spans\" *")
 
 	if err != nil || len(c.Args) != 4 || c.ProgramPath != "hello" {

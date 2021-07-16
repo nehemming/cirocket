@@ -3,21 +3,21 @@ package rocket
 type (
 	Include struct {
 		Path string `mapstructure:"path"`
-		Url  string `mapstructure:"url"`
+		URL  string `mapstructure:"url"`
 	}
 
-	// PreMission preprocesses missions before loading them
+	// PreMission preprocesses missions before loading them.
 	PreMission struct {
 		Mission  map[string]interface{} `mapstructure:",remain"`
 		Includes []Include              `mapstructure:"includes"`
 	}
 
-	// Mission is activity to complete
+	// Mission is activity to complete.
 	Mission struct {
 		// Mission name, defsaults to the config file name
 		Name string `mapstructure:"name"`
 
-		// Additional contains any additional paramters specified in the
+		// Additional contains any additional parameters specified in the
 		// configuration.  They are included in the template data set
 		// but will be overridden by any other duplicate keys
 		Additional map[string]interface{} `mapstructure:",remain"`
@@ -31,7 +31,7 @@ type (
 		Env EnvMap `mapstructure:"env"`
 
 		// Params is a collection of parameters that can be used within
-		// the child stages.  Paramters are template expanded and can use
+		// the child stages.  Parameters are template expanded and can use
 		// Environment variables defined in Env
 		Params []Param `mapstructure:"params"`
 
@@ -42,14 +42,14 @@ type (
 
 		// Stages represents the stages of the mission
 		// If no sequences are included in the file all stages are executed in ordinal order.
-		// If a sequence is included in the mission file the fly mission call must specify the sequence to use.
+		// If a sequence is included in the mission file the launch mission call must specify the sequence to use.
 		Stages []Stage `mapstructure:"stages"`
 
 		// Version of the mission definition
 		Version string `mapstructure:"version"`
 	}
 
-	// Param is an expandible parameter
+	// Param is an expandible parameter.
 	Param struct {
 		// Name is the name of the parameter
 		// Name is mandatory
@@ -70,11 +70,11 @@ type (
 		FileOptional bool `mapstructure:"optional"`
 	}
 
-	// EnvMap is a map of environment variables to their values
+	// EnvMap is a map of environment variables to their values.
 	EnvMap map[string]string
 
-	// State iis a collection of tasks that can share a common set of parameters
-	// All tasks within a stage are executed sequently
+	// Stage is a collection of tasks that can share a common set of parameters.
+	// All tasks within a stage are executed sequently.
 	Stage struct {
 		// Name of th stage.
 		// If it is not provided it default to the ordinal ID of the stage within the mission
@@ -93,12 +93,12 @@ type (
 		Filter *Filter `mapstructure:"filter"`
 
 		// NoTrust indicates the stage should not inherit environment
-		// variables or paramters from its parent.  This can be used with a run stage
+		// variables or parameters from its parent.  This can be used with a run stage
 		// where you do not want the process to receive API tokens etc
 		NoTrust bool `mapstructure:"noTrust"`
 
 		// Params is a collection of parameters that can be used within
-		// the child stages.  Paramters are template expanded and can use
+		// the child stages.  Parameters are template expanded and can use
 		// Environment variables defined in Env
 		Params []Param `mapstructure:"params"`
 
@@ -110,7 +110,7 @@ type (
 		Try bool `mapstructure:"try"`
 	}
 
-	// Task is an activity that is executed
+	// Task is an activity that is executed.
 	Task struct {
 		// Type is the type of the task.  The task type must have been rejiggered
 		// with the mission control.  Tasks not registered will fail the mission.
@@ -136,12 +136,12 @@ type (
 		Filter *Filter `mapstructure:"filter"`
 
 		// NoTrust indicates the task should not inherit environment
-		// variables or paramters from the parent.  This can be used with a run task
+		// variables or parameters from the parent.  This can be used with a run task
 		// where you do not want the process to receive API tokens etc
 		NoTrust bool `mapstructure:"noTrust"`
 
 		// Params is a collection of parameters that can be used within
-		// the child stages.  Paramters are template expanded and can use
+		// the child stages.  Parameters are template expanded and can use
 		// Environment variables defined in Env
 		Params []Param `mapstructure:"params"`
 
@@ -172,12 +172,12 @@ type (
 		// Output is a path to a file replacing STDOUT
 		Output string `mapstructure:"output"`
 
-		// AppendOutput specifices if output should append
+		// AppendOutput specifies if output should append
 		AppendOutput bool `mapstructure:"appendOutput"`
 	}
 
 	// Redirection is provided to a task to interpret
-	// Redirection strings need to be expanded by the task
+	// Redirection strings need to be expanded by the task.
 	Redirection struct {
 		OutputSpec `mapstructure:",squash"`
 
@@ -195,7 +195,7 @@ type (
 		MergeErrorWithOutput bool `mapstructure:"merge"`
 	}
 
-	// Delims are the delimiters to use to escape template functions
+	// Delims are the delimiters to use to escape template functions.
 	Delims struct {
 		// Left is the opening delimiter
 		Left string `mapstructure:"left"`

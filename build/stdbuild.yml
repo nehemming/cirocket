@@ -32,7 +32,7 @@ params:
 
 sequences:
   - local:
-    - initalise
+    - initialise
     - validate
     - credits
     - snapshot_release
@@ -40,7 +40,7 @@ sequences:
     - cleanup
 
   - release:
-    - initalise
+    - initialise
     - validate
     - credits
     - release
@@ -48,7 +48,7 @@ sequences:
     - cleanup
 
   - cirelease:
-    - initalise
+    - initialise
     - validate
     - credits
     - release
@@ -56,13 +56,13 @@ sequences:
     - cleanup
 
   - cicommit:
-    - initalise
+    - initialise
     - validate
     - tag_display
     - cleanup
 
 stages:
-  - name: initalise
+  - name: initialise
     tasks:
       - type: mkdir
         name: create the artifacts dir

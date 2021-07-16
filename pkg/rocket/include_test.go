@@ -7,7 +7,6 @@ import (
 )
 
 func TestLoadIncludeFile(t *testing.T) {
-
 	fileName := filepath.Join("testdata", "eight.yml")
 
 	m, path, err := loadMapFromPath(fileName, ".")
@@ -25,7 +24,6 @@ func TestLoadIncludeFile(t *testing.T) {
 }
 
 func TestLoadIncludeEmptyFile(t *testing.T) {
-
 	fileName := ""
 
 	m, _, err := loadMapFromPath(fileName, ".")
@@ -39,7 +37,6 @@ func TestLoadIncludeEmptyFile(t *testing.T) {
 }
 
 func TestLoadIncludeMissingFile(t *testing.T) {
-
 	fileName := "norhere"
 
 	m, _, err := loadMapFromPath(fileName, ".")
@@ -52,11 +49,10 @@ func TestLoadIncludeMissingFile(t *testing.T) {
 	}
 }
 
-const testUrl = "https://raw.githubusercontent.com/nehemming/gobuilder/master/.circleci/config.yml"
+const testURL = "https://raw.githubusercontent.com/nehemming/gobuilder/master/.circleci/config.yml"
 
 func TestLoadIncludeUrl(t *testing.T) {
-
-	m, err := loadMapFromUrl(context.Background(), testUrl)
+	m, err := loadMapFromURL(context.Background(), testURL)
 	if err != nil {
 		t.Error("unexpected error", err)
 	}
@@ -67,10 +63,9 @@ func TestLoadIncludeUrl(t *testing.T) {
 }
 
 func TestLoadIncludeEmptyUrl(t *testing.T) {
-
 	url := ""
 
-	m, err := loadMapFromUrl(context.Background(), url)
+	m, err := loadMapFromURL(context.Background(), url)
 	if err == nil {
 		t.Error("empty map")
 	}
@@ -81,10 +76,9 @@ func TestLoadIncludeEmptyUrl(t *testing.T) {
 }
 
 func TestLoadIncludeMissingUrl(t *testing.T) {
-
 	url := ""
 
-	m, err := loadMapFromUrl(context.Background(), url)
+	m, err := loadMapFromURL(context.Background(), url)
 	if err == nil {
 		t.Error("empty map")
 	}

@@ -7,7 +7,6 @@ import (
 )
 
 func TestNewInfo(t *testing.T) {
-
 	bi := NewInfo("v", "c", "d", "b", "cn")
 
 	if bi.BuiltBy != "b" {
@@ -41,11 +40,9 @@ func TestNewInfo(t *testing.T) {
 	if bi.String() != "v c d cn [b]" {
 		t.Error("Unexpected String", bi.String())
 	}
-
 }
 
 func TestContextRoundTrip(t *testing.T) {
-
 	bi := NewInfo("v", "c", "d", "b", "cn")
 
 	ctx := bi.NewContext(context.Background())
@@ -73,5 +70,4 @@ func TestContextRoundTrip(t *testing.T) {
 	if ret.Version != bi.Version {
 		t.Error("Unexpected Version", ret.Version)
 	}
-
 }

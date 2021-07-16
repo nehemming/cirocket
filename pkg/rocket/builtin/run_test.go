@@ -21,7 +21,6 @@ func TestRunType(t *testing.T) {
 }
 
 func loadMission(missionName string) (map[string]interface{}, string) {
-
 	fileName := filepath.Join(".", "testdata", missionName+".yml")
 	fh, err := os.Open(fileName)
 	if err != nil {
@@ -40,7 +39,6 @@ func loadMission(missionName string) (map[string]interface{}, string) {
 }
 
 func TestRunGo(t *testing.T) {
-
 	loggee.SetLogger(stdlog.New())
 
 	mc := rocket.NewMissionControl()
@@ -48,13 +46,12 @@ func TestRunGo(t *testing.T) {
 
 	mission, cfgFile := loadMission("rungo")
 
-	if err := mc.FlyMission(context.Background(), cfgFile, mission); err != nil {
+	if err := mc.LaunchMission(context.Background(), cfgFile, mission); err != nil {
 		t.Error("Run go mission failure", err)
 	}
 }
 
 func TestRunGoWithError(t *testing.T) {
-
 	loggee.SetLogger(stdlog.New())
 
 	mc := rocket.NewMissionControl()
@@ -62,7 +59,7 @@ func TestRunGoWithError(t *testing.T) {
 
 	mission, cfgFile := loadMission("rungowitherror")
 
-	if err := mc.FlyMission(context.Background(), cfgFile, mission); err == nil {
+	if err := mc.LaunchMission(context.Background(), cfgFile, mission); err == nil {
 		t.Error("Run go mission no error")
 	} else if err.Error() != "stage testing: task run go with error: process go exit code 2" {
 		t.Error("Run go mission failure unknown error", err)
@@ -70,7 +67,6 @@ func TestRunGoWithError(t *testing.T) {
 }
 
 func TestRunEchoFilter(t *testing.T) {
-
 	loggee.SetLogger(stdlog.New())
 
 	mc := rocket.NewMissionControl()
@@ -78,7 +74,7 @@ func TestRunEchoFilter(t *testing.T) {
 
 	mission, cfgFile := loadMission("runecho")
 
-	if err := mc.FlyMission(context.Background(), cfgFile, mission); err != nil {
+	if err := mc.LaunchMission(context.Background(), cfgFile, mission); err != nil {
 		t.Error("Run go mission failure", err)
 	}
 }

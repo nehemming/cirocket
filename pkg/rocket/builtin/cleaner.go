@@ -13,7 +13,7 @@ import (
 )
 
 type (
-	// Cleaner task is used to run a specific task
+	// Cleaner task is used to run a specific task.
 	Cleaner struct {
 		Files []string `mapstructure:"files"`
 		Log   bool     `mapstructure:"log"`
@@ -26,8 +26,8 @@ func (cleanerType) Type() string {
 	return "cleaner"
 }
 
+// Prepare loads the tasks configuration and returns the operation function or an error.
 func (cleanerType) Prepare(ctx context.Context, capComm *rocket.CapComm, task rocket.Task) (rocket.ExecuteFunc, error) {
-
 	cleanCfg := &Cleaner{}
 
 	if err := mapstructure.Decode(task.Definition, cleanCfg); err != nil {
@@ -37,57 +37,68 @@ func (cleanerType) Prepare(ctx context.Context, capComm *rocket.CapComm, task ro
 	// Expand files
 	specs := make([]string, 0, len(cleanCfg.Files))
 	for index, f := range cleanCfg.Files {
-		if fileSpec, err := capComm.ExpandString(ctx, "file", f); err != nil {
+		fileSpec, err := capComm.ExpandString(ctx, "file", f)
+		if err != nil {
 			return nil, errors.Wrapf(err, "expanding file %d", index)
-		} else {
-			specs = append(specs, fileSpec)
 		}
+		specs = append(specs, fileSpec)
 	}
 
 	fn := func(execCtx context.Context) error {
-
 		// glob the files
-		files := make([]string, 0, len(specs))
-		for _, spec := range specs {
-			if strings.ContainsAny(spec, "*?") {
-				if list, err := filepath.Glob(spec); err != nil {
-					return errors.Wrapf(err, "globbing %s", spec)
-				} else {
-					files = append(files, list...)
-				}
-			} else {
-				files = append(files, spec)
-			}
+		files, err := globFile(specs)
+		if err != nil {
+			return err
 		}
 
 		// clean
-		for _, file := range files {
-			if stat, err := os.Stat(file); err != nil && !os.IsNotExist(err) {
-				return errors.Wrapf(err, "stat %s:", file)
-			} else {
-				var err error
-				if stat.IsDir() {
-					err = os.RemoveAll(file)
-				} else {
-					err = os.Remove(file)
-				}
-
-				if err != nil {
-					return errors.Wrapf(err, "rm %s:", file)
-				}
-
-				// log
-				if cleanCfg.Log {
-					loggee.Infof("removed %s", file)
-				}
-			}
-		}
-
-		return nil
+		return deleteFiles(files, cleanCfg.Log)
 	}
 
 	return fn, nil
+}
 
+func globFile(specs []string) ([]string, error) {
+	files := make([]string, 0, len(specs))
+	for _, spec := range specs {
+		if strings.ContainsAny(spec, "*?") {
+			list, err := filepath.Glob(spec)
+			if err != nil {
+				return nil, errors.Wrapf(err, "globbing %s", spec)
+			}
+			files = append(files, list...)
+		} else {
+			files = append(files, spec)
+		}
+	}
+
+	return files, nil
+}
+
+func deleteFiles(files []string, log bool) error {
+	for _, file := range files {
+		stat, err := os.Stat(file)
+		if err != nil && !os.IsNotExist(err) {
+			return errors.Wrapf(err, "stat %s:", file)
+		}
+
+		if stat.IsDir() {
+			err = os.RemoveAll(file)
+		} else {
+			err = os.Remove(file)
+		}
+
+		if err != nil {
+			return errors.Wrapf(err, "rm %s:", file)
+		}
+
+		// log
+		if log {
+			loggee.Infof("removed %s", file)
+		}
+	}
+
+	return nil
 }
 
 func init() {

@@ -3,12 +3,11 @@ package builtin
 import (
 	"context"
 	"os"
+	"text/template"
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/nehemming/cirocket/pkg/rocket"
 	"github.com/pkg/errors"
-
-	"text/template"
 )
 
 const (
@@ -16,12 +15,12 @@ const (
 )
 
 type (
-	// Tempkate is a task to expand the input file using
+	// Template is a task to expand the input file using
 	// the Template file. Output is written to the redirected STDOUT
 	// Delims is used to change the standard golang templatiing delimiters
-	// This can be useful when processing a source file that itself uses golang tempalting
+	// This can be useful when processing a source file that itself uses golang tempalting.
 	Template struct {
-		//Template file
+		// Template file
 		FileTemplate      string `mapstructure:"template"`
 		InlineTemplate    string `mapstructure:"inline"`
 		rocket.OutputSpec `mapstructure:",squash"`
@@ -35,34 +34,40 @@ func (templateType) Type() string {
 	return "template"
 }
 
-func (templateType) Prepare(ctx context.Context, capComm *rocket.CapComm, task rocket.Task) (rocket.ExecuteFunc, error) {
+func validateTemplateConfig(ctx context.Context, capComm *rocket.CapComm, templateCfg *Template) error {
+	if templateCfg.FileTemplate != "" && templateCfg.InlineTemplate != "" {
+		return errors.New("both a file and inline template have been specified, only one is allowed")
+	} else if templateCfg.FileTemplate == "" && templateCfg.InlineTemplate == "" {
+		return errors.New("neither a file or inline template have been specified, please provide one of them")
+	}
 
+	// Expand the template file name
+	if templateCfg.FileTemplate != "" {
+		if err := capComm.AddFile(ctx, templateFileTag, templateCfg.FileTemplate, rocket.IOModeInput); err != nil {
+			return errors.Wrap(err, "expanding template file name")
+		}
+	}
+
+	// Expand redirect settings into cap Comm
+	if err := capComm.AttachOutput(ctx, templateCfg.OutputSpec); err != nil {
+		return errors.Wrap(err, "expanding output settings")
+	}
+
+	return nil
+}
+
+func (templateType) Prepare(ctx context.Context, capComm *rocket.CapComm, task rocket.Task) (rocket.ExecuteFunc, error) {
 	templateCfg := &Template{}
 
 	if err := mapstructure.Decode(task.Definition, templateCfg); err != nil {
 		return nil, errors.Wrap(err, "parsing template type")
 	}
 
-	if templateCfg.FileTemplate != "" && templateCfg.InlineTemplate != "" {
-		return nil, errors.New("both a file and inline template have been specified, only one is allowed")
-	} else if templateCfg.FileTemplate == "" && templateCfg.InlineTemplate == "" {
-		return nil, errors.New("neither a file or inline template have been specified, please provide one of them")
-	}
-
-	// Expand the template file name
-	if templateCfg.FileTemplate != "" {
-		if err := capComm.AddFile(ctx, templateFileTag, templateCfg.FileTemplate, rocket.IOModeInput); err != nil {
-			return nil, errors.Wrap(err, "expanding template file name")
-		}
-	}
-
-	// Expand redirect settings into cap Comm
-	if err := capComm.AttachOutput(ctx, templateCfg.OutputSpec); err != nil {
-		return nil, errors.Wrap(err, "expanding output settings")
+	if err := validateTemplateConfig(ctx, capComm, templateCfg); err != nil {
+		return nil, err
 	}
 
 	fn := func(runCtx context.Context) error {
-
 		//	Load the template
 		t, err := loadTemplate(capComm, task.Name, templateCfg)
 		if err != nil {
@@ -86,7 +91,6 @@ func (templateType) Prepare(ctx context.Context, capComm *rocket.CapComm, task r
 }
 
 func loadTemplate(capComm *rocket.CapComm, name string, templateCfg *Template) (*template.Template, error) {
-
 	var tt string
 	if templateCfg.InlineTemplate != "" {
 		tt = templateCfg.InlineTemplate
@@ -107,11 +111,9 @@ func loadTemplate(capComm *rocket.CapComm, name string, templateCfg *Template) (
 	}
 
 	return t, err
-
 }
 
 func setupOutput(capComm *rocket.CapComm) (*os.File, closeFiles, error) {
-
 	cf := make(closeFiles, 0, 3)
 
 	// Handle output

@@ -7,16 +7,14 @@ import (
 )
 
 func (cli *cli) runFireCmd(cmd *cobra.Command, args []string) error {
-
 	// Check that the init process found a config file
 	if cli.initError != nil {
 		return cli.initError
 	}
 
-	// Attempt to fly mission
-	return rocket.Default().FlyMission(cli.ctx, viper.ConfigFileUsed(), viper.AllSettings(), args...)
+	// Attempt to launch mission
+	return rocket.Default().LaunchMission(cli.ctx, viper.ConfigFileUsed(), viper.AllSettings(), args...)
 }
 
 func (cli *cli) bindLaunchFlagsAndConfig(cmd *cobra.Command) {
-
 }

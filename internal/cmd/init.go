@@ -14,7 +14,6 @@ import (
 var initConfig embed.FS
 
 func (cli *cli) runInitCmd(cmd *cobra.Command, args []string) error {
-
 	if cli.initError == nil {
 		// Opened an already existing file, error
 		return fmt.Errorf("config file %s already exists", cli.configFile)
@@ -32,7 +31,7 @@ func (cli *cli) runInitCmd(cmd *cobra.Command, args []string) error {
 		// Bad as incorrect config, developer issue
 		panic(err)
 	} else {
-		if err := os.WriteFile(cli.configFile, b, 0666); err != nil {
+		if err := os.WriteFile(cli.configFile, b, 0o666); err != nil {
 			return errors.Wrap(err, " write config file")
 		}
 	}

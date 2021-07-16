@@ -13,7 +13,6 @@ import (
 )
 
 func TestNewMissionControl(t *testing.T) {
-
 	mc := NewMissionControl()
 
 	if mc == nil {
@@ -34,9 +33,8 @@ type testTaskType struct {
 
 func (tt *testTaskType) Type() string { return "testTask" }
 
-// Prepare the task from the input details
+// Prepare the task from the input details.
 func (tt *testTaskType) Prepare(ctx context.Context, capComm *CapComm, task Task) (ExecuteFunc, error) {
-
 	if task.Name == "fail" {
 		return nil, errors.
 			New("failed")
@@ -49,7 +47,7 @@ func (tt *testTaskType) Prepare(ctx context.Context, capComm *CapComm, task Task
 	}
 
 	return func(ctx context.Context) error {
-		tt.runCount += 1
+		tt.runCount++
 
 		if tt.ch != nil {
 			close(tt.ch)
@@ -59,12 +57,10 @@ func (tt *testTaskType) Prepare(ctx context.Context, capComm *CapComm, task Task
 		}
 
 		return runError
-
 	}, nil
 }
 
 func TestRegisterTaskTypes(t *testing.T) {
-
 	mc := NewMissionControl()
 
 	mc.RegisterTaskTypes()
@@ -88,41 +84,36 @@ func TestRegisterTaskTypes(t *testing.T) {
 	}
 }
 
-func TestFlyMissionZero(t *testing.T) {
-
+func TestLaunchMissionZero(t *testing.T) {
 	mc := NewMissionControl()
 
-	if err := mc.FlyMission(context.Background(), "", nil); err != nil {
+	if err := mc.LaunchMission(context.Background(), "", nil); err != nil {
 		t.Error("Mission zero has a error")
 	}
-
 }
 
-func TestFlyMissionOne(t *testing.T) {
-
+func TestLaunchMissionOne(t *testing.T) {
 	mc := NewMissionControl()
 
 	mission := make(map[string]interface{})
 	mission["name"] = "one"
 
-	if err := mc.FlyMission(context.Background(), "", mission); err != nil {
+	if err := mc.LaunchMission(context.Background(), "", mission); err != nil {
 		t.Error("Mission error", err)
 	}
 }
 
-func TestFlyMissionTwo(t *testing.T) {
-
+func TestLaunchMissionTwo(t *testing.T) {
 	mc := NewMissionControl()
 
 	mission := make(map[string]interface{})
 
-	if err := mc.FlyMission(context.Background(), "two", mission); err != nil {
+	if err := mc.LaunchMission(context.Background(), "two", mission); err != nil {
 		t.Error("Mission error", err)
 	}
 }
 
 func loadMission(missionName string) (map[string]interface{}, string) {
-
 	fileName := filepath.Join(".", "testdata", missionName+".yml")
 	fh, err := os.Open(fileName)
 	if err != nil {
@@ -140,8 +131,7 @@ func loadMission(missionName string) (map[string]interface{}, string) {
 	return m, fileName
 }
 
-func TestFlyMissionThree(t *testing.T) {
-
+func TestLaunchMissionThree(t *testing.T) {
 	loggee.SetLogger(stdlog.New())
 
 	mc := NewMissionControl()
@@ -151,7 +141,7 @@ func TestFlyMissionThree(t *testing.T) {
 
 	mission, cfgFile := loadMission("three")
 
-	if err := mc.FlyMission(context.Background(), cfgFile, mission); err != nil {
+	if err := mc.LaunchMission(context.Background(), cfgFile, mission); err != nil {
 		t.Error("Mission error", err)
 	}
 
@@ -160,8 +150,7 @@ func TestFlyMissionThree(t *testing.T) {
 	}
 }
 
-func TestFlyMissionFour(t *testing.T) {
-
+func TestLaunchMissionFour(t *testing.T) {
 	loggee.SetLogger(stdlog.New())
 
 	mc := NewMissionControl()
@@ -171,13 +160,12 @@ func TestFlyMissionFour(t *testing.T) {
 
 	mission, cfgFile := loadMission("four")
 
-	if err := mc.FlyMission(context.Background(), cfgFile, mission); err == nil {
+	if err := mc.LaunchMission(context.Background(), cfgFile, mission); err == nil {
 		t.Error("Nomission error, for unknown type")
 	}
 }
 
-func TestFlyMissionFive(t *testing.T) {
-
+func TestLaunchMissionFive(t *testing.T) {
 	loggee.SetLogger(stdlog.New())
 
 	mc := NewMissionControl()
@@ -187,13 +175,12 @@ func TestFlyMissionFive(t *testing.T) {
 
 	mission, cfgFile := loadMission("five")
 
-	if err := mc.FlyMission(context.Background(), cfgFile, mission); err == nil {
+	if err := mc.LaunchMission(context.Background(), cfgFile, mission); err == nil {
 		t.Error("Nomission error, fail prepare")
 	}
 }
 
-func TestFlyMissionSix(t *testing.T) {
-
+func TestLaunchMissionSix(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	// test cancellation logic
@@ -211,8 +198,7 @@ func TestFlyMissionSix(t *testing.T) {
 	mission, cfgFile := loadMission("six")
 
 	go func() {
-
-		if err := mc.FlyMission(ctx, cfgFile, mission); err != nil {
+		if err := mc.LaunchMission(ctx, cfgFile, mission); err != nil {
 			t.Error("Mission error", err)
 		}
 
@@ -230,13 +216,11 @@ func TestFlyMissionSix(t *testing.T) {
 	// signal cancel
 	cancel()
 
-	//wait for test to complete
+	// wait for test to complete
 	<-done
-
 }
 
-func TestFlyMissionSeven(t *testing.T) {
-
+func TestLaunchMissionSeven(t *testing.T) {
 	loggee.SetLogger(stdlog.New())
 
 	mc := NewMissionControl()
@@ -246,13 +230,12 @@ func TestFlyMissionSeven(t *testing.T) {
 
 	mission, cfgFile := loadMission("seven")
 
-	if err := mc.FlyMission(context.Background(), cfgFile, mission); err != nil {
+	if err := mc.LaunchMission(context.Background(), cfgFile, mission); err != nil {
 		t.Error("Mission error for a try stage", err)
 	}
 }
 
-func TestFlyMissionWithSequencesNoneSpecified(t *testing.T) {
-
+func TestLaunchMissionWithSequencesNoneSpecified(t *testing.T) {
 	loggee.SetLogger(stdlog.New())
 
 	mc := NewMissionControl()
@@ -262,8 +245,7 @@ func TestFlyMissionWithSequencesNoneSpecified(t *testing.T) {
 
 	mission, cfgFile := loadMission("eight")
 
-	if err := mc.FlyMission(context.Background(), cfgFile, mission); err != nil {
-
+	if err := mc.LaunchMission(context.Background(), cfgFile, mission); err != nil {
 		if err.Error() != "no flight sequence specified for a configuration that uses sequences" {
 			t.Error("Wrong error message", err)
 		}
@@ -272,8 +254,7 @@ func TestFlyMissionWithSequencesNoneSpecified(t *testing.T) {
 	}
 }
 
-func TestFlyMissionWithSequencesMissing(t *testing.T) {
-
+func TestLaunchMissionWithSequencesMissing(t *testing.T) {
 	loggee.SetLogger(stdlog.New())
 
 	mc := NewMissionControl()
@@ -283,8 +264,7 @@ func TestFlyMissionWithSequencesMissing(t *testing.T) {
 
 	mission, cfgFile := loadMission("eight")
 
-	if err := mc.FlyMission(context.Background(), cfgFile, mission, "wings"); err != nil {
-
+	if err := mc.LaunchMission(context.Background(), cfgFile, mission, "wings"); err != nil {
 		if err.Error() != "sequence wings cannot be found" {
 			t.Error("Wrong error message", err)
 		}
@@ -293,8 +273,7 @@ func TestFlyMissionWithSequencesMissing(t *testing.T) {
 	}
 }
 
-func TestFlyMissionWithSequencesMatches(t *testing.T) {
-
+func TestLaunchMissionWithSequencesMatches(t *testing.T) {
 	loggee.SetLogger(stdlog.New())
 
 	mc := NewMissionControl()
@@ -304,13 +283,12 @@ func TestFlyMissionWithSequencesMatches(t *testing.T) {
 
 	mission, cfgFile := loadMission("eight")
 
-	if err := mc.FlyMission(context.Background(), cfgFile, mission, "run"); err != nil {
+	if err := mc.LaunchMission(context.Background(), cfgFile, mission, "run"); err != nil {
 		t.Error("Unexpected error message", err)
 	}
 }
 
-func TestFlyMissionWithSequencesInclude(t *testing.T) {
-
+func TestLaunchMissionWithSequencesInclude(t *testing.T) {
 	loggee.SetLogger(stdlog.New())
 
 	mc := NewMissionControl()
@@ -320,7 +298,7 @@ func TestFlyMissionWithSequencesInclude(t *testing.T) {
 
 	mission, cfgFile := loadMission("nine")
 
-	if err := mc.FlyMission(context.Background(), cfgFile, mission, "run"); err != nil {
+	if err := mc.LaunchMission(context.Background(), cfgFile, mission, "run"); err != nil {
 		t.Error("Unexpected error message", err)
 	}
 }

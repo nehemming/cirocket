@@ -1,8 +1,4 @@
-/*
-Copyright © 2018-2021 Neil Hemming
-*/
-
-//Package cmd provides the command line interface to cirocket
+// Package cmd provides the command line interface to cirocket.
 package cmd
 
 import (
@@ -18,10 +14,10 @@ import (
 )
 
 const (
-	// ExitCodeSuccess indicates a successful exit
+	// ExitCodeSuccess indicates a successful exit.
 	ExitCodeSuccess = 0
 
-	// ExitCodeError indicates a non successful process exit
+	// ExitCodeError indicates a non successful process exit.
 	ExitCodeError = 1
 
 	flagConfig     = "config"
@@ -40,9 +36,8 @@ type (
 )
 
 // Run executes the command line interface to the app.  The passed ctx is used to cancel long running tasks.
-// appName is the name of the application and forms the suffix of the dot config file
+// appName is the name of the application and forms the suffix of the dot config file.
 func Run(ctx context.Context) int {
-
 	// Setup cli clogging handler
 	loggee.SetLogger(apexlog.NewCli(2))
 
@@ -107,9 +102,8 @@ func Run(ctx context.Context) int {
 	return ExitCodeSuccess
 }
 
-// initConfig is called during the cobra start up process to init the config settings
+// initConfig is called during the cobra start up process to init the config settings.
 func (cli *cli) initConfig() {
-
 	// Switch dir if necessary
 	if cli.workingDir != "" {
 		if err := os.Chdir(cli.workingDir); err != nil {
@@ -136,7 +130,7 @@ func (cli *cli) initConfig() {
 	err := viper.ReadInConfig()
 	cfgName := viper.ConfigFileUsed()
 
-	//Save the config actually used
+	// Save the config actually used
 	if !isCustomConfig {
 		cli.configFile = cfgName
 	}

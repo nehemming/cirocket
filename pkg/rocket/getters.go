@@ -7,7 +7,7 @@ import (
 
 type (
 	// Getter returns a value for an input key, iif the key is
-	// not found an empty string is returned
+	// not found an empty string is returned.
 	Getter interface {
 		// Get a value
 		Get(key string) string
@@ -16,7 +16,7 @@ type (
 		All() map[string]string
 	}
 
-	// KeyValueGetter is a value map with fallback to a parent Getter
+	// KeyValueGetter is a value map with fallback to a parent Getter.
 	KeyValueGetter struct {
 		kv     map[string]string
 		parent Getter
@@ -25,7 +25,7 @@ type (
 
 type osEnvGetter struct{}
 
-// Gets an environment variable's value
+// Gets an environment variable's value.
 func (osEnvGetter) Get(key string) string {
 	if v, ok := os.LookupEnv(key); ok {
 		return v
@@ -33,9 +33,8 @@ func (osEnvGetter) Get(key string) string {
 	return ""
 }
 
-// All returns all environment variables is use
+// All returns all environment variables is use.
 func (osEnvGetter) All() map[string]string {
-
 	m := make(map[string]string)
 
 	for _, p := range os.Environ() {
@@ -49,7 +48,7 @@ func (osEnvGetter) All() map[string]string {
 	return m
 }
 
-// NewKeyValueGetter creates a new KeyValueGetter
+// NewKeyValueGetter creates a new KeyValueGetter.
 func NewKeyValueGetter(parent Getter) *KeyValueGetter {
 	return &KeyValueGetter{
 		kv:     make(map[string]string),
@@ -57,7 +56,7 @@ func NewKeyValueGetter(parent Getter) *KeyValueGetter {
 	}
 }
 
-// Get returns the value for a key
+// Get returns the value for a key.
 func (kvg *KeyValueGetter) Get(key string) string {
 	if v, ok := kvg.kv[key]; ok {
 		return v
@@ -68,9 +67,8 @@ func (kvg *KeyValueGetter) Get(key string) string {
 	return ""
 }
 
-// All returns the values tp down, where child values override parent key values
+// All returns the values tp down, where child values override parent key values.
 func (kvg *KeyValueGetter) All() map[string]string {
-
 	var m map[string]string
 
 	if kvg.parent != nil {

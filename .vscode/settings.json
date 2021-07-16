@@ -8,8 +8,10 @@
         "cirocket",
         "cliparser",
         "ctxhttp",
+        "initialise",
         "ironment",
         "logcli",
-        "nehemming"
+        "nehemming",
+        "nolint"
     ]
 }

@@ -23,7 +23,6 @@ func TestSetLoggerPanicsOnNil(t *testing.T) {
 }
 
 func TestActivity(t *testing.T) {
-
 	tl := testLog{t}
 
 	SetLogger(tl)
@@ -43,13 +42,12 @@ func TestActivity(t *testing.T) {
 	}
 }
 
-// Activity is a nested activity
+// Activity is a nested activity.
 func (tLog testLog) Activity(ctx context.Context, fn ActivityFunc) error {
 	return fn(ctx)
 }
 
 func TestWithFields(t *testing.T) {
-
 	tl := testLog{t}
 
 	SetLogger(tl)
@@ -63,13 +61,12 @@ func TestWithFields(t *testing.T) {
 	}
 }
 
-// WithFields adds fields to a log entry
+// WithFields adds fields to a log entry.
 func (tLog testLog) WithFields(f Fielder) Entry {
 	return newEntry().WithFields(f)
 }
 
 func TestWithField(t *testing.T) {
-
 	tl := testLog{t}
 
 	SetLogger(tl)
@@ -83,14 +80,12 @@ func TestWithField(t *testing.T) {
 	}
 }
 
-// WithField adds a field to an Entry
-func (tlog testLog) WithField(key string, value interface{}) Entry {
-
+// WithField adds a field to an Entry.
+func (tLog testLog) WithField(key string, value interface{}) Entry {
 	return newEntry().WithField(key, value)
 }
 
 func TestWithDuration(t *testing.T) {
-
 	tl := testLog{t}
 
 	SetLogger(tl)
@@ -104,14 +99,12 @@ func TestWithDuration(t *testing.T) {
 	}
 }
 
-// WithDuration adds a time t an entry
+// WithDuration adds a time t an entry.
 func (tLog testLog) WithDuration(d time.Duration) Entry {
-
 	return newEntry().WithDuration(d)
 }
 
 func TestWithError(t *testing.T) {
-
 	tl := testLog{t}
 
 	SetLogger(tl)
@@ -125,9 +118,8 @@ func TestWithError(t *testing.T) {
 	}
 }
 
-// WithError adds an error to the entry
+// WithError adds an error to the entry.
 func (tLog testLog) WithError(e error) Entry {
-
 	return newEntry().WithError(e)
 }
 
@@ -137,7 +129,7 @@ func TestDebug(t *testing.T) {
 	Debug("debug")
 }
 
-// Debug writes a debug message
+// Debug writes a debug message.
 func (tLog testLog) Debug(msg string) {
 	if msg != "debug" {
 		tLog.t.Error("Bad debug", msg)
@@ -150,7 +142,7 @@ func TestInfo(t *testing.T) {
 	Info("info")
 }
 
-// Info writes a info message
+// Info writes a info message.
 func (tLog testLog) Info(msg string) {
 	if msg != "info" {
 		tLog.t.Error("Bad info", msg)
@@ -163,7 +155,7 @@ func TestWarn(t *testing.T) {
 	Warn("warn")
 }
 
-// Warn writes a warning message
+// Warn writes a warning message.
 func (tLog testLog) Warn(msg string) {
 	if msg != "warn" {
 		tLog.t.Error("Bad warn", msg)
@@ -176,7 +168,7 @@ func TestError(t *testing.T) {
 	Error("error")
 }
 
-// Error writes an error message
+// Error writes an error message.
 func (tLog testLog) Error(msg string) {
 	if msg != "error" {
 		tLog.t.Error("Bad error", msg)
@@ -189,9 +181,8 @@ func TestFatal(t *testing.T) {
 	Fatal("fatal")
 }
 
-// Fatal writes a fatal error message and exits
+// Fatal writes a fatal error message and exits.
 func (tLog testLog) Fatal(msg string) {
-
 	if msg != "fatal" {
 		tLog.t.Error("Bad fatal", msg)
 	}
@@ -203,9 +194,8 @@ func TestDebugF(t *testing.T) {
 	Debugf("debug %s", "debug")
 }
 
-// Debugf writes a formated debug message
+// Debugf writes a formated debug message.
 func (tLog testLog) Debugf(fmt string, args ...interface{}) {
-
 	if fmt != "debug %s" {
 		tLog.t.Error("Bad debugf", fmt)
 	}
@@ -217,9 +207,8 @@ func TestInfoF(t *testing.T) {
 	Infof("info %s", "info")
 }
 
-// Infof writes a formated info message
+// Infof writes a formated info message.
 func (tLog testLog) Infof(fmt string, args ...interface{}) {
-
 	if fmt != "info %s" {
 		tLog.t.Error("Bad infof", fmt)
 	}
@@ -231,7 +220,7 @@ func TestWarnF(t *testing.T) {
 	Warnf("warn %s", "warn")
 }
 
-// Warnf writes a formated warn message
+// Warnf writes a formated warn message.
 func (tLog testLog) Warnf(fmt string, args ...interface{}) {
 	if fmt != "warn %s" {
 		tLog.t.Error("Bad warnf", fmt)
@@ -244,7 +233,7 @@ func TestErrorF(t *testing.T) {
 	Errorf("error %s", "error")
 }
 
-// Errorf writes a formated error message
+// Errorf writes a formated error message.
 func (tLog testLog) Errorf(fmt string, args ...interface{}) {
 	if fmt != "error %s" {
 		tLog.t.Error("Bad errorf", fmt)
@@ -257,7 +246,7 @@ func TestFatalF(t *testing.T) {
 	Fatalf("fatal %s", "fatal")
 }
 
-// Fatalf writes a formated fatal message and exits
+// Fatalf writes a formated fatal message and exits.
 func (tLog testLog) Fatalf(fmt string, args ...interface{}) {
 	if fmt != "fatal %s" {
 		tLog.t.Error("Bad fatal", fmt)

@@ -20,7 +20,6 @@ func TestFetchType(t *testing.T) {
 }
 
 func TestFetchRun(t *testing.T) {
-
 	loggee.SetLogger(stdlog.New())
 
 	mc := rocket.NewMissionControl()
@@ -28,7 +27,7 @@ func TestFetchRun(t *testing.T) {
 
 	mission, cfgFile := loadMission("fetch")
 
-	if err := mc.FlyMission(context.Background(), cfgFile, mission); err != nil {
+	if err := mc.LaunchMission(context.Background(), cfgFile, mission); err != nil {
 		t.Error("failure", err)
 	}
 
@@ -37,11 +36,9 @@ func TestFetchRun(t *testing.T) {
 		t.Error("file missing", file, err)
 	}
 	_ = os.Remove(file)
-
 }
 
 func TestFetchRunWithError(t *testing.T) {
-
 	loggee.SetLogger(stdlog.New())
 
 	mc := rocket.NewMissionControl()
@@ -49,7 +46,7 @@ func TestFetchRunWithError(t *testing.T) {
 
 	mission, cfgFile := loadMission("badfetch")
 
-	if err := mc.FlyMission(context.Background(), cfgFile, mission); err == nil {
+	if err := mc.LaunchMission(context.Background(), cfgFile, mission); err == nil {
 		t.Error("expected an error")
 	}
 

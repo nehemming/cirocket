@@ -11,7 +11,7 @@ import (
 )
 
 type (
-	// Cleaner task is used to run a specific task
+	// MkDir task is used create directories.
 	MkDir struct {
 		Dirs []string `mapstructure:"dirs"`
 		Log  bool     `mapstructure:"log"`
@@ -25,7 +25,6 @@ func (mkDirType) Type() string {
 }
 
 func (mkDirType) Prepare(ctx context.Context, capComm *rocket.CapComm, task rocket.Task) (rocket.ExecuteFunc, error) {
-
 	mkDirCfg := &MkDir{}
 
 	if err := mapstructure.Decode(task.Definition, mkDirCfg); err != nil {
@@ -35,18 +34,18 @@ func (mkDirType) Prepare(ctx context.Context, capComm *rocket.CapComm, task rock
 	// Expand directories
 	directories := make([]string, 0, len(mkDirCfg.Dirs))
 	for index, f := range mkDirCfg.Dirs {
-		if dir, err := capComm.ExpandString(ctx, "dir", f); err != nil {
+		dir, err := capComm.ExpandString(ctx, "dir", f)
+		if err != nil {
 			return nil, errors.Wrapf(err, "expanding dir %d", index)
-		} else {
-			directories = append(directories, dir)
 		}
+
+		directories = append(directories, dir)
 	}
 
 	fn := func(execCtx context.Context) error {
-
 		// create
 		for _, dir := range directories {
-			err := os.MkdirAll(dir, 0777)
+			err := os.MkdirAll(dir, 0o777)
 			if err != nil {
 				return errors.Wrapf(err, "mkdir -p %s:", dir)
 			}

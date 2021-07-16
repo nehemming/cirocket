@@ -3,7 +3,6 @@ package rocket
 import (
 	"context"
 	"fmt"
-
 	"sync"
 
 	"github.com/nehemming/cirocket/pkg/loggee"
@@ -11,43 +10,43 @@ import (
 )
 
 var (
-	// once gates the singleton Default mission control
+	// once gates the singleton Default mission control.
 	once sync.Once
 
-	// defaultControl is the Default singleton mission control
+	// defaultControl is the Default singleton mission control.
 	defaultControl MissionControl
 )
 
 type (
-	// ExecuteFunc is the function signature of an activity that can be executed
+	// ExecuteFunc is the function signature of an activity that can be executed.
 	ExecuteFunc = loggee.ActivityFunc
 
-	// TaskType represents a specific task type
+	// TaskType represents a specific task type.
 	TaskType interface {
 
 		// Type of the task
 		Type() string
 
-		// Prepare the task from the input details
+		// Prepare the task from the input details.
 		Prepare(ctx context.Context, capComm *CapComm, task Task) (ExecuteFunc, error)
 	}
 
-	// MissionControl seeks out new civilizations in te CI space
+	// MissionControl seeks out new civilizations in te CI space.
 	MissionControl interface {
-		// RegisterTaskTypes we only want the best
+		// RegisterTaskTypes we only want the best.
 		RegisterTaskTypes(types ...TaskType)
 
-		// FlyMission loads and executes the mission
+		// LaunchMission loads and executes the mission
 		// flightSequences may be specified, each sequence is run in the order specified
 		// the coonfig file is the source name iof the config provided
-		// if its empty the current working 'dir/default' will be used
-		FlyMission(ctx context.Context, configFile string, spaceDust map[string]interface{}, flightSequences ...string) error
+		// if its empty the current working 'dir/default' will be used.
+		LaunchMission(ctx context.Context, configFile string, spaceDust map[string]interface{}, flightSequences ...string) error
 	}
 
-	// operations is a collection of operations
+	// operations is a collection of operations.
 	operations []*operation
 
-	// operation represents an activity to execute
+	// operation represents an activity to execute.
 	operation struct {
 		description string
 		makeItSo    ExecuteFunc
@@ -55,26 +54,26 @@ type (
 	}
 )
 
-// missionControl implements MissionControl
+// missionControl implements MissionControl.
 type missionControl struct {
 	lock  sync.Mutex
 	types map[string]TaskType
 }
 
-// NewMissionControl create a new mission control
+// NewMissionControl create a new mission control.
 func NewMissionControl() MissionControl {
 	return &missionControl{
 		types: make(map[string]TaskType),
 	}
 }
 
-// Default returns the default shared mission control
+// Default returns the default shared mission control.
 func Default() MissionControl {
 	once.Do(func() { defaultControl = NewMissionControl() })
 	return defaultControl
 }
 
-// RegisterActorTypes actor types
+// RegisterActorTypes actor types.
 func (mc *missionControl) RegisterTaskTypes(types ...TaskType) {
 	mc.lock.Lock()
 	defer mc.lock.Unlock()
@@ -84,8 +83,7 @@ func (mc *missionControl) RegisterTaskTypes(types ...TaskType) {
 	}
 }
 
-func (mc *missionControl) FlyMission(ctx context.Context, configFile string, spaceDust map[string]interface{}, flightSequences ...string) error {
-
+func (mc *missionControl) LaunchMission(ctx context.Context, configFile string, spaceDust map[string]interface{}, flightSequences ...string) error {
 	configFile, err := getConfigFileName(configFile)
 	if err != nil {
 		return err
@@ -98,7 +96,7 @@ func (mc *missionControl) FlyMission(ctx context.Context, configFile string, spa
 	}
 
 	// Create a cap comm object from the environment
-	capComm := newCapCommFromEnvironment(ctx, configFile)
+	capComm := newCapCommFromEnvironment(configFile)
 
 	// Misssion has been successfully parsed, load the global settings
 	capComm, err = processGlobals(ctx, capComm, mission)
@@ -115,12 +113,11 @@ func (mc *missionControl) FlyMission(ctx context.Context, configFile string, spa
 
 	// prepare stages
 	for index, stage := range stagesToRun {
-
 		if stage.Name == "" {
 			stage.Name = fmt.Sprintf("stage%d", index)
 		}
 
-		//prepare the stage
+		// prepare the stage
 		ops, err := mc.prepareStage(ctx, capComm, stage)
 		if err != nil {
 			return errors.Wrapf(err, "prepare %s", stage.Name)
@@ -135,9 +132,12 @@ func (mc *missionControl) FlyMission(ctx context.Context, configFile string, spa
 		}
 	}
 
+	return runOperations(ctx, operations)
+}
+
+func runOperations(ctx context.Context, operations operations) error {
 	//	Run mission
 	for _, op := range operations {
-
 		if ctx.Err() != nil {
 			return nil
 		}
@@ -151,7 +151,6 @@ func (mc *missionControl) FlyMission(ctx context.Context, configFile string, spa
 }
 
 func (mc *missionControl) prepareStage(ctx context.Context, missionCapComm *CapComm, stage Stage) (operations, error) {
-
 	operations := make(operations, 0, 10)
 
 	// Create a new CapComm for the stage
@@ -175,7 +174,6 @@ func (mc *missionControl) prepareStage(ctx context.Context, missionCapComm *CapC
 
 	// Move onto tasks
 	for index, task := range stage.Tasks {
-
 		if task.Name == "" {
 			task.Name = fmt.Sprintf("task%d", index)
 		}
@@ -192,11 +190,9 @@ func (mc *missionControl) prepareStage(ctx context.Context, missionCapComm *CapC
 	}
 
 	return operations, nil
-
 }
 
 func (mc *missionControl) prepareTask(ctx context.Context, stageCapComm *CapComm, task Task) (*operation, error) {
-
 	// Create a new CapComm for the task
 	capComm := stageCapComm.Copy(task.NoTrust).
 		MergeBasicEnvMap(task.BasicEnv)
@@ -239,7 +235,6 @@ func (mc *missionControl) prepareTask(ctx context.Context, stageCapComm *CapComm
 }
 
 func processGlobals(ctx context.Context, capComm *CapComm, mission *Mission) (*CapComm, error) {
-
 	// Copy the inbound CapComm
 	capComm = capComm.Copy(false).
 		WithMission(mission).
@@ -261,14 +256,12 @@ func processGlobals(ctx context.Context, capComm *CapComm, mission *Mission) (*C
 }
 
 func getStagesTooRun(mission *Mission, flightSequences []string) ([]Stage, error) {
-
 	stageMap, err := convertStagesToMap(mission.Stages)
 	if err != nil {
 		return nil, err
 	}
 
 	if len(mission.Sequences) == 0 {
-
 		// using stages alone
 		if len(flightSequences) > 0 {
 			return nil, errors.New("flight sequence specified for a configuration does not use sequences")
@@ -288,16 +281,16 @@ func getStagesTooRun(mission *Mission, flightSequences []string) ([]Stage, error
 	// Compile stagesToRun from the sequences specified
 	alreadySpecified := make(map[string]bool)
 	for _, flight := range flightSequences {
-		if sequence, ok := mission.Sequences[flight]; !ok {
+		sequence, ok := mission.Sequences[flight]
+		if !ok {
 			return nil, fmt.Errorf("sequence %s cannot be found", flight)
-		} else {
-			for _, stageName := range sequence {
-				if stage, ok := stageMap[stageName]; !ok {
-					return nil, fmt.Errorf("sequence %s cannot find stage %s", flight, stageName)
-				} else if !alreadySpecified[stageName] {
-					alreadySpecified[stageName] = true
-					stagesToRun = append(stagesToRun, stage)
-				}
+		}
+		for _, stageName := range sequence {
+			if stage, ok := stageMap[stageName]; !ok {
+				return nil, fmt.Errorf("sequence %s cannot find stage %s", flight, stageName)
+			} else if !alreadySpecified[stageName] {
+				alreadySpecified[stageName] = true
+				stagesToRun = append(stagesToRun, stage)
 			}
 		}
 	}
@@ -306,7 +299,6 @@ func getStagesTooRun(mission *Mission, flightSequences []string) ([]Stage, error
 }
 
 func convertStagesToMap(stages []Stage) (map[string]Stage, error) {
-
 	m := make(map[string]Stage)
 
 	// prepare stages
@@ -326,11 +318,9 @@ func convertStagesToMap(stages []Stage) (map[string]Stage, error) {
 }
 
 func runOp(ctx context.Context, op *operation) error {
-
 	loggee.Info(op.description)
 
 	if err := loggee.Activity(ctx, op.makeItSo); err != nil {
-
 		if op.try {
 			loggee.Warnf("try failed: %s", errors.Wrap(err, op.description))
 		} else {
@@ -341,20 +331,15 @@ func runOp(ctx context.Context, op *operation) error {
 	return nil
 }
 
-func engage(ctx context.Context, ops operations) ExecuteFunc {
-
+func engage(_ context.Context, ops operations) ExecuteFunc {
 	return func(ctx context.Context) error {
 		for _, op := range ops {
-
 			if ctx.Err() != nil {
 				return nil
 			}
 
 			if err := loggee.Activity(ctx, func(ctx context.Context) error {
-				if err := runOp(ctx, op); err != nil {
-					return err
-				}
-				return nil
+				return runOp(ctx, op)
 			}); err != nil {
 				return err
 			}

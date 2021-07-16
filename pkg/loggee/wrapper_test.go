@@ -2,10 +2,9 @@ package loggee
 
 import (
 	"fmt"
+	"log"
 	"strings"
 	"time"
-
-	"log"
 )
 
 type entry struct {
@@ -15,7 +14,6 @@ type entry struct {
 }
 
 func (ent *entry) String() string {
-
 	var b strings.Builder
 
 	for k, v := range ent.fields {
@@ -39,9 +37,8 @@ func newEntry() *entry {
 	}
 }
 
-// WithFields adds fields to a log entry
+// WithFields adds fields to a log Entry.
 func (ent *entry) WithFields(f Fielder) Entry {
-
 	for k, v := range f.Fields() {
 		ent.fields[k] = v
 	}
@@ -49,86 +46,73 @@ func (ent *entry) WithFields(f Fielder) Entry {
 	return ent
 }
 
-// WithField adds a field to an Entry
+// WithField adds a field to an Entry.
 func (ent *entry) WithField(key string, value interface{}) Entry {
-
 	ent.fields[key] = value
 
 	return ent
 }
 
-// WithDuration adds a time t an entry
+// WithDuration adds a time t an Entry.
 func (ent *entry) WithDuration(d time.Duration) Entry {
-
 	ent.durattion = &d
 
 	return ent
 }
 
-// WithError adds an error to the entry
+// WithError adds an error to the Entry.
 func (ent *entry) WithError(e error) Entry {
-
 	ent.err = e
 
 	return ent
 }
 
-// Debug writes a debug message
+// Debug writes a debug message.
 func (ent *entry) Debug(msg string) {
-
 	log.Println("debug", msg, ent)
 }
 
-// Info writes a info message
+// Info writes a info message.
 func (ent *entry) Info(msg string) {
-
 	log.Println("info", msg, ent)
 }
 
-// Warn writes a warning message
+// Warn writes a warning message.
 func (ent *entry) Warn(msg string) {
-
 	log.Println("warn", msg, ent)
 }
 
-// Error writes an error message
+// Error writes an error message.
 func (ent *entry) Error(msg string) {
-
 	log.Println("error", msg, ent)
 }
 
-// Fatal writes a fatal error message and exits
+// Fatal writes a fatal error message and exits.
 func (ent *entry) Fatal(msg string) {
-
 	log.Fatalln("error", msg, ent)
 }
 
-// Debugf writes a formated debug message
+// Debugf writes a formated debug message.
 func (ent *entry) Debugf(fmtStr string, args ...interface{}) {
-
 	log.Println("debug", fmt.Sprintf(fmtStr, args...), ent)
 }
 
-// Infof writes a formated info message
+// Infof writes a formated info message.
 func (ent *entry) Infof(fmtStr string, args ...interface{}) {
-
 	log.Println("info", fmt.Sprintf(fmtStr, args...), ent)
 }
 
-// Warnf writes a formated warn message
+// Warnf writes a formated warn message.
 func (ent *entry) Warnf(fmtStr string, args ...interface{}) {
-
 	log.Println("warn", fmt.Sprintf(fmtStr, args...), ent)
 }
 
-// Errorf writes a formated error message
+// Errorf writes a formated error message.
 func (ent *entry) Errorf(fmtStr string, args ...interface{}) {
-
 	log.Println("error", fmt.Sprintf(fmtStr, args...), ent)
 }
 
-// Fatalf writes a formated fatal message and exits
+// Fatalf writes a formated fatal message and exits.
 func (ent *entry) Fatalf(fmtStr string, args ...interface{}) {
-
 	log.Fatalln(fmt.Sprintf(fmtStr, args...), ent)
 }
