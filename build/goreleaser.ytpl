@@ -31,9 +31,9 @@ builds:
     flags:
       - -trimpath
     ldflags:
-      - '"-s -w -X main.version={{ .Version }} -X main.commit={{ .Commit }} -X main.date={{ .CommitDate }} -X main.builtBy=[[ .builtBy ]]"'
-#    hooks:
-#      post: upx {{ .Path }}
+      - '-s -w -X main.version={{ .Version }} -X main.commit={{ .Commit }} -X main.date={{ .CommitDate }} -X main.builtBy=[[ .builtBy ]]'
+    hooks:
+      post: upx {{ .Path }}
 
 [[if .includeBrews]]
 brews:

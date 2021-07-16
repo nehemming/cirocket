@@ -53,9 +53,16 @@ sequences:
     - tag_display
     - cleanup
 
+  - coverage:
+    - initialise
+    - validate
+    - coverage
+    - cleanup
+
   - cirelease:
     - initialise
     - validate
+    - coverage
     - credits
     - release
     - tag_display
@@ -98,6 +105,18 @@ stages:
         command: 'nancy sleuth --quiet'
         input: '{{ .artifactsDir }}/list.tmp'
         logStdOut: true
+
+  - name: coverage
+    tasks:
+      - name: clear cache
+        type: run
+        command: 'go clean -testcache'
+      - name: run coverage
+        type: run
+        command: 'go test -v -covermode=count -coverprofile={{ .artifactsDir }}/coverage.out ./...'
+      - name: publish
+        type: run
+        command: 'goveralls -coverprofile={{ .artifactsDir }}/coverage.out -repotoken $COVERALLS_REPO_TOKEN'
 
   # credits updates the credits document using the mod list
   - name: credits
