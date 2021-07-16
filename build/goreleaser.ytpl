@@ -32,8 +32,8 @@ builds:
       - -trimpath
     ldflags:
       - '"-s -w -X main.version={{ .Version }} -X main.commit={{ .Commit }} -X main.date={{ .CommitDate }} -X main.builtBy=[[ .builtBy ]]"'
-    hooks:
-      post: upx {{ .Path }}
+#    hooks:
+#      post: upx {{ .Path }}
 
 [[if .includeBrews]]
 brews:
@@ -135,17 +135,9 @@ dockers:
   - image_templates:
 [[if .includeGHCR]]
     - 'ghcr.io/{{ .Env.REPO_USER }}/{{ .ProjectName }}:{{ .Tag }}-arm64'
-[[if not .dockerUseManifests]]
-    - 'ghcr.io/{{ .Env.REPO_USER }}/{{ .ProjectName }}:{{ .Tag }}'
-    - 'ghcr.io/{{ .Env.REPO_USER }}/{{ .ProjectName }}:latest'
-[[end]]
 [[end]]
 [[if .includeDockerHub]] 
     - '{{ .Env.REPO_USER }}/{{ .ProjectName }}:{{ .Tag }}-arm64'
-[[if not .dockerUseManifests]]
-    - '{{ .Env.REPO_USER }}/{{ .ProjectName }}:{{ .Tag }}'
-    - '{{ .Env.REPO_USER }}/{{ .ProjectName }}:latest'
-[[end]]
 [[end]]
     dockerfile: [[ .dockerfile ]]
     [[if .dockerUse]]

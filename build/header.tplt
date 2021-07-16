@@ -1,1 +1,1 @@
-## {{ .ProjectName }} release {{ .Version }}  ({{ .CommitDate }})
+## {{ .ProjectName }} release {{ .Version }}

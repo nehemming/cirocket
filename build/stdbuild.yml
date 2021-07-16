@@ -168,7 +168,7 @@ stages:
 
       - name: go releaser
         type: run
-        command: 'goreleaser {{ .args }} --config {{ .goreleaserCfg }} --debug'
+        command: 'goreleaser {{ .args }} --config {{ .goreleaserCfg }}'
         params:
           - name: args
             value: '--rm-dist'
