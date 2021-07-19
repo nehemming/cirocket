@@ -58,16 +58,21 @@ type (
 		// Value is the value of the parameter and is subject to expandion
 		Value string `mapstructure:"value"`
 
-		// File is a path to file containing the value.
-		// If both File and Value are supplied the file will bee appended to the Valued
-		// The combined value will undergo template expansion
-		File string `mapstructure:"file"`
+		// Path is a path to file containing the value.
+		// If both Path and Value are supplied the file will bee appended to the Valued
+		// The combined value will undergo template expansion if SkipTemplate is false.
+		Path string `mapstructure:"path"`
 
-		// SkipTemplate skip templating the param
-		SkipTemplate bool `mapstructure:"skipTemplate"`
+		// URL specifies the data should come from the response body or a web request.
+		// The url body will be concatenated with the value and file values respectively.
+		// The combined value will undergo template expansion if SkipTemplate is false.
+		URL string `mapstructure:"url"`
 
-		// FileOptional if truew allows the file not to exist
-		FileOptional bool `mapstructure:"optional"`
+		// SkipExpand skip templating the param
+		SkipExpand bool `mapstructure:"skipExpand"`
+
+		// Optional if true allows the file not to exist
+		Optional bool `mapstructure:"optional"`
 	}
 
 	// EnvMap is a map of environment variables to their values.
@@ -169,30 +174,67 @@ type (
 	}
 
 	OutputSpec struct {
+		// Variable is an exported variable available to later tasks in the same stage
+		Variable string `mapstructure:"variable"`
+
 		// Output is a path to a file replacing STDOUT
-		Output string `mapstructure:"output"`
+		Path string `mapstructure:"path"`
 
 		// AppendOutput specifies if output should append
-		AppendOutput bool `mapstructure:"appendOutput"`
+		Append bool `mapstructure:"append"`
+
+		// SkipExpand when true skips template expansion of the spec.
+		SkipExpand bool `mapstructure:"skipExpand"`
+
+		// OS File permissions
+		FileMode uint `mapstructure:"fileMode"`
+	}
+
+	InputSpec struct {
+		// Variable name to import from
+		Variable string `mapstructure:"variable"`
+
+		Inline string `mapstructure:"inline"`
+
+		// Path provides the path data.
+		Path string `mapstructure:"path"`
+
+		// URl provides the data.
+		URL string `mapstructure:"url"`
+
+		// Optional is true if resource can be missing.
+		Optional bool `mapstructure:"optional"`
+
+		// URLTimeout request timeout, default is 30 seconds.
+		URLTimeout uint `mapstructure:"timeout"`
+
+		// SkipExpand when true skips template expansion of the spec.
+		SkipExpand bool `mapstructure:"skipExpand"`
 	}
 
 	// Redirection is provided to a task to interpret
 	// Redirection strings need to be expanded by the task.
 	Redirection struct {
-		OutputSpec `mapstructure:",squash"`
+		// Input specification
+		Input *InputSpec `mapstructure:"input"`
 
-		// Input is a file path to an existing input file replacing STDIN
-		Input string `mapstructure:"input"`
+		// Output specification
+		Output *OutputSpec `mapstructure:"output"`
 
-		// Error is a path to a file replacing STDERR
-		Error string `mapstructure:"error"`
-
-		// AppendError specifies if error output should append
-		AppendError bool `mapstructure:"appendError"`
+		// Error specification
+		Error *OutputSpec `mapstructure:"error"`
 
 		// MergeErrorWithOutput specifies if error output should go to outputt
 		// if specified Error and AppendError are ignored
 		MergeErrorWithOutput bool `mapstructure:"merge"`
+
+		// LogOutput if true will cause output to be logged rather than going to go to std output.
+		// If an output file is specified it will be used instead.
+		LogOutput bool `mapstructure:"logStdOut"`
+
+		// DirectError when true causes the commands std error output to go direct to running processes std error
+		// When DirectError is false std error output is logged.
+		DirectError bool `mapstructure:"directStdErr"`
 	}
 
 	// Delims are the delimiters to use to escape template functions.

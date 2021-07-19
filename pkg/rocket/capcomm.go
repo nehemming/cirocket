@@ -4,14 +4,20 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"io"
+	"net/http"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
 	"text/template"
+	"time"
 
 	"github.com/nehemming/cirocket/pkg/buildinfo"
+	"github.com/nehemming/cirocket/pkg/loggee"
+	"github.com/nehemming/cirocket/pkg/providers"
 	"github.com/pkg/errors"
+	"golang.org/x/net/context/ctxhttp"
 )
 
 const (
@@ -27,6 +33,9 @@ const (
 
 	// BuildTag is the data template key for build information about the hosting application.
 	BuildTag = "Build"
+
+	// VariableTag is the top key for variables in the template data.
+	VariableTag = "Var"
 
 	// AdditionalMissionTag is the data template key to additional mission information.
 	AdditionalMissionTag = "Additional"
@@ -67,16 +76,22 @@ type (
 		runtime               Runtime
 		sealed                bool
 		mission               *Mission
-		ioSettings            *ioSettings
+		resources             providers.ResourceProviderMap
+		variables             exportMap
+		exportTo              exportMap
+		log                   loggee.Logger
 	}
+
+	exportMap map[string]string
 )
 
-func setParamsFromConfigFile(kv map[string]string, configFile string) {
+// setParamsFromConfigFile adds config file entries to the environment map.
+func setParamsFromConfigFile(env map[string]string, configFile string) {
 	dir, file := filepath.Split(configFile)
-	kv[ConfigFileFullPath], _ = filepath.Abs(configFile)
-	kv[ConfigFile] = file
-	kv[ConfigBaseName] = strings.TrimSuffix(file, filepath.Ext(file))
-	kv[ConfigDir] = strings.TrimSuffix(dir, string(filepath.Separator))
+	env[ConfigFileFullPath], _ = filepath.Abs(configFile)
+	env[ConfigFile] = file
+	env[ConfigBaseName] = strings.TrimSuffix(file, filepath.Ext(file))
+	env[ConfigDir] = strings.TrimSuffix(dir, string(filepath.Separator))
 }
 
 func initFuncMap() template.FuncMap {
@@ -100,7 +115,7 @@ func initFuncMap() template.FuncMap {
 }
 
 // newCapCommFromEnvironment creates a new capCom from the environment.
-func newCapCommFromEnvironment(configFile string) *CapComm {
+func newCapCommFromEnvironment(configFile string, log loggee.Logger) *CapComm {
 	paramKvg := NewKeyValueGetter(nil)
 	setParamsFromConfigFile(paramKvg.kv, configFile)
 
@@ -114,8 +129,20 @@ func newCapCommFromEnvironment(configFile string) *CapComm {
 			GOOS:   runtime.GOOS,
 			GOARCH: runtime.GOARCH,
 		},
-		ioSettings: newIOSettings(),
+		resources: make(providers.ResourceProviderMap),
+		variables: make(exportMap),
+		log:       log,
 	}
+
+	// cc.resources[InputIO] = providers.NewNonClosingReaderProvider(os.Stdin)
+	cc.resources[Stdin] = providers.NewNonClosingReaderProvider(os.Stdin)
+
+	cc.resources[OutputIO] = providers.NewNonClosingWriterProvider(os.Stdout)
+	cc.resources[Stdout] = providers.NewNonClosingWriterProvider(os.Stdout)
+	cc.resources[Stderr] = providers.NewNonClosingWriterProvider(os.Stderr)
+
+	cc.resources[ErrorIO] = providers.NewLogProvider(log, providers.LogWarn)
+
 	return cc
 }
 
@@ -133,7 +160,10 @@ func (capComm *CapComm) Copy(noTrust bool) *CapComm {
 			GOOS:   runtime.GOOS,
 			GOARCH: runtime.GOARCH,
 		},
-		ioSettings: capComm.ioSettings.newCopy(),
+		resources: capComm.resources.Copy(),
+		variables: make(exportMap),
+		exportTo:  capComm.variables,
+		log:       capComm.log,
 	}
 
 	// Non trusted CapComm copies do not receive environment variables from their parent
@@ -160,6 +190,16 @@ func (capComm *CapComm) Copy(noTrust bool) *CapComm {
 // any attempt to edit will cause a panic (as this is a development bug).
 func (capComm *CapComm) Seal() *CapComm {
 	capComm.sealed = true
+	return capComm
+}
+
+// Log returns the cap com logger.
+func (capComm *CapComm) Log() loggee.Logger {
+	return capComm.log
+}
+
+func (capComm *CapComm) ExportVariable(key, value string) *CapComm {
+	capComm.exportTo[key] = value
 	return capComm
 }
 
@@ -205,57 +245,290 @@ func (capComm *CapComm) AddAdditionalMissionData(missionData TemplateData) *CapC
 	return capComm
 }
 
-// AddFile adds a key named file specificsation into the CapComm.
+// AddResource adds a resource to the capComm object.
+func (capComm *CapComm) AddResource(name providers.ResourceID, provider providers.ResourceProvider) {
+	capComm.resources[name] = provider
+}
+
+// GetResource a resource.
+func (capComm *CapComm) GetResource(name providers.ResourceID) providers.ResourceProvider {
+	return capComm.resources[name]
+}
+
+// AddFileResource adds a key named file specificsation into the CapComm.
 // The filePath follows standard template and environment variable expansion.  The mode controls how the file will be used.
 // Files can be added to sealed CapComm's.
-func (capComm *CapComm) AddFile(ctx context.Context, name NamedIO, filePath string, mode IOMode) error {
-	v, err := capComm.ExpandString(ctx, string(name), filePath)
+func (capComm *CapComm) AddFileResource(ctx context.Context, name providers.ResourceID, filePath string, mode providers.IOMode) error {
+	path, err := capComm.ExpandString(ctx, string(name), filePath)
 	if err != nil {
 		return errors.Wrapf(err, "expand %s file path", name)
 	}
-	capComm.ioSettings.addFilePath(name, v, mode)
+
+	provider, err := providers.NewFileProvider(path, mode, 0666, false)
+	if err != nil {
+		return err
+	}
+	capComm.resources[name] = provider
+
 	return nil
 }
 
-// GetFileDetails returns the file details of the named file.  If the file key does not exist nil is returned.
-func (capComm *CapComm) GetFileDetails(name NamedIO) *FileDetail {
-	return capComm.ioSettings.getFileDetails(name)
+func validateInputSpec(inputSpec *InputSpec) error {
+	count := 0
+	if inputSpec.Variable != "" {
+		count++
+	}
+	if inputSpec.Inline != "" {
+		count++
+	}
+	if inputSpec.Path != "" {
+		count++
+	}
+	if inputSpec.URL != "" {
+		count++
+	}
+
+	if count > 1 {
+		return errors.New("more than one input source was specified, only one is permitted")
+	}
+	if count == 0 {
+		return errors.New("no input source was specified")
+	}
+	return nil
 }
 
-// AttachOutput attaches an output specification to a capComm.
-func (capComm *CapComm) AttachOutput(ctx context.Context, redirect OutputSpec) error {
-	// Handle output
-
-	if redirect.Output == "" {
-		return nil
-	}
-
-	mode := IOModeOutput
-	if redirect.AppendOutput {
-		mode |= IOModeAppend
+func (capComm *CapComm) createProviderFromInputSpec(ctx context.Context, inputSpec InputSpec) (providers.ResourceProvider, error) { //nolint:cyclop
+	var rp providers.ResourceProvider
+	var err error
+	var v string
+	if inputSpec.Variable != "" {
+		v, ok := capComm.exportTo[inputSpec.Variable]
+		if !ok && !inputSpec.Optional {
+			return nil, fmt.Errorf("variable %s not found", inputSpec.Variable)
+		}
+		rp = providers.NewNonClosingReaderProvider(bytes.NewBufferString(v))
+	} else if inputSpec.Inline != "" {
+		if !inputSpec.SkipExpand {
+			v, err = capComm.ExpandString(ctx, "inline", inputSpec.Inline)
+		} else {
+			v = inputSpec.Inline
+		}
+		rp = providers.NewNonClosingReaderProvider(bytes.NewBufferString(v))
+	} else if inputSpec.Path != "" {
+		if !inputSpec.SkipExpand {
+			v, err = capComm.ExpandString(ctx, "path", inputSpec.Path)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			v = inputSpec.Path
+		}
+		rp, err = providers.NewFileProvider(v, providers.IOModeInput, 0, inputSpec.Optional)
+	} else if inputSpec.URL != "" {
+		if !inputSpec.SkipExpand {
+			v, err = capComm.ExpandString(ctx, "url", inputSpec.URL)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			v = inputSpec.URL
+		}
+		rp, err = providers.NewURLProvider(v, time.Second*time.Duration(inputSpec.URLTimeout), inputSpec.Optional)
 	} else {
-		mode |= IOModeTruncate
+		panic("validation bad input spec")
 	}
 
-	return capComm.AddFile(ctx, OutputIO, redirect.Output, mode)
+	return rp, err
+}
+
+func (capComm *CapComm) InputSpecToResourceProvider(ctx context.Context, inputSpec InputSpec) (providers.ResourceProvider, error) {
+	if err := validateInputSpec(&inputSpec); err != nil {
+		return nil, err
+	}
+
+	return capComm.createProviderFromInputSpec(ctx, inputSpec)
+}
+
+// AttachInputSpec adds a named input spec to the capCom resources.
+func (capComm *CapComm) AttachInputSpec(ctx context.Context, name providers.ResourceID, inputSpec InputSpec) error {
+	if name == "" {
+		return errors.New("name cannot be blank")
+	}
+
+	rp, err := capComm.InputSpecToResourceProvider(ctx, inputSpec)
+
+	if err == nil {
+		capComm.AddResource(name, rp)
+	}
+
+	return err
+}
+
+func validateOutputSpec(outputSpec *OutputSpec) error {
+	count := 0
+	if outputSpec.Variable != "" {
+		count++
+	}
+	if outputSpec.Path != "" {
+		count++
+	}
+
+	if count > 1 {
+		return errors.New("more than one output source was specified, only one is permitted")
+	}
+	if count == 0 {
+		return errors.New("no output source was specified")
+	}
+
+	return nil
+}
+
+func (capComm *CapComm) createProviderFromOutputSpec(ctx context.Context, outputSpec OutputSpec, mode providers.IOMode) (providers.ResourceProvider, error) {
+	if outputSpec.Variable != "" {
+		// Write to a variable
+		return newVariableWriter(capComm, outputSpec.Variable), nil
+	}
+
+	// Are we appending?
+	if outputSpec.Append {
+		mode |= providers.IOModeAppend
+	} else {
+		mode |= providers.IOModeTruncate
+	}
+
+	// Get the file mode
+	var fileMode os.FileMode
+	if outputSpec.FileMode == 0 {
+		fileMode = 0666
+	} else {
+		fileMode = os.FileMode(outputSpec.FileMode)
+	}
+
+	// Expand the value
+	var v string
+	var err error
+	if !outputSpec.SkipExpand {
+		v, err = capComm.ExpandString(ctx, "path", outputSpec.Path)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		v = outputSpec.Path
+	}
+
+	return providers.NewFileProvider(v, mode, fileMode, false)
+}
+
+func (capComm *CapComm) OutputSpecToResourceProvider(ctx context.Context, outputSpec OutputSpec) (providers.ResourceProvider, error) {
+	err := validateOutputSpec(&outputSpec)
+	if err != nil {
+		return nil, err
+	}
+
+	return capComm.createProviderFromOutputSpec(ctx, outputSpec, providers.IOModeOutput)
+}
+
+// AttachOutputSpec attaches an output specification to the capComm.
+func (capComm *CapComm) AttachOutputSpec(ctx context.Context, name providers.ResourceID, outputSpec OutputSpec) error {
+	if name == "" {
+		return errors.New("name cannot be blank")
+	}
+
+	rp, err := capComm.OutputSpecToResourceProvider(ctx, outputSpec)
+
+	if err == nil {
+		capComm.AddResource(name, rp)
+	}
+
+	return err
+}
+
+func validateRedirection(redirect *Redirection) error { //nolint
+	if redirect.LogOutput && redirect.Output != nil {
+		return errors.New("cannot both redirect to the log and also provide an output specification")
+	}
+	if redirect.DirectError && redirect.Error != nil {
+		return errors.New("cannot both redirect to stderr and also provide an error specification")
+	}
+	if redirect.MergeErrorWithOutput && redirect.Error != nil {
+		return errors.New("cannot merge errors with output and specify an error specification")
+	}
+	if redirect.Input != nil {
+		if err := validateInputSpec(redirect.Input); err != nil {
+			return errors.Wrap(err, string(InputIO))
+		}
+	}
+	if redirect.Output != nil {
+		err := validateOutputSpec(redirect.Output)
+		if err != nil {
+			return errors.Wrap(err, string(OutputIO))
+		}
+	}
+	if redirect.Error != nil {
+		err := validateOutputSpec(redirect.Error)
+		if err != nil {
+			return errors.Wrap(err, string(ErrorIO))
+		}
+	}
+	return nil
 }
 
 // AttachRedirect attaches a redirection specification to the capComm
 // Redirection covers in, out and error streams.
-func (capComm *CapComm) AttachRedirect(ctx context.Context, redirect Redirection) error {
-	// Handle Input
-	if redirect.Input != "" {
-		if err := capComm.AddFile(ctx, InputIO, redirect.Input, IOModeInput); err != nil {
-			return err
-		}
-	}
-
-	// Handle output
-	if err := capComm.attachRedirectOutput(ctx, redirect); err != nil {
+func (capComm *CapComm) AttachRedirect(ctx context.Context, redirect Redirection) error { //nolint
+	// Pre validate
+	if err := validateRedirection(&redirect); err != nil {
 		return err
 	}
 
-	return capComm.attachRedirectError(ctx, redirect)
+	if redirect.Input != nil {
+		rp, err := capComm.createProviderFromInputSpec(ctx, *redirect.Input)
+		if err != nil {
+			return err
+		}
+
+		capComm.AddResource(InputIO, rp)
+	}
+
+	if redirect.LogOutput {
+		rp := providers.NewLogProvider(capComm.log, providers.LogInfo)
+		capComm.AddResource(OutputIO, rp)
+
+		if redirect.MergeErrorWithOutput {
+			capComm.AddResource(ErrorIO, rp)
+		}
+	}
+
+	if redirect.DirectError {
+		capComm.AddResource(ErrorIO, capComm.GetResource(Stderr))
+	}
+
+	if redirect.Output != nil {
+		mode := providers.IOModeOutput
+		if redirect.MergeErrorWithOutput {
+			mode |= providers.IOModeError
+		}
+
+		rp, err := capComm.createProviderFromOutputSpec(ctx, *redirect.Output, mode)
+		if err != nil {
+			return err
+		}
+		capComm.AddResource(OutputIO, rp)
+
+		if redirect.MergeErrorWithOutput {
+			capComm.AddResource(ErrorIO, rp)
+		}
+	}
+
+	if redirect.Error != nil {
+		rp, err := capComm.createProviderFromOutputSpec(ctx, *redirect.Error, providers.IOModeError)
+		if err != nil {
+			return err
+		}
+		capComm.AddResource(ErrorIO, rp)
+	}
+
+	return nil
 }
 
 // MergeParams adds params into an unsealed CapComm instance.
@@ -319,6 +592,7 @@ func (capComm *CapComm) ExpandString(ctx context.Context, name, value string) (s
 
 	// Create the template
 	template, err := template.New(name).
+		Option("missingkey=zero").
 		Funcs(capComm.funcMap).
 		Parse(value)
 	if err != nil {
@@ -381,6 +655,9 @@ func (capComm *CapComm) GetTemplateData(ctx context.Context) TemplateData {
 	// Env
 	data[EnvTag] = capComm.env.All()
 
+	// Add in variables
+	data[VariableTag] = capComm.variables.All()
+
 	if capComm.entrustedParentEnv != nil {
 		data[ParentEnvTag] = capComm.entrustedParentEnv.All()
 	}
@@ -406,21 +683,54 @@ func (capComm *CapComm) expandShellEnv(value string) string {
 	})
 }
 
+func getParamFromURL(ctx context.Context, url string, optional bool) (string, error) {
+	ctxTimeout, cancel := context.WithTimeout(ctx, timeOut)
+	defer cancel()
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return "", errors.Wrapf(err, "creating request for %s", url)
+	}
+
+	resp, err := ctxhttp.Do(ctxTimeout, nil, req)
+	if err != nil {
+		return "", errors.Wrapf(err, "getting %s", url)
+	}
+	defer resp.Body.Close()
+
+	// Support optional gets
+	if optional && resp.StatusCode == http.StatusNotFound {
+		return "", nil
+	}
+
+	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
+		// Bad response
+		return "", fmt.Errorf("response (%d) %s for %s", resp.StatusCode, resp.Status, url)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+
+	return string(body), nil
+}
+
 // expandParam carries out template expansion of a parameter.
 func (capComm *CapComm) expandParam(ctx context.Context, param Param) (string, error) {
 	// Read param
 	value := param.Value
 
 	// If param has a file name, open it
-	if param.File != "" {
-		fileName, err := capComm.ExpandString(ctx, param.Name, param.File)
+	if param.Path != "" {
+		fileName, err := capComm.ExpandString(ctx, param.Name, param.Path)
 		if err != nil {
 			return "", errors.Wrap(err, "rexpanding file name")
 		}
 
 		b, err := os.ReadFile(fileName)
 		if err != nil {
-			if !os.IsNotExist(err) || !param.FileOptional {
+			if !os.IsNotExist(err) || !param.Optional {
 				return "", errors.Wrap(err, "reading value from file")
 			}
 		} else {
@@ -428,8 +738,18 @@ func (capComm *CapComm) expandParam(ctx context.Context, param Param) (string, e
 		}
 	}
 
+	if param.URL != "" {
+		// pull the data from the url
+		body, err := getParamFromURL(ctx, param.URL, param.Optional)
+		if err != nil {
+			return "", err
+		}
+
+		value += body
+	}
+
 	// Skip expanding a param
-	if param.SkipTemplate {
+	if param.SkipExpand {
 		return value, nil
 	}
 
@@ -500,51 +820,6 @@ func (capComm *CapComm) mustNotBeSealed() {
 	if capComm.sealed {
 		panic("CapComm is sealed and cannot be editied")
 	}
-}
-
-func (capComm *CapComm) attachRedirectError(ctx context.Context, redirect Redirection) error {
-	// Handle error files
-	if !redirect.MergeErrorWithOutput && redirect.Error != "" {
-		mode := IOModeError
-		if redirect.AppendError {
-			mode |= IOModeAppend
-		} else {
-			mode |= IOModeTruncate
-		}
-
-		if err := capComm.AddFile(ctx, ErrorIO, redirect.Error, mode); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func (capComm *CapComm) attachRedirectOutput(ctx context.Context, redirect Redirection) error {
-	if redirect.Output != "" {
-		mode := IOModeOutput
-		if redirect.AppendOutput {
-			mode |= IOModeAppend
-		} else {
-			mode |= IOModeTruncate
-		}
-
-		// MergeErrorWithOutput uses the output spec for both out and error files.
-		if redirect.MergeErrorWithOutput {
-			mode |= IOModeError
-
-			if err := capComm.AddFile(ctx, OutputIO, redirect.Output, mode); err != nil {
-				return err
-			}
-
-			if err := capComm.ioSettings.duplicate(OutputIO, ErrorIO); err != nil {
-				return err
-			}
-		} else if err := capComm.AddFile(ctx, OutputIO, redirect.Output, mode); err != nil {
-			return err
-		}
-	}
-	return nil
 }
 
 // addMaps appends map data left to right to the template data receiver.

@@ -8,13 +8,16 @@ stages:
     - tasks:
       - type: template
         name: sayhello
-        inline: |
-          Hello World {{.person}}
+        template:
+          inline: |
+            Hello World {{.person}}
       
       - type: template
         name: list file
         delims:
           left: '[['
           right: ']]'
-        template: "testdata/templtetest.txt"
-        output: "testdata/{{.person}}.tmp"
+        template: 
+          path: "testdata/templtetest.txt"
+        output:
+          path: "testdata/{{.person}}.tmp"

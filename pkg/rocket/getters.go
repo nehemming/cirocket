@@ -23,6 +23,17 @@ type (
 	}
 )
 
+// All returns a copy of all the exported variables.
+func (export exportMap) All() map[string]string {
+	m := make(map[string]string)
+
+	for k, v := range export {
+		m[k] = v
+	}
+
+	return m
+}
+
 type osEnvGetter struct{}
 
 // Gets an environment variable's value.

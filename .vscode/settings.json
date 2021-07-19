@@ -12,6 +12,7 @@
         "ironment",
         "logcli",
         "nehemming",
-        "nolint"
+        "nolint",
+        "testdata"
     ]
 }

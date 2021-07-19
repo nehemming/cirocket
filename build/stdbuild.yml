@@ -99,11 +99,13 @@ stages:
       - name: go list modules 
         type: run
         command: 'go list -json -m all'
-        output: '{{ .artifactsDir }}/list.tmp'
+        output: 
+          variable: nancy 
       - name: nancy
         type: run
         command: 'nancy sleuth --quiet'
-        input: '{{ .artifactsDir }}/list.tmp'
+        input: 
+          variable: nancy 
         logStdOut: true
 
   - name: coverage
@@ -124,7 +126,8 @@ stages:
       - name: credits
         type: run
         command: 'gocredits'
-        output: 'CREDITS'
+        output: 
+           path: 'CREDITS'
 
   # release releases the project using goreleaser
   - name: snapshot_release
@@ -135,20 +138,22 @@ stages:
         value: '{{ .resDir }}//Dockerfile.release'
       - name: releaseHeader
         optional: true
-        skipTemplate: true
-        file: '{{ .resDir }}/header.tplt'
+        skipExpand: true
+        path: '{{ .resDir }}/header.tplt'
       - name: releaseFooter
         optional: true
-        skipTemplate: true
-        file: '{{ .resDir }}/footer.tplt'
+        skipExpand: true
+        path: '{{ .resDir }}/footer.tplt'
     tasks:
       - name: prepare release script
         type: template
         delims:
           left: '[['
           right: ']]'
-        template: '{{ .resDir }}/goreleaser.ytpl'
-        output: '{{ .goreleaserCfg }}'
+        template: 
+          path: '{{ .resDir }}/goreleaser.ytpl'
+        output: 
+          path: '{{ .goreleaserCfg }}'
 
       - name: go releaser
         type: run
@@ -169,11 +174,11 @@ stages:
         value: '{{ .resDir }}/Dockerfile.release'
       - name: releaseHeader
         optional: true
-        skipTemplate: true
+        skipExpand: true
         file: '{{ .resDir }}/header.tplt'
       - name: releaseFooter
         optional: true
-        skipTemplate: true
+        skipExpand: true
         file: '{{ .resDir }}/footer.tplt'
 
     tasks:
@@ -182,8 +187,10 @@ stages:
         delims:
           left: '[['
           right: ']]'
-        template: '{{ .resDir }}/goreleaser.ytpl'
-        output: '{{ .goreleaserCfg }}'
+        template: 
+          path: '{{ .resDir }}/goreleaser.ytpl'
+        output: 
+          path: '{{ .goreleaserCfg }}'
 
       - name: go releaser
         type: run

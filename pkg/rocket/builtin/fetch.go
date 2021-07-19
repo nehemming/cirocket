@@ -2,18 +2,13 @@ package builtin
 
 import (
 	"context"
-	"fmt"
 	"io"
-	"net/http"
-	"os"
 	"sync"
-	"time"
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/nehemming/cirocket/pkg/loggee"
 	"github.com/nehemming/cirocket/pkg/rocket"
 	"github.com/pkg/errors"
-	"golang.org/x/net/context/ctxhttp"
 )
 
 type (
@@ -21,20 +16,21 @@ type (
 	Fetch struct {
 		Resources []FetchResource `mapstructure:"resources"`
 		Log       bool            `mapstructure:"log"`
-		Timeout   *int            `mapstructure:"timeout"`
 	}
 
 	FetchResource struct {
-		URL    string `mapstructure:"url"`
-		Output string `mapstructure:"output"`
+		Source rocket.InputSpec  `mapstructure:"source"`
+		Output rocket.OutputSpec `mapstructure:"output"`
 	}
 
 	fetchType struct{}
 
-	urlFileTuple struct {
-		url string
-		out string
+	fetchOp struct {
+		source io.ReadCloser
+		target io.WriteCloser
 	}
+
+	fetchOps []*fetchOp
 )
 
 func (fetchType) Type() string {
@@ -48,17 +44,13 @@ func (fetchType) Prepare(ctx context.Context, capComm *rocket.CapComm, task rock
 		return nil, errors.Wrap(err, "parsing template type")
 	}
 
-	timeOut, err := getTimeOut(fetchCfg.Timeout)
-	if err != nil {
-		return nil, err
-	}
+	fn := func(execCtx context.Context) (err error) {
+		ops, err := getFetchOpsFromResourceList(ctx, capComm, fetchCfg.Resources)
+		if err != nil {
+			return
+		}
+		defer ops.Close()
 
-	resources, err := getResourcesList(ctx, capComm, fetchCfg.Resources)
-	if err != nil {
-		return nil, err
-	}
-
-	fn := func(execCtx context.Context) error {
 		// Create a context we can cancel
 		fetchCtx, cancel := context.WithCancel(execCtx)
 		defer cancel()
@@ -75,7 +67,7 @@ func (fetchType) Prepare(ctx context.Context, capComm *rocket.CapComm, task rock
 
 		// Consume errCh getting any errors form requests
 		// Errors will cancel any remaining open requests
-		var err error
+
 		go func() {
 			defer close(doneCh)
 			for e := range errCh {
@@ -93,20 +85,25 @@ func (fetchType) Prepare(ctx context.Context, capComm *rocket.CapComm, task rock
 		}()
 
 		// Run over requests
-		for _, res := range resources {
+		for i, res := range ops {
 			// Check if exit requested
-			if ctx.Err() != nil {
+			if fetchCtx.Err() != nil {
 				return nil
 			}
 
 			// Run in parallel
 			wg.Add(1)
-			go func(working urlFileTuple) {
+			go func(index int, fetch *fetchOp) {
 				defer wg.Done()
-				if err := fetchResource(fetchCtx, working, timeOut, fetchCfg.Log); err != nil {
+
+				_, err := io.Copy(fetch.target, fetch.source)
+				if err != nil {
 					errCh <- err
 				}
-			}(res)
+				// Close asap
+				fetch.Close()
+				ops[index] = nil
+			}(i, res)
 		}
 
 		// Wait for all requests to be done
@@ -115,7 +112,7 @@ func (fetchType) Prepare(ctx context.Context, capComm *rocket.CapComm, task rock
 		// Close the error channel as no more errors
 		close(errCh)
 
-		// Wait for err change to close
+		// Wait for err channel to close
 		<-doneCh
 		return err
 	}
@@ -123,79 +120,60 @@ func (fetchType) Prepare(ctx context.Context, capComm *rocket.CapComm, task rock
 	return fn, nil
 }
 
-func getResourcesList(ctx context.Context, capComm *rocket.CapComm, list []FetchResource) ([]urlFileTuple, error) {
-	resources := make([]urlFileTuple, 0, len(list))
-	for index, res := range list {
-		tup := urlFileTuple{}
-		if out, err := capComm.ExpandString(ctx, "out", res.Output); err != nil {
-			return nil, errors.Wrapf(err, "expanding output %d", index)
-		} else if out == "" {
-			return nil, fmt.Errorf("output %d is blank", index)
-		} else {
-			tup.out = out
+func getFetchOpsFromResourceList(ctx context.Context, capComm *rocket.CapComm, list []FetchResource) (fetchOps, error) {
+	resources := make(fetchOps, 0, len(list))
+	for index, resource := range list {
+		op, err := getResource(ctx, capComm, resource)
+		if err != nil {
+			resources.Close()
+			return nil, errors.Wrapf(err, "resource[%d]", index)
 		}
 
-		if url, err := capComm.ExpandString(ctx, "url", res.URL); err != nil {
-			return nil, errors.Wrapf(err, "expanding url %d", index)
-		} else if url == "" {
-			return nil, fmt.Errorf("url %d is blank", index)
-		} else {
-			tup.url = url
-		}
-
-		resources = append(resources, tup)
+		resources = append(resources, op)
 	}
 
 	return resources, nil
 }
 
-func getTimeOut(cfgTimeout *int) (time.Duration, error) {
-	var timeout time.Duration
-	if cfgTimeout != nil {
-		timeout = time.Second * time.Duration(*cfgTimeout)
-	} else {
-		timeout = time.Second * time.Duration(30)
-	}
-	if timeout < time.Second {
-		return timeout, fmt.Errorf("timeout %d is to short", timeout/time.Second)
+func getResource(ctx context.Context, capComm *rocket.CapComm, resource FetchResource) (*fetchOp, error) {
+	srcRp, err := capComm.InputSpecToResourceProvider(ctx, resource.Source)
+	if err != nil {
+		return nil, errors.Wrap(err, "source")
 	}
 
-	return timeout, nil
+	outRp, err := capComm.OutputSpecToResourceProvider(ctx, resource.Output)
+	if err != nil {
+		return nil, errors.Wrap(err, "output")
+	}
+
+	reader, err := srcRp.OpenRead(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "source")
+	}
+
+	writer, err := outRp.OpenWrite(ctx)
+	if err != nil {
+		reader.Close()
+		return nil, errors.Wrap(err, "output")
+	}
+
+	return &fetchOp{
+		source: reader,
+		target: writer,
+	}, nil
 }
 
-func fetchResource(ctx context.Context, res urlFileTuple, timeOut time.Duration, log bool) error {
-	ctxTimeout, cancel := context.WithTimeout(ctx, timeOut)
-	defer cancel()
+func (op fetchOp) Close() {
+	_ = op.source.Close()
+	_ = op.target.Close()
+}
 
-	req, err := http.NewRequest("GET", res.url, nil)
-	if err != nil {
-		return errors.Wrapf(err, "creating request for %s", res.url)
+func (ops fetchOps) Close() {
+	for _, op := range ops {
+		if op != nil {
+			op.Close()
+		}
 	}
-
-	resp, err := ctxhttp.Do(ctxTimeout, nil, req)
-	if err != nil {
-		return errors.Wrapf(err, "getting %s", res.url)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
-		// Bad response
-		return fmt.Errorf("response (%d) %s for %s", resp.StatusCode, resp.Status, res.url)
-	}
-
-	// Create the file
-	out, err := os.Create(res.out)
-	if err != nil {
-		return errors.Wrapf(err, "creating %s", res.out)
-	}
-	defer out.Close()
-
-	// Write the body to file
-	bytes, err := io.Copy(out, resp.Body)
-	if log {
-		loggee.Infof("fetch %s => %s, %d bytes", res.url, res.out, bytes)
-	}
-	return err
 }
 
 func init() {

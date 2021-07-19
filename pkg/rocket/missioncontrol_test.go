@@ -13,6 +13,7 @@ import (
 )
 
 func TestNewMissionControl(t *testing.T) {
+	loggee.SetLogger(stdlog.New())
 	mc := NewMissionControl()
 
 	if mc == nil {
@@ -61,6 +62,7 @@ func (tt *testTaskType) Prepare(ctx context.Context, capComm *CapComm, task Task
 }
 
 func TestRegisterTaskTypes(t *testing.T) {
+	loggee.SetLogger(stdlog.New())
 	mc := NewMissionControl()
 
 	mc.RegisterTaskTypes()
@@ -85,6 +87,7 @@ func TestRegisterTaskTypes(t *testing.T) {
 }
 
 func TestLaunchMissionZero(t *testing.T) {
+	loggee.SetLogger(stdlog.New())
 	mc := NewMissionControl()
 
 	if err := mc.LaunchMission(context.Background(), "", nil); err != nil {
@@ -93,6 +96,7 @@ func TestLaunchMissionZero(t *testing.T) {
 }
 
 func TestLaunchMissionOne(t *testing.T) {
+	loggee.SetLogger(stdlog.New())
 	mc := NewMissionControl()
 
 	mission := make(map[string]interface{})
@@ -104,6 +108,7 @@ func TestLaunchMissionOne(t *testing.T) {
 }
 
 func TestLaunchMissionTwo(t *testing.T) {
+	loggee.SetLogger(stdlog.New())
 	mc := NewMissionControl()
 
 	mission := make(map[string]interface{})

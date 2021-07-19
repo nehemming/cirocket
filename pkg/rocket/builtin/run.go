@@ -32,14 +32,6 @@ type (
 
 		// Redirect handles input and output redirection.
 		rocket.Redirection `mapstructure:",squash"`
-
-		// LogOutput if true will cause output to be logged rather than going to go to std output.
-		// If an output file is specified it will be used instead.
-		LogOutput bool `mapstructure:"logStdOut"`
-
-		// DirectError when true causes the commands std error output to go direct to running processes std error
-		// When DirectError is false std error output is logged.
-		DirectError bool `mapstructure:"directStdErr"`
 	}
 
 	runType struct{}
@@ -56,13 +48,13 @@ func (runType) Prepare(ctx context.Context, capComm *rocket.CapComm, task rocket
 		return nil, errors.Wrap(err, "parsing template type")
 	}
 
-	// Get the command line
-	commandLine, err := getCommandLine(ctx, capComm, runCfg)
-	if err != nil {
-		return nil, err
-	}
-
 	fn := func(execCtx context.Context) error {
+		// Get the command line
+		commandLine, err := getCommandLine(ctx, capComm, runCfg)
+		if err != nil {
+			return err
+		}
+
 		// Setup command
 		cmd := exec.Command(commandLine.ProgramPath, commandLine.Args...)
 		cmd.Env = capComm.GetExecEnv()
@@ -74,7 +66,7 @@ func (runType) Prepare(ctx context.Context, capComm *rocket.CapComm, task rocket
 
 		// Run command
 		var runExitCode int
-		err := runCmd(execCtx, capComm, runCfg, cmd)
+		err = runCmd(execCtx, capComm, cmd)
 		if err != nil {
 			// Issue caught
 			if exitError, ok := err.(*exec.ExitError); ok {
@@ -136,11 +128,36 @@ func startProcessSignalHandlee(ctx context.Context, cmd *exec.Cmd) chan struct{}
 	return done
 }
 
-func runCmd(ctx context.Context, capComm *rocket.CapComm, runCfg *Run, cmd *exec.Cmd) error {
-	pipeFuncs, cf, err := setupRedirect(capComm, cmd, runCfg)
-	defer cf.Close() // close any files we opened in redirect
-	if err != nil {
-		return err
+func runCmd(ctx context.Context, capComm *rocket.CapComm, cmd *exec.Cmd) error {
+	inputResource := capComm.GetResource(rocket.InputIO)
+	outputResource := capComm.GetResource(rocket.OutputIO)
+	errorResource := capComm.GetResource(rocket.ErrorIO)
+
+	if inputResource != nil {
+		stdIn, err := inputResource.OpenRead(ctx)
+		if err != nil {
+			return errors.Wrap(err, "input")
+		}
+		cmd.Stdin = stdIn
+		defer stdIn.Close()
+	}
+
+	if outputResource != nil {
+		stdOut, err := outputResource.OpenWrite(ctx)
+		if err != nil {
+			return errors.Wrap(err, "output")
+		}
+		cmd.Stdout = stdOut
+		defer stdOut.Close()
+	}
+
+	if errorResource != nil {
+		stdErr, err := errorResource.OpenWrite(ctx)
+		if err != nil {
+			return errors.Wrap(err, "error")
+		}
+		cmd.Stderr = stdErr
+		defer stdErr.Close()
 	}
 
 	// Start the process
@@ -151,17 +168,6 @@ func runCmd(ctx context.Context, capComm *rocket.CapComm, runCfg *Run, cmd *exec
 	// setup signal handler and close on exit
 	signalHandlerDoneChannel := startProcessSignalHandlee(ctx, cmd)
 	defer close(signalHandlerDoneChannel)
-
-	// Handle pipes
-	channels := make([]chan struct{}, 0, len(pipeFuncs))
-	for _, fn := range pipeFuncs {
-		channels = append(channels, fn())
-	}
-
-	// Wait for channels to close, meaning pipe has shut
-	for _, ch := range channels {
-		<-ch
-	}
 
 	// Wait for process exit
 	return cmd.Wait()

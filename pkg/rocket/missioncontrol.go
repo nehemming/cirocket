@@ -41,6 +41,16 @@ type (
 		// the coonfig file is the source name iof the config provided
 		// if its empty the current working 'dir/default' will be used.
 		LaunchMission(ctx context.Context, configFile string, spaceDust map[string]interface{}, flightSequences ...string) error
+
+		// LaunchMissionWithParams loads and executes the mission with user supplied parameters
+		// flightSequences may be specified, each sequence is run in the order specified
+		// the coonfig file is the source name iof the config provided
+		// if its empty the current working 'dir/default' will be used.
+		// The supplied params are default values and do not override values defined in the mission
+		LaunchMissionWithParams(ctx context.Context, configFile string,
+			spaceDust map[string]interface{},
+			params []Param,
+			flightSequences ...string) error
 	}
 
 	// operations is a collection of operations.
@@ -84,6 +94,12 @@ func (mc *missionControl) RegisterTaskTypes(types ...TaskType) {
 }
 
 func (mc *missionControl) LaunchMission(ctx context.Context, configFile string, spaceDust map[string]interface{}, flightSequences ...string) error {
+	return mc.LaunchMissionWithParams(ctx, configFile, spaceDust, nil, flightSequences...)
+}
+
+func (mc *missionControl) LaunchMissionWithParams(ctx context.Context, configFile string,
+	spaceDust map[string]interface{}, params []Param,
+	flightSequences ...string) error {
 	configFile, err := getConfigFileName(configFile)
 	if err != nil {
 		return err
@@ -96,7 +112,7 @@ func (mc *missionControl) LaunchMission(ctx context.Context, configFile string, 
 	}
 
 	// Create a cap comm object from the environment
-	capComm := newCapCommFromEnvironment(configFile)
+	capComm := newCapCommFromEnvironment(configFile, loggee.Default())
 
 	// Misssion has been successfully parsed, load the global settings
 	capComm, err = processGlobals(ctx, capComm, mission)
