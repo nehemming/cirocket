@@ -49,6 +49,7 @@ func SetLogger(logger Logger) {
 	mustHaveLogger()
 }
 
+// Default returns the default logger, if none is set Default will panic.
 func Default() Logger {
 	mustHaveLogger()
 	return defaultLog

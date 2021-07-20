@@ -10,6 +10,7 @@ import (
 )
 
 type (
+	// FileDetail provides details on a file based resource provider.
 	FileDetail interface {
 		FilePath() string
 		IOMode() IOMode

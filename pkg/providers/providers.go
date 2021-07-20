@@ -31,6 +31,7 @@ type (
 	}
 )
 
+// Copy creates a copy of a resource map.
 func (m ResourceProviderMap) Copy() ResourceProviderMap {
 	copy := make(ResourceProviderMap)
 

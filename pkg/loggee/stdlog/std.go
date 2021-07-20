@@ -13,6 +13,7 @@ type (
 	stdLog int
 )
 
+// New creates a new logger using the standard golang 'log' package.
 func New() loggee.Logger {
 	return stdLog(0)
 }

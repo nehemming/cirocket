@@ -9,6 +9,7 @@ import (
 )
 
 type (
+	// LineFunc is a callback function type that is called per line  written to a line provider.
 	LineFunc func(string)
 
 	streamer struct {
@@ -23,10 +24,12 @@ func NewLineProvider(fn func(string)) ResourceProvider {
 	return LineFunc(fn)
 }
 
+// OpenRead returns an error if called as reads are not possible from a line provider.
 func (lf LineFunc) OpenRead(ctx context.Context) (io.ReadCloser, error) {
 	return nil, errors.New("input is not supported")
 }
 
+// OpenWrite opens resource for writing.
 func (lf LineFunc) OpenWrite(ctx context.Context) (io.WriteCloser, error) {
 	reader, writer := io.Pipe()
 

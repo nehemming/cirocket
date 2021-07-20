@@ -1,6 +1,8 @@
 package rocket
 
 type (
+
+	// Include contains details of an include file within the config.
 	Include struct {
 		Path string `mapstructure:"path"`
 		URL  string `mapstructure:"url"`
@@ -160,6 +162,7 @@ type (
 	Filter struct {
 		// IncludeOS is a list of operating systems to include
 		IncludeOS []string `mapstructure:"includeOS"`
+
 		// IncludeArch is a list of architectures to permit
 		IncludeArch []string `mapstructure:"includeArch"`
 
@@ -173,6 +176,8 @@ type (
 		Skip bool `mapstructure:"skip"`
 	}
 
+	// OutputSpec defines the method of outputtting for a given resource.  The choice is
+	// either variables or files.
 	OutputSpec struct {
 		// Variable is an exported variable available to later tasks in the same stage
 		Variable string `mapstructure:"variable"`
@@ -190,6 +195,8 @@ type (
 		FileMode uint `mapstructure:"fileMode"`
 	}
 
+	// InputSpec is a resource input specificsation.  Input data can be provided from
+	// inline valuses, exported stage variables, local files or a web url.
 	InputSpec struct {
 		// Variable name to import from
 		Variable string `mapstructure:"variable"`

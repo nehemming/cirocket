@@ -1,4 +1,4 @@
-// Package cliparser converts a command line string into CommandLine program and args struct
+// Package cliparse converts a command line string into CommandLine program and args struct
 package cliparse
 
 import (

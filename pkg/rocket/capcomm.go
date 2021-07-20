@@ -198,6 +198,7 @@ func (capComm *CapComm) Log() loggee.Logger {
 	return capComm.log
 }
 
+// ExportVariable exports the passed variable to all capComm's sharing the same parent as the receiver.
 func (capComm *CapComm) ExportVariable(key, value string) *CapComm {
 	capComm.exportTo[key] = value
 	return capComm
@@ -341,6 +342,7 @@ func (capComm *CapComm) createProviderFromInputSpec(ctx context.Context, inputSp
 	return rp, err
 }
 
+// InputSpecToResourceProvider creates a resource provider from the supplied input spec.
 func (capComm *CapComm) InputSpecToResourceProvider(ctx context.Context, inputSpec InputSpec) (providers.ResourceProvider, error) {
 	if err := validateInputSpec(&inputSpec); err != nil {
 		return nil, err
@@ -419,6 +421,7 @@ func (capComm *CapComm) createProviderFromOutputSpec(ctx context.Context, output
 	return providers.NewFileProvider(v, mode, fileMode, false)
 }
 
+// OutputSpecToResourceProvider creates a resource provider from a output specificsation.
 func (capComm *CapComm) OutputSpecToResourceProvider(ctx context.Context, outputSpec OutputSpec) (providers.ResourceProvider, error) {
 	err := validateOutputSpec(&outputSpec)
 	if err != nil {
