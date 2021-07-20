@@ -75,6 +75,9 @@ type (
 
 		// Optional if true allows the file not to exist
 		Optional bool `mapstructure:"optional"`
+
+		// Print if true will display the value of the parameter once expanded to the log
+		Print bool `mapstructure:"print"`
 	}
 
 	// EnvMap is a map of environment variables to their values.

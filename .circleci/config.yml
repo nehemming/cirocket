@@ -10,7 +10,7 @@ jobs:
       - checkout
       - run:
           name: "CI Rocket snapshot test on commit"
-          command: cirocket --config build/circleci.yml launch cicommit
+          command: cirocket launch cicommit
       - run:
           name: "Report card"
           command: |
@@ -30,7 +30,7 @@ jobs:
           command: |
             echo $DOCKER_TOKEN | docker login -u $CIRCLE_PROJECT_USERNAME --password-stdin
             echo $GITHUB_TOKEN | docker login ghcr.io -u $CIRCLE_PROJECT_USERNAME --password-stdin
-            cirocket --config build/circleci.yml launch cirelease
+            cirocket launch cirelease --param release=yes
 
 workflows:
   version: 2

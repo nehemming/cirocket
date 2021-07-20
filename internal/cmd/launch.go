@@ -10,7 +10,7 @@ import (
 )
 
 func getCliParams(cmd *cobra.Command) ([]rocket.Param, error) {
-	valueParams, err := cmd.Flags().GetStringArray(flagParams)
+	valueParams, err := cmd.Flags().GetStringArray(flagParam)
 	if err != nil {
 		return nil, err
 	}
@@ -27,7 +27,7 @@ func parseParams(valueParams []string) ([]rocket.Param, error) {
 			return nil, fmt.Errorf("param[%d] %s is not formed as name=value", i, nv)
 		}
 
-		params[i] = rocket.Param{Name: slice[0], Value: slice[1]}
+		params[i] = rocket.Param{Name: slice[0], Value: slice[1], Print: true}
 	}
 
 	return params, nil
@@ -51,8 +51,8 @@ func (cli *cli) runFireCmd(cmd *cobra.Command, args []string) error {
 			viper.AllSettings(), params, args...)
 }
 
-const flagParams = "params"
+const flagParam = "param"
 
 func (cli *cli) bindLaunchFlagsAndConfig(cmd *cobra.Command) {
-	cmd.Flags().StringArray(flagParams, nil, "supply parameter values to the mission, multiple params flags can be provided")
+	cmd.Flags().StringArray(flagParam, nil, "supply parameter values to the mission, multiple params flags can be provided")
 }

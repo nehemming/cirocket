@@ -97,3 +97,12 @@ func TestCleanerRun(t *testing.T) {
 
 	validateCleanerTest(t)
 }
+
+func TestDeleteMissing(t *testing.T) {
+	files := []string{"filenotexists.gogo"}
+
+	err := deleteFiles(files, false)
+	if err != nil {
+		t.Error("unexpected", err)
+	}
+}

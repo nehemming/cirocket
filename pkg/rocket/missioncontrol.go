@@ -115,7 +115,7 @@ func (mc *missionControl) LaunchMissionWithParams(ctx context.Context, configFil
 	capComm := newCapCommFromEnvironment(configFile, loggee.Default())
 
 	// Misssion has been successfully parsed, load the global settings
-	capComm, err = processGlobals(ctx, capComm, mission)
+	capComm, err = processGlobals(ctx, capComm, mission, params)
 	if err != nil {
 		return errors.Wrap(err, "global settings failure")
 	}
@@ -130,7 +130,7 @@ func (mc *missionControl) LaunchMissionWithParams(ctx context.Context, configFil
 	// prepare stages
 	for index, stage := range stagesToRun {
 		if stage.Name == "" {
-			stage.Name = fmt.Sprintf("stage%d", index)
+			stage.Name = fmt.Sprintf("stage[%d]", index)
 		}
 
 		// prepare the stage
@@ -141,7 +141,7 @@ func (mc *missionControl) LaunchMissionWithParams(ctx context.Context, configFil
 
 		if len(ops) > 0 {
 			operations = append(operations, &operation{
-				description: fmt.Sprintf("stage %s", stage.Name),
+				description: fmt.Sprintf("stage: %s", stage.Name),
 				makeItSo:    engage(ctx, ops),
 				try:         stage.Try,
 			})
@@ -191,13 +191,13 @@ func (mc *missionControl) prepareStage(ctx context.Context, missionCapComm *CapC
 	// Move onto tasks
 	for index, task := range stage.Tasks {
 		if task.Name == "" {
-			task.Name = fmt.Sprintf("task%d", index)
+			task.Name = fmt.Sprintf("task[%d]", index)
 		}
 
 		// prepare the task
 		op, err := mc.prepareTask(ctx, capComm, task)
 		if err != nil {
-			return nil, errors.Wrapf(err, "prepare %s", task.Name)
+			return nil, errors.Wrapf(err, "prepare: %s", task.Name)
 		}
 
 		if op != nil {
@@ -244,18 +244,23 @@ func (mc *missionControl) prepareTask(ctx context.Context, stageCapComm *CapComm
 	}
 
 	return &operation{
-		description: fmt.Sprintf("task %s", task.Name),
+		description: fmt.Sprintf("task: %s", task.Name),
 		makeItSo:    taskFunc,
 		try:         task.Try,
 	}, nil
 }
 
-func processGlobals(ctx context.Context, capComm *CapComm, mission *Mission) (*CapComm, error) {
+func processGlobals(ctx context.Context, capComm *CapComm, mission *Mission, suppliedParams []Param) (*CapComm, error) {
 	// Copy the inbound CapComm
 	capComm = capComm.Copy(false).
 		WithMission(mission).
 		MergeBasicEnvMap(mission.BasicEnv).
 		AddAdditionalMissionData(mission.Additional)
+
+	// Merge and expand parameters
+	if err := capComm.MergeParams(ctx, suppliedParams); err != nil {
+		return nil, errors.Wrap(err, "merging supplied params")
+	}
 
 	// Merge and expand parameters
 	if err := capComm.MergeParams(ctx, mission.Params); err != nil {
@@ -303,7 +308,7 @@ func getStagesTooRun(mission *Mission, flightSequences []string) ([]Stage, error
 		}
 		for _, stageName := range sequence {
 			if stage, ok := stageMap[stageName]; !ok {
-				return nil, fmt.Errorf("sequence %s cannot find stage %s", flight, stageName)
+				return nil, fmt.Errorf("sequence %s cannot find stage: %s", flight, stageName)
 			} else if !alreadySpecified[stageName] {
 				alreadySpecified[stageName] = true
 				stagesToRun = append(stagesToRun, stage)
@@ -320,11 +325,11 @@ func convertStagesToMap(stages []Stage) (map[string]Stage, error) {
 	// prepare stages
 	for index, stage := range stages {
 		if stage.Name == "" {
-			stage.Name = fmt.Sprintf("stage%d", index)
+			stage.Name = fmt.Sprintf("stage[%d]", index)
 		}
 
 		if _, ok := m[stage.Name]; ok {
-			return nil, fmt.Errorf("stage %s name is duplicated", stage.Name)
+			return nil, fmt.Errorf("stage: %s name is duplicated", stage.Name)
 		}
 
 		m[stage.Name] = stage

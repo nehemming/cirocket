@@ -1460,6 +1460,7 @@ func TestExpandParam(t *testing.T) {
 		{
 			Name:  "valueTest",
 			Value: "1234",
+			Print: true,
 		},
 		{
 			Name: "valueTest",

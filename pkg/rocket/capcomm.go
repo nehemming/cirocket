@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"os/user"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -63,6 +64,9 @@ type (
 		GOOS string
 		// GOARCH is the architecture the host application is running against
 		GOARCH string
+
+		// UserName runtime username
+		UserName string
 	}
 
 	// CapComm handles all communication between mission control and the mission stages and tasks.
@@ -86,12 +90,12 @@ type (
 )
 
 // setParamsFromConfigFile adds config file entries to the environment map.
-func setParamsFromConfigFile(env map[string]string, configFile string) {
+func setParamsFromConfigFile(params map[string]string, configFile string) {
 	dir, file := filepath.Split(configFile)
-	env[ConfigFileFullPath], _ = filepath.Abs(configFile)
-	env[ConfigFile] = file
-	env[ConfigBaseName] = strings.TrimSuffix(file, filepath.Ext(file))
-	env[ConfigDir] = strings.TrimSuffix(dir, string(filepath.Separator))
+	params[ConfigFileFullPath], _ = filepath.Abs(configFile)
+	params[ConfigFile] = file
+	params[ConfigBaseName] = strings.TrimSuffix(file, filepath.Ext(file))
+	params[ConfigDir] = strings.TrimSuffix(dir, string(filepath.Separator))
 }
 
 func initFuncMap() template.FuncMap {
@@ -114,6 +118,22 @@ func initFuncMap() template.FuncMap {
 	return fm
 }
 
+func getUserName() string {
+	if u, err := user.Current(); err == nil {
+		if u.Name != "" {
+			return u.Name
+		}
+		if u.Username != "" {
+			return u.Username
+		}
+		if u.Uid != "" {
+			return u.Uid
+		}
+	}
+
+	return "unknown"
+}
+
 // newCapCommFromEnvironment creates a new capCom from the environment.
 func newCapCommFromEnvironment(configFile string, log loggee.Logger) *CapComm {
 	paramKvg := NewKeyValueGetter(nil)
@@ -126,8 +146,9 @@ func newCapCommFromEnvironment(configFile string, log loggee.Logger) *CapComm {
 		params:                paramKvg,
 		funcMap:               initFuncMap(),
 		runtime: Runtime{
-			GOOS:   runtime.GOOS,
-			GOARCH: runtime.GOARCH,
+			GOOS:     runtime.GOOS,
+			GOARCH:   runtime.GOARCH,
+			UserName: getUserName(),
 		},
 		resources: make(providers.ResourceProviderMap),
 		variables: make(exportMap),
@@ -156,14 +177,11 @@ func (capComm *CapComm) Copy(noTrust bool) *CapComm {
 		additionalMissionData: capComm.additionalMissionData, // no copy, but safe as set once
 		funcMap:               make(template.FuncMap),
 		params:                NewKeyValueGetter(capComm.params),
-		runtime: Runtime{
-			GOOS:   runtime.GOOS,
-			GOARCH: runtime.GOARCH,
-		},
-		resources: capComm.resources.Copy(),
-		variables: make(exportMap),
-		exportTo:  capComm.variables,
-		log:       capComm.log,
+		runtime:               capComm.runtime,
+		resources:             capComm.resources.Copy(),
+		variables:             make(exportMap),
+		exportTo:              capComm.variables,
+		log:                   capComm.log,
 	}
 
 	// Non trusted CapComm copies do not receive environment variables from their parent
@@ -719,8 +737,7 @@ func getParamFromURL(ctx context.Context, url string, optional bool) (string, er
 	return string(body), nil
 }
 
-// expandParam carries out template expansion of a parameter.
-func (capComm *CapComm) expandParam(ctx context.Context, param Param) (string, error) {
+func (capComm *CapComm) getParamValue(ctx context.Context, param Param) (string, error) {
 	// Read param
 	value := param.Value
 
@@ -751,12 +768,30 @@ func (capComm *CapComm) expandParam(ctx context.Context, param Param) (string, e
 		value += body
 	}
 
-	// Skip expanding a param
-	if param.SkipExpand {
-		return value, nil
+	return value, nil
+}
+
+// expandParam carries out template expansion of a parameter.
+func (capComm *CapComm) expandParam(ctx context.Context, param Param) (string, error) {
+	value, err := capComm.getParamValue(ctx, param)
+	if err != nil {
+		return "", err
 	}
 
-	return capComm.ExpandString(ctx, param.Name, value)
+	if !param.SkipExpand {
+		// Expand
+		value, err = capComm.ExpandString(ctx, param.Name, value)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	// Print?
+	if param.Print {
+		capComm.log.WithField("value", value).Infof("param: %s", param.Name)
+	}
+
+	return value, nil
 }
 
 // isFiltered returns true if the filter restricts

@@ -307,3 +307,31 @@ func TestLaunchMissionWithSequencesInclude(t *testing.T) {
 		t.Error("Unexpected error message", err)
 	}
 }
+
+func TestProcessGlobalsPassedInParams(t *testing.T) {
+	ctx := context.Background()
+	capComm := newCapCommFromEnvironment(testConfigFile, stdlog.New())
+
+	mission := new(Mission)
+	mission.Params = []Param{
+		{Name: "mission_value", Value: "0000"},
+	}
+
+	params := []Param{
+		{Name: "test", Value: "1234"},
+		{Name: "mission_value", Value: "9999"},
+	}
+
+	capCommMission, err := processGlobals(ctx, capComm, mission, params)
+	if err != nil {
+		t.Error("unexpected")
+	}
+
+	if capCommMission.params.Get("test") != "1234" {
+		t.Error("unmatched passed in params")
+	}
+
+	if capCommMission.params.Get("mission_value") != "0000" {
+		t.Error("mission_value from params, should be mission")
+	}
+}

@@ -61,7 +61,7 @@ func TestRunGoWithError(t *testing.T) {
 
 	if err := mc.LaunchMission(context.Background(), cfgFile, mission); err == nil {
 		t.Error("Run go mission no error")
-	} else if err.Error() != "stage testing: task run go with error: process go exit code 2" {
+	} else if err.Error() != "stage: testing: task: run go with error: process go exit code 2" {
 		t.Error("Run go mission failure unknown error", err)
 	}
 }

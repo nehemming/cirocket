@@ -34,17 +34,17 @@ func (cleanerType) Prepare(ctx context.Context, capComm *rocket.CapComm, task ro
 		return nil, errors.Wrap(err, "parsing template type")
 	}
 
-	// Expand files
-	specs := make([]string, 0, len(cleanCfg.Files))
-	for index, f := range cleanCfg.Files {
-		fileSpec, err := capComm.ExpandString(ctx, "file", f)
-		if err != nil {
-			return nil, errors.Wrapf(err, "expanding file %d", index)
-		}
-		specs = append(specs, fileSpec)
-	}
-
 	fn := func(execCtx context.Context) error {
+		// Expand files
+		specs := make([]string, 0, len(cleanCfg.Files))
+		for index, f := range cleanCfg.Files {
+			fileSpec, err := capComm.ExpandString(ctx, "file", f)
+			if err != nil {
+				return errors.Wrapf(err, "expanding file %d", index)
+			}
+			specs = append(specs, fileSpec)
+		}
+
 		// glob the files
 		files, err := globFile(specs)
 		if err != nil {
@@ -80,6 +80,10 @@ func deleteFiles(files []string, log bool) error {
 		stat, err := os.Stat(file)
 		if err != nil && !os.IsNotExist(err) {
 			return errors.Wrapf(err, "stat %s:", file)
+		}
+
+		if stat == nil {
+			continue
 		}
 
 		if stat.IsDir() {

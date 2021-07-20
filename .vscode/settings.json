@@ -8,6 +8,8 @@
         "cirocket",
         "cliparser",
         "ctxhttp",
+        "delims",
+        "dockerhub",
         "initialise",
         "ironment",
         "logcli",

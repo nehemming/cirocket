@@ -31,21 +31,20 @@ func (mkDirType) Prepare(ctx context.Context, capComm *rocket.CapComm, task rock
 		return nil, errors.Wrap(err, "parsing template type")
 	}
 
-	// Expand directories
-	directories := make([]string, 0, len(mkDirCfg.Dirs))
-	for index, f := range mkDirCfg.Dirs {
-		dir, err := capComm.ExpandString(ctx, "dir", f)
-		if err != nil {
-			return nil, errors.Wrapf(err, "expanding dir %d", index)
-		}
-
-		directories = append(directories, dir)
-	}
-
 	fn := func(execCtx context.Context) error {
+		// Expand directories
+		directories := make([]string, 0, len(mkDirCfg.Dirs))
+		for index, f := range mkDirCfg.Dirs {
+			dir, err := capComm.ExpandString(ctx, "dir", f)
+			if err != nil {
+				return errors.Wrapf(err, "expanding dir %d", index)
+			}
+
+			directories = append(directories, dir)
+		}
 		// create
 		for _, dir := range directories {
-			err := os.MkdirAll(dir, 0o777)
+			err := os.MkdirAll(dir, 0777)
 			if err != nil {
 				return errors.Wrapf(err, "mkdir -p %s:", dir)
 			}
