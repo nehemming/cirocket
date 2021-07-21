@@ -51,3 +51,6 @@ func TestParseParamsMultiple(t *testing.T) {
 		t.Error("unexpected value", r[1].Name, r[0].Value)
 	}
 }
+
+func TestGetCliParams(t *testing.T) {
+}

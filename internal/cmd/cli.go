@@ -3,6 +3,7 @@ package cmd
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 
@@ -38,25 +39,16 @@ type (
 // Run executes the command line interface to the app.  The passed ctx is used to cancel long running tasks.
 // appName is the name of the application and forms the suffix of the dot config file.
 func Run(ctx context.Context) int {
+	return runWithArgs(ctx, os.Args)
+}
+
+func runWithArgs(ctx context.Context, args []string) int {
 	// Setup cli clogging handler
 	loggee.SetLogger(apexlog.NewCli(2))
 
-	info := buildinfo.GetBuildInfo(ctx)
+	cli := newCli(ctx)
 
-	cli := &cli{
-		appName: info.RunName,
-		rootCmd: &cobra.Command{
-			Use:           info.RunName,
-			Short:         "\U0001F680 Rocket powered task runner",
-			Long:          "Rocket powered task runner to assist delivering ci build missions",
-			Args:          cobra.NoArgs,
-			SilenceErrors: true,
-			Version:       info.String(),
-		},
-		ctx: ctx,
-	}
-
-	cli.rootCmd.SetVersionTemplate(`{{printf "%s:%s\n" .Name .Version}}`)
+	cli.rootCmd.SetArgs(args)
 
 	initCmd := &cobra.Command{
 		Use:           "init",
@@ -75,7 +67,7 @@ func Run(ctx context.Context) int {
 		Args:          cobra.ArbitraryArgs,
 		SilenceErrors: true,
 		SilenceUsage:  true,
-		RunE:          cli.runFireCmd,
+		RunE:          cli.runLaunchCmd,
 	}
 
 	cli.rootCmd.PersistentFlags().StringVar(&cli.configFile, flagConfig, "",
@@ -102,6 +94,27 @@ func Run(ctx context.Context) int {
 	return ExitCodeSuccess
 }
 
+func newCli(ctx context.Context) *cli {
+	info := buildinfo.GetBuildInfo(ctx)
+
+	cli := &cli{
+		appName: info.RunName,
+		rootCmd: &cobra.Command{
+			Use:           info.RunName,
+			Short:         "\U0001F680 Rocket powered task runner",
+			Long:          "Rocket powered task runner to assist delivering ci build missions",
+			Args:          cobra.NoArgs,
+			SilenceErrors: true,
+			Version:       info.String(),
+		},
+		ctx: ctx,
+	}
+
+	cli.rootCmd.SetVersionTemplate(`{{printf "%s:%s\n" .Name .Version}}`)
+
+	return cli
+}
+
 // initConfig is called during the cobra start up process to init the config settings.
 func (cli *cli) initConfig() {
 	// Switch dir if necessary
@@ -110,6 +123,11 @@ func (cli *cli) initConfig() {
 			cli.initError = err
 			return
 		}
+	}
+
+	if cli.appName == "" {
+		cli.initError = errors.New("No app name")
+		return
 	}
 
 	// Establish logging

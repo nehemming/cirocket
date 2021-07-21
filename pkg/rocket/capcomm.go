@@ -134,6 +134,11 @@ func getUserName() string {
 	return "unknown"
 }
 
+// NewCapComm returns a cap comm object that is suitable for using for testing.
+func NewCapComm(testConfigFile string, log loggee.Logger) *CapComm {
+	return newCapCommFromEnvironment(testConfigFile, log).Copy(false)
+}
+
 // newCapCommFromEnvironment creates a new capCom from the environment.
 func newCapCommFromEnvironment(configFile string, log loggee.Logger) *CapComm {
 	paramKvg := NewKeyValueGetter(nil)
@@ -556,8 +561,8 @@ func (capComm *CapComm) AttachRedirect(ctx context.Context, redirect Redirection
 func (capComm *CapComm) MergeParams(ctx context.Context, params []Param) error {
 	capComm.mustNotBeSealed()
 
-	// Params need to be expanded prior to merging
-	expanded := make(map[string]string)
+	// safe type conversion as KeyValueGetter used all cases except root thats sealed sp not possible to be here
+	kvg := capComm.params.(*KeyValueGetter)
 
 	for index, p := range params {
 		if p.Name == "" {
@@ -568,13 +573,7 @@ func (capComm *CapComm) MergeParams(ctx context.Context, params []Param) error {
 		if err != nil {
 			return errors.Wrapf(err, "parameter %s", p.Name)
 		}
-		expanded[p.Name] = v
-	}
-
-	// safe type conversion as KeyValueGetter used all cases except root thats sealed sp not possible to be here
-	kvg := capComm.params.(*KeyValueGetter)
-	for k, v := range expanded {
-		kvg.kv[k] = v
+		kvg.kv[p.Name] = v
 	}
 
 	return nil
@@ -627,8 +626,11 @@ func (capComm *CapComm) ExpandString(ctx context.Context, name, value string) (s
 		return "", errors.Wrap(err, "executing template")
 	}
 
+	// fix <no value> on nil see https://github.com/golang/go/issues/24963
+	clean := strings.Replace(buf.String(), "<no value>", "", -1)
+
 	// Finally expand any environment variables in the $VAR format
-	return capComm.expandShellEnv(buf.String()), nil
+	return capComm.expandShellEnv(clean), nil
 }
 
 // FuncMap returns the function mapping used by CapComm.

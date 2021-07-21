@@ -29,3 +29,27 @@ func TestTemplateHelloWorld(t *testing.T) {
 		t.Error("failure", err)
 	}
 }
+
+func TestTemplateMissingArgIsBalk(t *testing.T) {
+	loggee.SetLogger(stdlog.New())
+
+	capComm := rocket.NewCapComm("testdata/test.yml", stdlog.New())
+
+	ctx := context.Background()
+
+	templateCfg := &Template{
+		Template: rocket.InputSpec{
+			Path: "{{.notfound}}testdata/hello.yml",
+		},
+	}
+
+	if err := capComm.AttachInputSpec(ctx, templateResourceID, templateCfg.Template); err != nil {
+		t.Error("unexpected", err)
+		return
+	}
+
+	_, err := loadTemplate(ctx, capComm, "test", templateCfg)
+	if err != nil {
+		t.Error("unexpected", err)
+	}
+}

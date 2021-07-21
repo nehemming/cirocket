@@ -994,7 +994,7 @@ func TestMergeTemplateEnvs(t *testing.T) {
 	defer os.Unsetenv("TEST_ENV_CAPCOMM")
 
 	ctx := context.Background()
-	capComm := newCapCommFromEnvironment(testConfigFile, stdlog.New()).Copy(false)
+	capComm := NewCapComm(testConfigFile, stdlog.New())
 
 	envMap := make(EnvMap)
 
@@ -1024,11 +1024,11 @@ func TestFuncMap(t *testing.T) {
 	}
 }
 
-func TestFGetExecEnvNoOSInherit(t *testing.T) {
+func TestGetExecEnvNoOSInherit(t *testing.T) {
 	os.Setenv("TEST_ENV_CAPCOMM", "99")
 	defer os.Unsetenv("TEST_ENV_CAPCOMM")
 
-	execEnv := newCapCommFromEnvironment(testConfigFile, stdlog.New()).Copy(true).GetExecEnv()
+	execEnv := NewCapComm(testConfigFile, stdlog.New()).Copy(true).GetExecEnv()
 
 	if len(execEnv) != 0 {
 		t.Error("execEnv len not 0", len(execEnv))
@@ -1038,6 +1038,7 @@ func TestFGetExecEnvNoOSInherit(t *testing.T) {
 func TestGetExecEnv(t *testing.T) {
 	envMap := make(EnvMap)
 	envMap["TEST_ENV_CAPCOMM"] = "99"
+
 	execEnv := newCapCommFromEnvironment(testConfigFile, stdlog.New()).Copy(true).MergeBasicEnvMap(envMap).GetExecEnv()
 
 	if len(execEnv) != 1 {
@@ -1048,7 +1049,7 @@ func TestGetExecEnv(t *testing.T) {
 }
 
 func TestIsFilteredInclude(t *testing.T) {
-	capComm := newCapCommFromEnvironment(testConfigFile, stdlog.New()).Copy(true)
+	capComm := NewCapComm(testConfigFile, stdlog.New())
 
 	if capComm.isFiltered(nil) != false {
 		t.Error("Nil should not filter")
@@ -1070,7 +1071,7 @@ func TestIsFilteredInclude(t *testing.T) {
 }
 
 func TestIsFilteredNotInclude(t *testing.T) {
-	capComm := newCapCommFromEnvironment(testConfigFile, stdlog.New()).Copy(true)
+	capComm := NewCapComm(testConfigFile, stdlog.New())
 
 	if capComm.isFiltered(nil) != false {
 		t.Error("Nil should not filter")
@@ -1089,7 +1090,7 @@ func TestIsFilteredNotInclude(t *testing.T) {
 }
 
 func TestIsFilteredExclude(t *testing.T) {
-	capComm := newCapCommFromEnvironment(testConfigFile, stdlog.New()).Copy(true)
+	capComm := NewCapComm(testConfigFile, stdlog.New())
 
 	if capComm.isFiltered(nil) != false {
 		t.Error("Nil should not filter")
@@ -1109,7 +1110,7 @@ func TestIsFilteredExclude(t *testing.T) {
 }
 
 func TestIsFilteredNotExclude(t *testing.T) {
-	capComm := newCapCommFromEnvironment(testConfigFile, stdlog.New()).Copy(true)
+	capComm := NewCapComm(testConfigFile, stdlog.New())
 
 	if capComm.isFiltered(nil) != false {
 		t.Error("Nil should not filter")
@@ -1140,7 +1141,7 @@ func TestMustNotBeSealed(t *testing.T) {
 
 func TestIndentTemplateFunc(t *testing.T) {
 	ctx := context.Background()
-	capComm := newCapCommFromEnvironment(testConfigFile, stdlog.New()).Copy(true)
+	capComm := NewCapComm(testConfigFile, stdlog.New())
 
 	s, err := capComm.ExpandString(ctx, "spacing", `{{"\nhello"|Indent 6}}
 	`)
@@ -1155,7 +1156,7 @@ func TestIndentTemplateFunc(t *testing.T) {
 
 func TestIndentFirstLineTemplateFunc(t *testing.T) {
 	ctx := context.Background()
-	capComm := newCapCommFromEnvironment(testConfigFile, stdlog.New()).Copy(true)
+	capComm := NewCapComm(testConfigFile, stdlog.New())
 
 	s, err := capComm.ExpandString(ctx, "spacing", `{{"hello"|Indent 6}}
 	`)
@@ -1169,7 +1170,7 @@ func TestIndentFirstLineTemplateFunc(t *testing.T) {
 }
 
 func TestExportVariable(t *testing.T) {
-	capComm := newCapCommFromEnvironment(testConfigFile, stdlog.New()).Copy(true)
+	capComm := NewCapComm(testConfigFile, stdlog.New())
 
 	if len(capComm.variables) != 0 {
 		t.Error("pre existing vars", len(capComm.variables))
@@ -1227,7 +1228,7 @@ func TestValidateInputSpecMultiple(t *testing.T) {
 
 func TestCreateProviderFromInputSpec(t *testing.T) {
 	ctx := context.Background()
-	capComm := newCapCommFromEnvironment(testConfigFile, stdlog.New()).Copy(true)
+	capComm := NewCapComm(testConfigFile, stdlog.New())
 
 	capComm.ExportVariable("test_it", "hello")
 
@@ -1267,7 +1268,7 @@ func TestCreateProviderFromInputSpec(t *testing.T) {
 
 func TestAttachInputSpec(t *testing.T) {
 	ctx := context.Background()
-	capComm := newCapCommFromEnvironment(testConfigFile, stdlog.New()).Copy(true)
+	capComm := NewCapComm(testConfigFile, stdlog.New())
 
 	capComm.ExportVariable("test_it", "hello")
 
@@ -1331,7 +1332,7 @@ func TestValidateOutputSpecMultiple(t *testing.T) {
 
 func TestCreateProviderFromoutputSpec(t *testing.T) {
 	ctx := context.Background()
-	capComm := newCapCommFromEnvironment(testConfigFile, stdlog.New()).Copy(true)
+	capComm := NewCapComm(testConfigFile, stdlog.New())
 	capComm.ExportVariable("test_it", "hello")
 
 	defer func() {
@@ -1449,7 +1450,7 @@ func TestGetParamFromURLOptionalSuccess(t *testing.T) {
 
 func TestExpandParam(t *testing.T) {
 	ctx := context.Background()
-	capComm := newCapCommFromEnvironment(testConfigFile, stdlog.New()).Copy(true)
+	capComm := NewCapComm(testConfigFile, stdlog.New())
 	capComm.ExportVariable("test_it", "hello")
 
 	for i, r := range []Param{
@@ -1489,5 +1490,43 @@ func TestAttachRedirectLogOutput(t *testing.T) {
 
 	if err := capComm.AttachRedirect(ctx, redirect); err != nil {
 		t.Error("AttachRedirect error", err)
+	}
+}
+
+func TestStringExpandNoValueIssue(t *testing.T) {
+	capComm := newCapCommFromEnvironment(testConfigFile, stdlog.New()).Copy(false)
+	ctx := context.Background()
+
+	s, err := capComm.ExpandString(ctx, "string", "{{.notfound}}test")
+	if s != "test" || err != nil {
+		t.Error("unexpected", s, err)
+	}
+}
+
+func TestExpandAdjacentMergeParamsWorks(t *testing.T) {
+	ctx := context.Background()
+	capComm := NewCapComm(testConfigFile, stdlog.New())
+
+	params := []Param{
+		{
+			Name:  "one",
+			Value: "here",
+		},
+		{
+			Name:  "two",
+			Value: "{{.one}}",
+			Print: true,
+		},
+	}
+
+	err := capComm.MergeParams(ctx, params)
+	if err != nil {
+		t.Error("unexpected", err)
+	}
+
+	v := capComm.params.Get("two")
+
+	if v != "here" {
+		t.Error("unexpected v", v)
 	}
 }

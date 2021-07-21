@@ -33,7 +33,7 @@ func parseParams(valueParams []string) ([]rocket.Param, error) {
 	return params, nil
 }
 
-func (cli *cli) runFireCmd(cmd *cobra.Command, args []string) error {
+func (cli *cli) runLaunchCmd(cmd *cobra.Command, args []string) error {
 	// Check that the init process found a config file
 	if cli.initError != nil {
 		return cli.initError

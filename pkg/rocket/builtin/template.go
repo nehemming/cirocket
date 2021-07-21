@@ -108,6 +108,7 @@ func loadTemplate(ctx context.Context, capComm *rocket.CapComm, name string, tem
 	}
 
 	return template.New(name).
+		Option("missingkey=zero").
 		Funcs(capComm.FuncMap()).
 		Delims(templateCfg.Delims.Left, templateCfg.Delims.Right).Parse(string(b))
 }
