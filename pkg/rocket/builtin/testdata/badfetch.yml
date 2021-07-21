@@ -7,11 +7,11 @@ stages:
         log: true
         resources:
           - source:
-              url: 'https://raw.githubusercontent.com/nehemming/oauthproxy/master/README.mdd'
+              url: 'https://raw.githubusercontent.com/nehemming/cirocket/master/README.mdd'
             output: 
               path: 'testdata/readme.tmp'
           - source:
-              url: 'https://raw.githubusercontent.com/nehemming/oauthproxy/master/README.md'
+              url: 'https://raw.githubusercontent.com/nehemming/cirocket/master/README.md'
             output: 
               path: 'testdata/readme2.tmp'
         
