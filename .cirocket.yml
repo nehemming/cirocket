@@ -39,12 +39,12 @@ params:
     value: yes
   - name: includeBrews
     value: yes
-  - name: dockerfile
-    value: 'Dockerfile.release'
 
   # config for the header and footer
   - name: resDir
     value: build
+  - name: dockerfile
+    value: '{{ .resDir }}/Dockerfile.release'
   - name: releaseHeader
     optional: true
     skipExpand: true
