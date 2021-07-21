@@ -39,7 +39,7 @@ type (
 // Run executes the command line interface to the app.  The passed ctx is used to cancel long running tasks.
 // appName is the name of the application and forms the suffix of the dot config file.
 func Run(ctx context.Context) int {
-	return runWithArgs(ctx, os.Args)
+	return runWithArgs(ctx, os.Args[1:])
 }
 
 func runWithArgs(ctx context.Context, args []string) int {
