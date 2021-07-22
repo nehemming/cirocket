@@ -1,0 +1,9 @@
+
+description: test of blueprints
+
+runbook:
+  path: runbook.yml
+
+mission:
+  path: ../three.yml
+    

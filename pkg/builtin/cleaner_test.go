@@ -43,24 +43,24 @@ func validateCleanerTest(t *testing.T) {
 	for i := 0; i < 5; i++ {
 		dir := fmt.Sprintf("%s-%d", filepath.Join("testdata", "clean"), i)
 
-		spec := filepath.Join(dir, "*")
+		runbook := filepath.Join(dir, "*")
 
 		if i != 3 {
 			// need 5 files
-			if _, err := os.Stat(dir); err != nil {
+			if _, err := os.Stat(filepath.FromSlash(dir)); err != nil {
 				t.Error("dir missing", dir, err)
 			}
 
-			files, err := filepath.Glob(spec)
+			files, err := filepath.Glob(runbook)
 			if err != nil {
 				t.Error("error listing", dir, err)
 			}
 
 			testCounts(t, i, files, dir)
-		} else if _, err := os.Stat(dir); err == nil {
+		} else if _, err := os.Stat(filepath.FromSlash(dir)); err == nil {
 			t.Error("dir present", dir)
 		}
-		_ = os.RemoveAll(dir)
+		_ = os.RemoveAll(filepath.FromSlash(dir))
 	}
 }
 
@@ -74,9 +74,9 @@ func TestCleanerRun(t *testing.T) {
 	for i := 0; i < 5; i++ {
 		dir := fmt.Sprintf("%s-%d", filepath.Join("testdata", "clean"), i)
 		// check clean
-		_ = os.RemoveAll(dir)
+		_ = os.RemoveAll(filepath.FromSlash(dir))
 
-		if err := os.MkdirAll(dir, 0o777); err != nil {
+		if err := os.MkdirAll(filepath.FromSlash(dir), 0o777); err != nil {
 			panic(err)
 		}
 

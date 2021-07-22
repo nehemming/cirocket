@@ -1,3 +1,19 @@
+/*
+Copyright (c) 2021 The cirocket Authors (Neil Hemming)
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 // Package loggee is logging wrapper interface that allows share packages to call logging services without
 // the calling application being tide to a specific implementation.
 package loggee
@@ -5,6 +21,16 @@ package loggee
 import (
 	"context"
 	"time"
+)
+
+// Log levels.
+const (
+	InvalidLevel Level = iota - 1
+	DebugLevel
+	InfoLevel
+	WarnLevel
+	ErrorLevel
+	FatalLevel
 )
 
 type (
@@ -30,6 +56,9 @@ type (
 		Fatalf(string, ...interface{})
 	}
 
+	// Level of severity.
+	Level int
+
 	// Logger is the generic interface for all loggers.
 	Logger interface {
 
@@ -38,8 +67,23 @@ type (
 
 		// Activity log within th context of the activity.
 		Activity(ctx context.Context, fn ActivityFunc) error
+
+		SetLevel(l Level)
 	}
 )
+
+var levelNames = [...]string{
+	DebugLevel: "debug",
+	InfoLevel:  "info",
+	WarnLevel:  "warn",
+	ErrorLevel: "error",
+	FatalLevel: "fatal",
+}
+
+// String implementation.
+func (l Level) String() string {
+	return levelNames[l]
+}
 
 var defaultLog Logger
 

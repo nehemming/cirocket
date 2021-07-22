@@ -18,7 +18,7 @@ type (
 		Log       bool            `mapstructure:"log"`
 	}
 
-	// FetchResource defines the input source and output target specifications for a fetch request.
+	// FetchResource defines the input source and output target runbooks for a fetch request.
 	FetchResource struct {
 		Source rocket.InputSpec  `mapstructure:"source"`
 		Output rocket.OutputSpec `mapstructure:"output"`

@@ -1,7 +1,24 @@
+/*
+Copyright (c) 2021 The cirocket Authors (Neil Hemming)
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package rocket
 
-type (
+import "github.com/pkg/errors"
 
+type (
 	// Include contains details of an include file within the config.
 	Include struct {
 		Path string `mapstructure:"path"`
@@ -32,6 +49,10 @@ type (
 		// These are subject to template expansion after the params have been expanded
 		Env EnvMap `mapstructure:"env"`
 
+		// Must is a slice of params that must be defined prior to the mission starting
+		// Iif any are missing the mission will fail.
+		Must MustHaveParams `mapstructure:"must"`
+
 		// Params is a collection of parameters that can be used within
 		// the child stages.  Parameters are template expanded and can use
 		// Environment variables defined in Env
@@ -51,24 +72,34 @@ type (
 		Version string `mapstructure:"version"`
 	}
 
+	// MustHaveParams is a slice of param names that must be definedbefore a mission, stage or activity starts.
+	// The list is checked prior too processing the activities own set of param definitions.
+	MustHaveParams []string
+
 	// Param is an expandible parameter.
 	Param struct {
 		// Name is the name of the parameter
 		// Name is mandatory
 		Name string `mapstructure:"name"`
 
-		// Value is the value of the parameter and is subject to expandion
+		// Description is a free text description of the parameter
+		Description string `mapstructure:"description"`
+
+		// Value is the value of the parameter.  If SkipExpand is false the value will
+		// be transformed using template expansion.
 		Value string `mapstructure:"value"`
 
-		// Path is a path to file containing the value.
-		// If both Path and Value are supplied the file will bee appended to the Valued
-		// The combined value will undergo template expansion if SkipTemplate is false.
+		// Path is the location of a resource that can provide the parameter's value.
+		// Paths may be either a local file system path or a url to file or http(s) resource.
+		// If both Path and Value are supplied the resource value will be appended to the Value.
+		// Template expressions can be used in the path.  The template is expanded to get the
+		// location of the resource.
+		//
+		// If the resource is successfully located it is appended to the Value property.
+		// If SkipExpand is false the combined value will be processed as a template to
+		// obtain the final value.   If SkipExpand is true the combined value will be used without
+		// any additional expansion.
 		Path string `mapstructure:"path"`
-
-		// URL specifies the data should come from the response body or a web request.
-		// The url body will be concatenated with the value and file values respectively.
-		// The combined value will undergo template expansion if SkipTemplate is false.
-		URL string `mapstructure:"url"`
 
 		// SkipExpand skip templating the param
 		SkipExpand bool `mapstructure:"skipExpand"`
@@ -86,13 +117,16 @@ type (
 	// Stage is a collection of tasks that can share a common set of parameters.
 	// All tasks within a stage are executed sequently.
 	Stage struct {
-		// Name of th stage.
+		// Name of the stage.
 		// If it is not provided it default to the ordinal ID of the stage within the mission
 		Name string `mapstructure:"name"`
 
 		// BasicEnv is a map of additional environment variables
 		// They are not template expanded
 		BasicEnv EnvMap `mapstructure:"basicEnv"`
+
+		// Dir is the directory to execute the stage in
+		Dir string `mapstructure:"dir"`
 
 		// Env is a map of additional environment variables
 		// These are subject to template expansion after the params have been expanded
@@ -106,6 +140,10 @@ type (
 		// variables or parameters from its parent.  This can be used with a run stage
 		// where you do not want the process to receive API tokens etc
 		NoTrust bool `mapstructure:"noTrust"`
+
+		// Must is a slice of params that must be defined prior to the stage starting
+		// Iif any are missing the mission will fail.
+		Must MustHaveParams `mapstructure:"must"`
 
 		// Params is a collection of parameters that can be used within
 		// the child stages.  Parameters are template expanded and can use
@@ -137,6 +175,9 @@ type (
 		// They are not template expanded
 		BasicEnv EnvMap `mapstructure:"basicEnv"`
 
+		// Dir is the directory to execute the task in
+		Dir string `mapstructure:"dir"`
+
 		// Env is a map of additional environment variables
 		// These are subject to template expansion after the params have been expanded
 		Env EnvMap `mapstructure:"env"`
@@ -149,6 +190,10 @@ type (
 		// variables or parameters from the parent.  This can be used with a run task
 		// where you do not want the process to receive API tokens etc
 		NoTrust bool `mapstructure:"noTrust"`
+
+		// Must is a slice of params that must be defined prior to the task starting
+		// Iif any are missing the mission will fail.
+		Must MustHaveParams `mapstructure:"must"`
 
 		// Params is a collection of parameters that can be used within
 		// the child stages.  Parameters are template expanded and can use
@@ -191,7 +236,7 @@ type (
 		// AppendOutput specifies if output should append
 		Append bool `mapstructure:"append"`
 
-		// SkipExpand when true skips template expansion of the spec.
+		// SkipExpand when true skips template expansion of the runbook.
 		SkipExpand bool `mapstructure:"skipExpand"`
 
 		// OS File permissions
@@ -206,10 +251,10 @@ type (
 
 		Inline string `mapstructure:"inline"`
 
-		// Path provides the path data.
+		// Path provides the path to the input file.
 		Path string `mapstructure:"path"`
 
-		// URl provides the data.
+		// URl provides a url to th input data.
 		URL string `mapstructure:"url"`
 
 		// Optional is true if resource can be missing.
@@ -218,20 +263,20 @@ type (
 		// URLTimeout request timeout, default is 30 seconds.
 		URLTimeout uint `mapstructure:"timeout"`
 
-		// SkipExpand when true skips template expansion of the spec.
+		// SkipExpand when true skips template expansion of the runbook.
 		SkipExpand bool `mapstructure:"skipExpand"`
 	}
 
 	// Redirection is provided to a task to interpret
 	// Redirection strings need to be expanded by the task.
 	Redirection struct {
-		// Input specification
+		// Input runbook
 		Input *InputSpec `mapstructure:"input"`
 
-		// Output specification
+		// Output runbook
 		Output *OutputSpec `mapstructure:"output"`
 
-		// Error specification
+		// Error runbook
 		Error *OutputSpec `mapstructure:"error"`
 
 		// MergeErrorWithOutput specifies if error output should go to outputt
@@ -256,3 +301,22 @@ type (
 		Right string `mapstructure:"right"`
 	}
 )
+
+// Validate checks that include has one and only one resource identifier defined.
+func (l *Include) Validate() error {
+	count := 0
+	if l.Path != "" {
+		count++
+	}
+	if l.URL != "" {
+		count++
+	}
+	if count > 1 {
+		return errors.New("more than one source was specified, only one is permitted")
+	}
+	if count == 0 {
+		return errors.New("no source was specified")
+	}
+
+	return nil
+}

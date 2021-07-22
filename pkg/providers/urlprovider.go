@@ -1,15 +1,29 @@
+/*
+Copyright (c) 2021 The cirocket Authors (Neil Hemming)
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package providers
 
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"io"
-	"net/http"
 	"time"
 
+	"github.com/nehemming/cirocket/pkg/resource"
 	"github.com/pkg/errors"
-	"golang.org/x/net/context/ctxhttp"
 )
 
 type (
@@ -44,32 +58,11 @@ func (rp *urlResourceProvider) OpenRead(ctx context.Context) (io.ReadCloser, err
 	ctxTimeout, cancel := context.WithTimeout(ctx, rp.timeout)
 	defer cancel()
 
-	req, err := http.NewRequest("GET", rp.url, nil)
-	if err != nil {
-		return nil, errors.Wrapf(err, "creating request for %s", rp.url)
+	b, err := resource.ReadResource(ctxTimeout, rp.url)
+	if err != nil && (resource.IsNotFoundError(err) == nil || !rp.optional) {
+		return nil, err
 	}
 
-	resp, err := ctxhttp.Do(ctxTimeout, nil, req)
-	if err != nil {
-		return nil, errors.Wrapf(err, "getting %s", rp.url)
-	}
-	defer resp.Body.Close()
-
-	b := new(bytes.Buffer)
-	if !rp.optional || resp.StatusCode != http.StatusNotFound {
-		if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
-			// Bad response
-			return nil, fmt.Errorf("response (%d) %s for %s", resp.StatusCode, resp.Status, rp.url)
-		}
-
-		// make a copy so we can close the response body here, cannot escape the ctxTimeout context
-		_, err = io.Copy(b, resp.Body)
-
-		if err != nil {
-			return nil, errors.Wrapf(err, "extracting body %s", rp.url)
-		}
-	}
-
-	// Return the body
-	return &nopReaderCloser{b}, nil
+	// Return the body (b can be safely nil)
+	return resource.NewReadCloser(bytes.NewBuffer(b)), nil
 }

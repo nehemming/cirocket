@@ -4,3 +4,4 @@ ciroocket.exe
 .artifacts
 .secrets
 *.tmp
+tmp/

@@ -6,3 +6,5 @@ stages:
 
 basicEnv:
   DATA_THING2: yes
+  DATA_THING3: 'yes'
+

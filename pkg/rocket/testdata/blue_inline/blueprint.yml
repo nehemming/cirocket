@@ -1,0 +1,24 @@
+
+description: test of blueprints
+
+mission:
+  inline: |
+    name: "three"
+
+    stages:
+    - name: testing
+      tasks:
+        - type: testTask
+          name: task to test
+    
+runbook:
+  inline: |
+    # comment preserved
+    name: test
+    params: 
+      - name: spec_one
+        value: hello
+      - name: spec_two
+        value: two
+    sequence:
+      - hello

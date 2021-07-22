@@ -1,3 +1,19 @@
+/*
+Copyright (c) 2021 The cirocket Authors (Neil Hemming)
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package rocket
 
 import (
@@ -120,7 +136,7 @@ func TestLaunchMissionTwo(t *testing.T) {
 
 func loadMission(missionName string) (map[string]interface{}, string) {
 	fileName := filepath.Join(".", "testdata", missionName+".yml")
-	fh, err := os.Open(fileName)
+	fh, err := os.Open(filepath.FromSlash(fileName))
 	if err != nil {
 		panic(err)
 	}
@@ -144,9 +160,9 @@ func TestLaunchMissionThree(t *testing.T) {
 
 	mc.RegisterTaskTypes(tt)
 
-	mission, cfgFile := loadMission("three")
+	mission, missionLocation := loadMission("three")
 
-	if err := mc.LaunchMission(context.Background(), cfgFile, mission); err != nil {
+	if err := mc.LaunchMission(context.Background(), missionLocation, mission); err != nil {
 		t.Error("Mission error", err)
 	}
 
@@ -163,9 +179,9 @@ func TestLaunchMissionFour(t *testing.T) {
 
 	mc.RegisterTaskTypes(tt)
 
-	mission, cfgFile := loadMission("four")
+	mission, missionLocation := loadMission("four")
 
-	if err := mc.LaunchMission(context.Background(), cfgFile, mission); err == nil {
+	if err := mc.LaunchMission(context.Background(), missionLocation, mission); err == nil {
 		t.Error("Nomission error, for unknown type")
 	}
 }
@@ -178,9 +194,9 @@ func TestLaunchMissionFive(t *testing.T) {
 
 	mc.RegisterTaskTypes(tt)
 
-	mission, cfgFile := loadMission("five")
+	mission, missionLocation := loadMission("five")
 
-	if err := mc.LaunchMission(context.Background(), cfgFile, mission); err == nil {
+	if err := mc.LaunchMission(context.Background(), missionLocation, mission); err == nil {
 		t.Error("Nomission error, fail prepare")
 	}
 }
@@ -200,10 +216,10 @@ func TestLaunchMissionSix(t *testing.T) {
 
 	mc.RegisterTaskTypes(tt)
 
-	mission, cfgFile := loadMission("six")
+	mission, missionLocation := loadMission("six")
 
 	go func() {
-		if err := mc.LaunchMission(ctx, cfgFile, mission); err != nil {
+		if err := mc.LaunchMission(ctx, missionLocation, mission); err != nil {
 			t.Error("Mission error", err)
 		}
 
@@ -233,9 +249,9 @@ func TestLaunchMissionSeven(t *testing.T) {
 
 	mc.RegisterTaskTypes(tt)
 
-	mission, cfgFile := loadMission("seven")
+	mission, missionLocation := loadMission("seven")
 
-	if err := mc.LaunchMission(context.Background(), cfgFile, mission); err != nil {
+	if err := mc.LaunchMission(context.Background(), missionLocation, mission); err != nil {
 		t.Error("Mission error for a try stage", err)
 	}
 }
@@ -248,9 +264,9 @@ func TestLaunchMissionWithSequencesNoneSpecified(t *testing.T) {
 
 	mc.RegisterTaskTypes(tt)
 
-	mission, cfgFile := loadMission("eight")
+	mission, missionLocation := loadMission("eight")
 
-	if err := mc.LaunchMission(context.Background(), cfgFile, mission); err != nil {
+	if err := mc.LaunchMission(context.Background(), missionLocation, mission); err != nil {
 		if err.Error() != "no flight sequence specified for a configuration that uses sequences" {
 			t.Error("Wrong error message", err)
 		}
@@ -267,9 +283,9 @@ func TestLaunchMissionWithSequencesMissing(t *testing.T) {
 
 	mc.RegisterTaskTypes(tt)
 
-	mission, cfgFile := loadMission("eight")
+	mission, missionLocation := loadMission("eight")
 
-	if err := mc.LaunchMission(context.Background(), cfgFile, mission, "wings"); err != nil {
+	if err := mc.LaunchMission(context.Background(), missionLocation, mission, "wings"); err != nil {
 		if err.Error() != "sequence wings cannot be found" {
 			t.Error("Wrong error message", err)
 		}
@@ -286,9 +302,9 @@ func TestLaunchMissionWithSequencesMatches(t *testing.T) {
 
 	mc.RegisterTaskTypes(tt)
 
-	mission, cfgFile := loadMission("eight")
+	mission, missionLocation := loadMission("eight")
 
-	if err := mc.LaunchMission(context.Background(), cfgFile, mission, "run"); err != nil {
+	if err := mc.LaunchMission(context.Background(), missionLocation, mission, "run"); err != nil {
 		t.Error("Unexpected error message", err)
 	}
 }
@@ -301,16 +317,17 @@ func TestLaunchMissionWithSequencesInclude(t *testing.T) {
 
 	mc.RegisterTaskTypes(tt)
 
-	mission, cfgFile := loadMission("nine")
+	mission, missionLocation := loadMission("nine")
 
-	if err := mc.LaunchMission(context.Background(), cfgFile, mission, "run"); err != nil {
+	if err := mc.LaunchMission(context.Background(), missionLocation, mission, "run"); err != nil {
 		t.Error("Unexpected error message", err)
 	}
 }
 
 func TestProcessGlobalsPassedInParams(t *testing.T) {
 	ctx := context.Background()
-	capComm := newCapCommFromEnvironment(testConfigFile, stdlog.New())
+
+	capComm := newCapCommFromEnvironment(getTestMissionFile(), stdlog.New())
 
 	mission := new(Mission)
 	mission.Params = []Param{
@@ -333,5 +350,134 @@ func TestProcessGlobalsPassedInParams(t *testing.T) {
 
 	if capCommMission.params.Get("mission_value") != "0000" {
 		t.Error("mission_value from params, should be mission")
+	}
+}
+
+func TestCheckMustHaveParamsEmpty(t *testing.T) {
+	paramKvg := NewKeyValueGetter(nil)
+
+	must := MustHaveParams{}
+
+	err := checkMustHaveParams(paramKvg, must)
+	if err != nil {
+		t.Error("unexpected", err)
+	}
+}
+
+func TestCheckMustHaveParamsMissing(t *testing.T) {
+	paramKvg := NewKeyValueGetter(nil)
+
+	must := MustHaveParams{"red", "green"}
+
+	err := checkMustHaveParams(paramKvg, must)
+	if err == nil {
+		t.Error("unexpected non error")
+	}
+}
+
+func TestCheckMustHaveParamsParams(t *testing.T) {
+	paramKvg := NewKeyValueGetter(nil)
+	paramKvg.kv["red"] = "yes"
+
+	must := MustHaveParams{}
+
+	err := checkMustHaveParams(paramKvg, must)
+	if err != nil {
+		t.Error("unexpected", err)
+	}
+}
+
+func TestCheckMustHaveParamsMatchParams(t *testing.T) {
+	paramKvg := NewKeyValueGetter(nil)
+	paramKvg.kv["red"] = "yes"
+	paramKvg.kv["green"] = "no"
+
+	must := MustHaveParams{"red", "green"}
+
+	err := checkMustHaveParams(paramKvg, must)
+	if err != nil {
+		t.Error("unexpected", err)
+	}
+}
+
+func TestSwapDirNoOp(t *testing.T) {
+	wd, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+
+	f, e := swapDir("")
+	if e != nil {
+		t.Error("unexpected", e)
+		return
+	}
+
+	cwd, _ := os.Getwd()
+
+	if cwd != wd {
+		t.Error("dir moved", wd, cwd)
+	}
+
+	if f == nil {
+		t.Error("restore nil", wd, cwd)
+	}
+
+	f()
+
+	cwd, _ = os.Getwd()
+	if cwd != wd {
+		t.Error("dir restroe", wd, cwd)
+	}
+}
+
+func TestSwapDirChange(t *testing.T) {
+	wd, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+	td := filepath.Join(wd, "testdata")
+
+	f, e := swapDir("testdata")
+	if e != nil {
+		t.Error("unexpected", e)
+		return
+	}
+
+	cwd, _ := os.Getwd()
+
+	if cwd != td {
+		t.Error("dir not moved", wd, cwd, td)
+	}
+
+	if f == nil {
+		t.Error("restore nil", wd, cwd)
+	}
+
+	f()
+
+	cwd, _ = os.Getwd()
+	if cwd != wd {
+		t.Error("dir restroe", wd, cwd)
+	}
+}
+
+func TestSwapDirFails(t *testing.T) {
+	wd, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+
+	f, e := swapDir("notpresent")
+	if e == nil {
+		t.Error("expected an error")
+	}
+
+	cwd, _ := os.Getwd()
+	if cwd != wd {
+		t.Error("dir moved", wd, cwd)
+	}
+
+	if f != nil {
+		t.Error("f nil")
 	}
 }

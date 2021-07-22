@@ -3,6 +3,7 @@ package builtin
 import (
 	"context"
 	"os"
+	"path/filepath"
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/nehemming/cirocket/pkg/loggee"
@@ -44,7 +45,7 @@ func (mkDirType) Prepare(ctx context.Context, capComm *rocket.CapComm, task rock
 		}
 		// create
 		for _, dir := range directories {
-			err := os.MkdirAll(dir, 0777)
+			err := os.MkdirAll(filepath.FromSlash(dir), 0777)
 			if err != nil {
 				return errors.Wrapf(err, "mkdir -p %s:", dir)
 			}

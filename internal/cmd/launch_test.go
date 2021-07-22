@@ -1,6 +1,27 @@
+/*
+Copyright (c) 2021 The cirocket Authors (Neil Hemming)
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package cmd
 
-import "testing"
+import (
+	"context"
+	"testing"
+
+	"github.com/nehemming/cirocket/pkg/loggee/stdlog"
+)
 
 func TestParseParamsEmpty(t *testing.T) {
 	var list []string
@@ -52,5 +73,57 @@ func TestParseParamsMultiple(t *testing.T) {
 	}
 }
 
+func TestNewLaunchMission(t *testing.T) {
+	cli := newCli(context.Background(), stdlog.New())
+	cmd := cli.newLaunchCommand()
+
+	if cmd.Use != "launch [{flightSequence}]" {
+		t.Error("unexpected use", cmd.Use)
+	}
+	if !cmd.Flags().HasFlags() {
+		t.Error("expected flags defined")
+	}
+
+	if cmd.Flags().NFlag() != 0 {
+		t.Error("unexpected flags set", cmd.Flags().NFlag())
+	}
+}
+
 func TestGetCliParams(t *testing.T) {
+	cli := newCli(context.Background(), stdlog.New())
+	cmd := cli.newLaunchCommand()
+
+	params, err := cli.getCliParams(cmd)
+	if err != nil || len(params) != 0 {
+		t.Error("unexpected", err, len(params))
+	}
+}
+
+func TestGetCliParamsSilentDebug(t *testing.T) {
+	cli := newCli(context.Background(), stdlog.New())
+	cmd := cli.newLaunchCommand()
+
+	cli.silent = true
+	cli.debug = true
+
+	params, err := cli.getCliParams(cmd)
+	if err != nil || len(params) != 2 {
+		t.Error("unexpected", err, len(params))
+	}
+}
+
+func TestRunMission(t *testing.T) {
+	cli := newCli(context.Background(), stdlog.New())
+	cmd := cli.newLaunchCommand()
+
+	// simulate ore run
+	err := cli.preRunCheckInitErrors(cmd, []string{})
+	if err != nil {
+		t.Error("unexpected", err)
+	}
+
+	err = cli.runLaunchCmd(cmd, []string{})
+	if err != nil {
+		t.Error("unexpected", err)
+	}
 }

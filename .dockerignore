@@ -5,3 +5,4 @@ ciroocket.exe
 build
 .secrets
 *.tmp
+tmp/

@@ -198,7 +198,7 @@ func parseCommandLine(ctx context.Context, capComm *rocket.CapComm, runCfg *Run)
 }
 
 // RegisterAll all built in task types with the passed mission control.
-func RegisterAll(mc rocket.MissionControl) {
+func RegisterAll(mc rocket.MissionController) {
 	mc.RegisterTaskTypes(templateType{}, runType{}, cleanerType{}, fetchType{}, mkDirType{})
 }
 

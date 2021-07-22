@@ -1,7 +1,7 @@
 name: "three"
 
 includes:
-  path: include.yml
+  - path: include.yml
 
 
 

@@ -3,7 +3,7 @@ env:
   DATA_THING: 20
 
 includes:
-  path: more/inctwo.yml
+  - path: more/inctwo.yml
 
 stages:
  -  name: flying

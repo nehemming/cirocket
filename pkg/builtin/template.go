@@ -23,7 +23,7 @@ type (
 	Template struct {
 		Template rocket.InputSpec `mapstructure:"template"`
 
-		// OutputSpec is the specification for the template output
+		// OutputSpec is the runbook for the template output
 		Output *rocket.OutputSpec `mapstructure:"output"`
 
 		// Delims are the delimiters used to identify template script.

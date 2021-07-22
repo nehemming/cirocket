@@ -1,3 +1,19 @@
+/*
+Copyright (c) 2021 The cirocket Authors (Neil Hemming)
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package rocket
 
 import (
@@ -6,17 +22,21 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"os/user"
+	"path"
 	"path/filepath"
 	"runtime"
 	"strings"
 	"text/template"
 	"time"
 
+	"github.com/mitchellh/go-homedir"
 	"github.com/nehemming/cirocket/pkg/buildinfo"
 	"github.com/nehemming/cirocket/pkg/loggee"
 	"github.com/nehemming/cirocket/pkg/providers"
+	"github.com/nehemming/cirocket/pkg/resource"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context/ctxhttp"
 )
@@ -41,18 +61,29 @@ const (
 	// AdditionalMissionTag is the data template key to additional mission information.
 	AdditionalMissionTag = "Additional"
 
-	// ConfigFile is the config file.
-	ConfigFile = "configFile"
+	// MissionFileParamName is param name of the mission file.
+	MissionFileParamName = "missionFile"
 
-	// ConfigBaseName is the base name of the config file, not path or extensions.
-	ConfigBaseName = "configBaseName"
+	// MissionBaseParamName is the base name of the mission file, without path or extensions.
+	MissionBaseParamName = "missionBaseName"
 
-	// ConfigDir is the config dir.
-	ConfigDir = "configDir"
+	// MissionDirURLParamName is the full url to the directory containing the mission.
+	MissionDirURLParamName = "missionDirURL"
 
-	// ConfigFileFullPath is the full path to the config.
-	ConfigFileFullPath = "configFullPath"
+	// MissionDirParamName is the file system path to the file.
+	MissionDirParamName = "missionDir"
+
+	// MissionDirAbsParamName is the file system absolute path to the file.
+	MissionDirAbsParamName = "missionDirAbs"
+
+	// MissionURLParamName is the full url to the mission file.
+	MissionURLParamName = "missionURL"
+
+	// WorkingDirectoryParamName is the name of the working dir.
+	WorkingDirectoryParamName = "workingDir"
 )
+
+const timeOut = time.Second * 10
 
 type (
 	// TemplateData represents the data passed t a template.
@@ -89,33 +120,89 @@ type (
 	exportMap map[string]string
 )
 
-// setParamsFromConfigFile adds config file entries to the environment map.
-func setParamsFromConfigFile(params map[string]string, configFile string) {
-	dir, file := filepath.Split(configFile)
-	params[ConfigFileFullPath], _ = filepath.Abs(configFile)
-	params[ConfigFile] = file
-	params[ConfigBaseName] = strings.TrimSuffix(file, filepath.Ext(file))
-	params[ConfigDir] = strings.TrimSuffix(dir, string(filepath.Separator))
+// All returns a copy of all the exported variables.
+func (export exportMap) All() map[string]string {
+	m := make(map[string]string)
+
+	for k, v := range export {
+		m[k] = v
+	}
+
+	return m
+}
+
+// setParamsFromMissionLocation adds config file entries to the environment map.
+func setParamsFromMissionLocation(params map[string]string, missionLocation *url.URL) {
+	working, _ := os.Getwd()
+
+	missionDirURL := resource.GetURLParentLocation(missionLocation)
+	file := path.Base(missionLocation.Path)
+	var osMissionAbsDir string
+	osMissionDir, err := resource.URLToRelativePath(missionDirURL)
+	if err == nil && osMissionDir != "" {
+		osMissionAbsDir, _ = filepath.Abs(osMissionDir)
+	}
+
+	params[WorkingDirectoryParamName] = working
+
+	params[MissionURLParamName] = missionLocation.String()
+	params[MissionDirURLParamName] = missionDirURL.String()
+	params[MissionFileParamName] = file
+	params[MissionBaseParamName] = strings.TrimSuffix(file, path.Ext(file))
+	if osMissionAbsDir != "" {
+		params[MissionDirParamName] = osMissionDir
+		params[MissionDirAbsParamName] = osMissionAbsDir
+	}
 }
 
 func initFuncMap() template.FuncMap {
-	fm := make(template.FuncMap)
+	fm := template.FuncMap{
 
-	fm["Indent"] = func(indent int, text string) string {
-		lines := strings.Split(text, "\n")
-		sb := strings.Builder{}
-		spaces := strings.Repeat(" ", indent)
-		for i, line := range lines {
-			if i > 0 {
-				sb.WriteString(spaces)
-			}
-			sb.WriteString(line)
-			sb.WriteString("\n")
-		}
-		return sb.String()
+		"Indent":   indent,
+		"indent":   indent,
+		"username": getUserName,
+		"now":      time.Now,
+		"pwd":      os.Getwd,
+		"dirname":  dirname,
+		"basename": basedname,
+		"ultimate": ultimate,
+		"relative": resource.Relative,
+		"home":     homedir.Dir,
 	}
 
 	return fm
+}
+
+func indent(indent int, text string) string {
+	// indent indents all lines, except the first line by indent spaces
+	// use in templates as a pipeline '|'
+	lines := strings.Split(text, "\n")
+	sb := strings.Builder{}
+	spaces := strings.Repeat(" ", indent)
+	for i, line := range lines {
+		if i > 0 {
+			sb.WriteString(spaces)
+		}
+		sb.WriteString(line)
+		sb.WriteString("\n")
+	}
+	return sb.String()
+}
+
+func dirname(p string) string {
+	return path.Dir(filepath.ToSlash(p))
+}
+
+func basedname(p string) string {
+	return path.Base(filepath.ToSlash(p))
+}
+
+func ultimate(p ...string) (string, error) {
+	u, e := resource.UltimateURL(p...)
+	if e != nil {
+		return "", e
+	}
+	return u.String(), nil
 }
 
 func getUserName() string {
@@ -135,14 +222,18 @@ func getUserName() string {
 }
 
 // NewCapComm returns a cap comm object that is suitable for using for testing.
-func NewCapComm(testConfigFile string, log loggee.Logger) *CapComm {
-	return newCapCommFromEnvironment(testConfigFile, log).Copy(false)
+func NewCapComm(missionLocation string, log loggee.Logger) *CapComm {
+	url, err := resource.UltimateURL(missionLocation)
+	if err != nil {
+		panic(url)
+	}
+	return newCapCommFromEnvironment(url, log).Copy(false)
 }
 
 // newCapCommFromEnvironment creates a new capCom from the environment.
-func newCapCommFromEnvironment(configFile string, log loggee.Logger) *CapComm {
+func newCapCommFromEnvironment(missionLocation *url.URL, log loggee.Logger) *CapComm {
 	paramKvg := NewKeyValueGetter(nil)
-	setParamsFromConfigFile(paramKvg.kv, configFile)
+	setParamsFromMissionLocation(paramKvg.kv, missionLocation)
 
 	cc := &CapComm{
 		sealed:                true,
@@ -359,13 +450,13 @@ func (capComm *CapComm) createProviderFromInputSpec(ctx context.Context, inputSp
 		}
 		rp, err = providers.NewURLProvider(v, time.Second*time.Duration(inputSpec.URLTimeout), inputSpec.Optional)
 	} else {
-		panic("validation bad input spec")
+		panic("validation bad input runbook")
 	}
 
 	return rp, err
 }
 
-// InputSpecToResourceProvider creates a resource provider from the supplied input spec.
+// InputSpecToResourceProvider creates a resource provider from the supplied input runbook.
 func (capComm *CapComm) InputSpecToResourceProvider(ctx context.Context, inputSpec InputSpec) (providers.ResourceProvider, error) {
 	if err := validateInputSpec(&inputSpec); err != nil {
 		return nil, err
@@ -374,7 +465,7 @@ func (capComm *CapComm) InputSpecToResourceProvider(ctx context.Context, inputSp
 	return capComm.createProviderFromInputSpec(ctx, inputSpec)
 }
 
-// AttachInputSpec adds a named input spec to the capCom resources.
+// AttachInputSpec adds a named input runbook to the capCom resources.
 func (capComm *CapComm) AttachInputSpec(ctx context.Context, name providers.ResourceID, inputSpec InputSpec) error {
 	if name == "" {
 		return errors.New("name cannot be blank")
@@ -454,7 +545,7 @@ func (capComm *CapComm) OutputSpecToResourceProvider(ctx context.Context, output
 	return capComm.createProviderFromOutputSpec(ctx, outputSpec, providers.IOModeOutput)
 }
 
-// AttachOutputSpec attaches an output specification to the capComm.
+// AttachOutputSpec attaches an output runbook to the capComm.
 func (capComm *CapComm) AttachOutputSpec(ctx context.Context, name providers.ResourceID, outputSpec OutputSpec) error {
 	if name == "" {
 		return errors.New("name cannot be blank")
@@ -471,13 +562,13 @@ func (capComm *CapComm) AttachOutputSpec(ctx context.Context, name providers.Res
 
 func validateRedirection(redirect *Redirection) error { //nolint
 	if redirect.LogOutput && redirect.Output != nil {
-		return errors.New("cannot both redirect to the log and also provide an output specification")
+		return errors.New("cannot both redirect to the log and also provide an output runbook")
 	}
 	if redirect.DirectError && redirect.Error != nil {
-		return errors.New("cannot both redirect to stderr and also provide an error specification")
+		return errors.New("cannot both redirect to stderr and also provide an error runbook")
 	}
 	if redirect.MergeErrorWithOutput && redirect.Error != nil {
-		return errors.New("cannot merge errors with output and specify an error specification")
+		return errors.New("cannot merge errors with output and specify an error runbook")
 	}
 	if redirect.Input != nil {
 		if err := validateInputSpec(redirect.Input); err != nil {
@@ -499,7 +590,7 @@ func validateRedirection(redirect *Redirection) error { //nolint
 	return nil
 }
 
-// AttachRedirect attaches a redirection specification to the capComm
+// AttachRedirect attaches a redirection runbook to the capComm
 // Redirection covers in, out and error streams.
 func (capComm *CapComm) AttachRedirect(ctx context.Context, redirect Redirection) error { //nolint
 	// Pre validate
@@ -739,35 +830,37 @@ func getParamFromURL(ctx context.Context, url string, optional bool) (string, er
 	return string(body), nil
 }
 
+func (capComm *CapComm) readResource(ctx context.Context, name string,
+	location string, optional bool) ([]byte, error) {
+	location, err := capComm.ExpandString(ctx, name, location)
+	if err != nil {
+		return nil, errors.Wrap(err, "expanding")
+	}
+
+	b, err := resource.ReadResource(ctx, location)
+	if err != nil {
+		if resource.IsNotFoundError(err) == nil || !optional {
+			return nil, errors.Wrap(err, "reading value")
+		}
+
+		// optional is empty resource
+		return make([]byte, 0), nil
+	}
+
+	return b, nil
+}
+
 func (capComm *CapComm) getParamValue(ctx context.Context, param Param) (string, error) {
 	// Read param
 	value := param.Value
 
 	// If param has a file name, open it
 	if param.Path != "" {
-		fileName, err := capComm.ExpandString(ctx, param.Name, param.Path)
-		if err != nil {
-			return "", errors.Wrap(err, "rexpanding file name")
-		}
-
-		b, err := os.ReadFile(fileName)
-		if err != nil {
-			if !os.IsNotExist(err) || !param.Optional {
-				return "", errors.Wrap(err, "reading value from file")
-			}
-		} else {
-			value += string(b)
-		}
-	}
-
-	if param.URL != "" {
-		// pull the data from the url
-		body, err := getParamFromURL(ctx, param.URL, param.Optional)
+		b, err := capComm.readResource(ctx, param.Name, param.Path, param.Optional)
 		if err != nil {
 			return "", err
 		}
-
-		value += body
+		value += string(b)
 	}
 
 	return value, nil

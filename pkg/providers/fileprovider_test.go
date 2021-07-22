@@ -1,3 +1,19 @@
+/*
+Copyright (c) 2021 The cirocket Authors (Neil Hemming)
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package providers
 
 import (
@@ -5,8 +21,11 @@ import (
 	"context"
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/nehemming/cirocket/pkg/resource"
 )
 
 func TestNewNonClosingReaderProvider(t *testing.T) {
@@ -133,7 +152,7 @@ func TestNewFileProviderOpensForRead(t *testing.T) {
 		t.Error("unexpected error", err)
 	}
 
-	if !strings.HasPrefix(string(b), "package providers") {
+	if !strings.HasPrefix(string(b), "/*") {
 		t.Error("unexpected error", err, string(b))
 	}
 }
@@ -159,6 +178,7 @@ func TestNewFileProviderOpensForReadOptional(t *testing.T) {
 	reader, err := rp.OpenRead(context.Background())
 	if err != nil {
 		t.Error("unexpected error", err)
+		return
 	}
 
 	defer reader.Close()
@@ -216,12 +236,12 @@ func TestNewNewFileProviderTruncatesFile(t *testing.T) {
 		panic(err)
 	}
 
-	err = os.WriteFile("testdata/trunc.dat", []byte("bad"), 0666)
+	err = os.WriteFile(filepath.FromSlash("testdata/trunc.dat"), []byte("bad"), 0666)
 	if err != nil {
 		panic(err)
 	}
 
-	rp, err := NewFileProvider("testdata/trunc.dat", IOModeOutput|IOModeTruncate, 0, false)
+	rp, err := NewFileProvider(filepath.FromSlash("testdata/trunc.dat"), IOModeOutput|IOModeTruncate, 0, false)
 	if err != nil {
 		t.Error("unexpected error", err)
 	}
@@ -236,7 +256,7 @@ func TestNewNewFileProviderTruncatesFile(t *testing.T) {
 		t.Error("expected error write", err)
 	}
 
-	b, err := os.ReadFile("testdata/trunc.dat")
+	b, err := os.ReadFile(filepath.FromSlash("testdata/trunc.dat"))
 	if err != nil {
 		panic(err)
 	}
@@ -252,12 +272,12 @@ func TestNewNewFileProviderAppendFile(t *testing.T) {
 		panic(err)
 	}
 
-	err = os.WriteFile("testdata/append.dat", []byte("hello "), 0666)
+	err = os.WriteFile(filepath.FromSlash("testdata/append.dat"), []byte("hello "), 0666)
 	if err != nil {
 		panic(err)
 	}
 
-	rp, err := NewFileProvider("testdata/append.dat", IOModeOutput|IOModeAppend, 0, false)
+	rp, err := NewFileProvider(filepath.FromSlash("testdata/append.dat"), IOModeOutput|IOModeAppend, 0, false)
 	if err != nil {
 		t.Error("unexpected error", err)
 	}
@@ -272,7 +292,7 @@ func TestNewNewFileProviderAppendFile(t *testing.T) {
 		t.Error("expected error write", err)
 	}
 
-	b, err := os.ReadFile("testdata/append.dat")
+	b, err := os.ReadFile(filepath.FromSlash("testdata/append.dat"))
 	if err != nil {
 		panic(err)
 	}
@@ -281,7 +301,7 @@ func TestNewNewFileProviderAppendFile(t *testing.T) {
 		t.Error("expected write data", string(b))
 	}
 
-	err = os.WriteFile("testdata/append.dat", []byte("hello "), 0666)
+	err = os.WriteFile(filepath.FromSlash("testdata/append.dat"), []byte("hello "), 0666)
 	if err != nil {
 		panic(err)
 	}
@@ -293,14 +313,22 @@ func TestNewNewFileProviderFileDetails(t *testing.T) {
 		t.Error("unexpected error", err)
 	}
 
-	fp, ok := res.(FileDetail)
+	fp, ok := res.(FileDetailer)
 	if !ok {
-		t.Error("error FileDetail not implemented")
+		t.Error("error FileDetailer not implemented")
 		return
 	}
 
-	if fp.FilePath() != "fileprovider.go" {
-		t.Error("file path", fp.FilePath())
+	wd, _ := os.Getwd()
+	path := strings.TrimPrefix(fp.FilePath(), wd)
+	if path != "/fileprovider.go" {
+		t.Error("file path", fp.FilePath(), path)
+	}
+
+	// using url is easier
+	path, _ = resource.URLToRelativePath(fp.URL())
+	if path != "fileprovider.go" {
+		t.Error("file path", fp.URL(), path)
 	}
 
 	if fp.IOMode() != IOModeInput {

@@ -1,9 +1,28 @@
+/*
+Copyright (c) 2021 The cirocket Authors (Neil Hemming)
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package providers
 
 import (
 	"context"
 	"io"
 	"sync"
+
+	"github.com/nehemming/cirocket/pkg/resource"
+	"github.com/pkg/errors"
 )
 
 type (
@@ -28,6 +47,14 @@ type (
 	idempotentCloser struct {
 		once   sync.Once
 		closer io.Closer
+	}
+
+	nopReaderCloser struct {
+		reader io.Reader
+	}
+
+	nopWriterCloser struct {
+		writer io.Writer
 	}
 )
 
@@ -58,4 +85,34 @@ func (idem *idempotentCloser) Close() error {
 	idem.once.Do(func() { err = idem.closer.Close() })
 
 	return err
+}
+
+// NewNonClosingReaderProvider attaches an existing reader (i.e. stdin) to a provider.
+func NewNonClosingReaderProvider(reader io.Reader) ResourceProvider {
+	return &nopReaderCloser{
+		reader: reader,
+	}
+}
+
+// NewNonClosingWriterProvider attaches an existing writer (i.e. stdout) to a provider.
+func NewNonClosingWriterProvider(writer io.Writer) ResourceProvider {
+	return &nopWriterCloser{
+		writer: writer,
+	}
+}
+
+func (rc *nopReaderCloser) OpenWrite(ctx context.Context) (io.WriteCloser, error) {
+	return nil, errors.New("output is not supported")
+}
+
+func (rc *nopReaderCloser) OpenRead(ctx context.Context) (io.ReadCloser, error) {
+	return resource.NewReadCloser(rc.reader), nil
+}
+
+func (wc *nopWriterCloser) OpenWrite(ctx context.Context) (io.WriteCloser, error) {
+	return resource.NewWriteCloser(wc.writer), nil
+}
+
+func (wc *nopWriterCloser) OpenRead(ctx context.Context) (io.ReadCloser, error) {
+	return nil, errors.New("input is not supported")
 }

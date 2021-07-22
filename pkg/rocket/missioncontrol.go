@@ -1,11 +1,30 @@
+/*
+Copyright (c) 2021 The cirocket Authors (Neil Hemming)
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package rocket
 
 import (
 	"context"
 	"fmt"
+	"os"
 	"sync"
 
+	multierror "github.com/hashicorp/go-multierror"
 	"github.com/nehemming/cirocket/pkg/loggee"
+	"github.com/nehemming/cirocket/pkg/resource"
 	"github.com/pkg/errors"
 )
 
@@ -14,10 +33,16 @@ var (
 	once sync.Once
 
 	// defaultControl is the Default singleton mission control.
-	defaultControl MissionControl
+	defaultControl MissionController
 )
 
 type (
+
+	// Option is the interface supported by all mission options.
+	Option interface {
+		Name() string
+	}
+
 	// ExecuteFunc is the function signature of an activity that can be executed.
 	ExecuteFunc = loggee.ActivityFunc
 
@@ -31,26 +56,35 @@ type (
 		Prepare(ctx context.Context, capComm *CapComm, task Task) (ExecuteFunc, error)
 	}
 
-	// MissionControl seeks out new civilizations in te CI space.
-	MissionControl interface {
+	// MissionController seeks out new civilizations in te CI space.
+	MissionController interface {
+		// Set option sets options on the mission controller
+		SetOptions(options ...Option) error
+
 		// RegisterTaskTypes we only want the best.
 		RegisterTaskTypes(types ...TaskType)
 
 		// LaunchMission loads and executes the mission
-		// flightSequences may be specified, each sequence is run in the order specified
-		// the coonfig file is the source name iof the config provided
-		// if its empty the current working 'dir/default' will be used.
-		LaunchMission(ctx context.Context, configFile string, spaceDust map[string]interface{}, flightSequences ...string) error
+		// flightSequences may be specified, each sequence is run in the order specified.
+		// Location is used to indicate where the config was read from, if blank the current working directory is assumed.
+		LaunchMission(ctx context.Context, location string, spaceDust map[string]interface{}, flightSequences ...string) error
 
-		// LaunchMissionWithParams loads and executes the mission with user supplied parameters
-		// flightSequences may be specified, each sequence is run in the order specified
-		// the coonfig file is the source name iof the config provided
-		// if its empty the current working 'dir/default' will be used.
-		// The supplied params are default values and do not override values defined in the mission
-		LaunchMissionWithParams(ctx context.Context, configFile string,
+		// LaunchMissionWithParams loads and executes the mission.
+		// Params can be supplied to the mssion.  The params are loaded before the mission parameters, as such
+		// any value defined in the mission will override the params passed here.
+		// flightSequences may be specified, each sequence is run in the order specified.
+		// Location is used to indicate where the config was read from, if blank the current working directory is assumed.
+
+		LaunchMissionWithParams(ctx context.Context, location string,
 			spaceDust map[string]interface{},
 			params []Param,
 			flightSequences ...string) error
+
+		// Assemble locates a blueprint from the assembly sources, loads the runbook and builds the assembly following the runbook.
+		Assemble(ctx context.Context, blueprint string, sources []string, specLocation string, params []Param) error
+
+		// GetRunbook gets the runbook for a blueprint
+		GetRunbook(ctx context.Context, blueprintName string, sources []string) (string, error)
 	}
 
 	// operations is a collection of operations.
@@ -68,19 +102,33 @@ type (
 type missionControl struct {
 	lock  sync.Mutex
 	types map[string]TaskType
+	log   loggee.Logger
 }
 
 // NewMissionControl create a new mission control.
-func NewMissionControl() MissionControl {
+func NewMissionControl() MissionController {
 	return &missionControl{
 		types: make(map[string]TaskType),
 	}
 }
 
 // Default returns the default shared mission control.
-func Default() MissionControl {
+func Default() MissionController {
 	once.Do(func() { defaultControl = NewMissionControl() })
 	return defaultControl
+}
+
+func (mc *missionControl) missionLog() loggee.Logger {
+	if mc.log == nil {
+		mc.lock.Lock()
+		defer mc.lock.Unlock()
+		if mc.log == nil {
+			// fallback to default log
+			mc.log = loggee.Default()
+		}
+	}
+
+	return mc.log
 }
 
 // RegisterActorTypes actor types.
@@ -93,26 +141,31 @@ func (mc *missionControl) RegisterTaskTypes(types ...TaskType) {
 	}
 }
 
-func (mc *missionControl) LaunchMission(ctx context.Context, configFile string, spaceDust map[string]interface{}, flightSequences ...string) error {
-	return mc.LaunchMissionWithParams(ctx, configFile, spaceDust, nil, flightSequences...)
+func (mc *missionControl) LaunchMission(ctx context.Context, location string, spaceDust map[string]interface{}, flightSequences ...string) error {
+	return mc.LaunchMissionWithParams(ctx, location, spaceDust, nil, flightSequences...)
 }
 
-func (mc *missionControl) LaunchMissionWithParams(ctx context.Context, configFile string,
+func (mc *missionControl) LaunchMissionWithParams(ctx context.Context, location string,
 	spaceDust map[string]interface{}, params []Param,
 	flightSequences ...string) error {
-	configFile, err := getConfigFileName(configFile)
+	missionURL, err := getStartingMissionURL(location)
 	if err != nil {
 		return err
 	}
 
 	// Load the mission
-	mission, err := loadPreMission(ctx, spaceDust, configFile)
+	mission, err := loadPreMission(ctx, spaceDust, missionURL)
 	if err != nil {
 		return err
 	}
 
 	// Create a cap comm object from the environment
-	capComm := newCapCommFromEnvironment(configFile, loggee.Default())
+	capComm := newCapCommFromEnvironment(missionURL, mc.missionLog())
+
+	// Check for missing params
+	if err := checkMustHaveParams(capComm.params, mission.Must); err != nil {
+		return err
+	}
 
 	// Misssion has been successfully parsed, load the global settings
 	capComm, err = processGlobals(ctx, capComm, mission, params)
@@ -120,11 +173,22 @@ func (mc *missionControl) LaunchMissionWithParams(ctx context.Context, configFil
 		return errors.Wrap(err, "global settings failure")
 	}
 
+	// get the stages needed to be run
 	stagesToRun, err := getStagesTooRun(mission, flightSequences)
 	if err != nil {
 		return err
 	}
 
+	// prepare the stages
+	operations, err := mc.prepareStages(ctx, capComm, stagesToRun)
+	if err != nil {
+		return err
+	}
+
+	return runOperations(ctx, operations)
+}
+
+func (mc *missionControl) prepareStages(ctx context.Context, capComm *CapComm, stagesToRun []Stage) (operations, error) {
 	operations := make(operations, 0)
 
 	// prepare stages
@@ -136,19 +200,27 @@ func (mc *missionControl) LaunchMissionWithParams(ctx context.Context, configFil
 		// prepare the stage
 		ops, err := mc.prepareStage(ctx, capComm, stage)
 		if err != nil {
-			return errors.Wrapf(err, "prepare %s", stage.Name)
+			return nil, errors.Wrapf(err, "%s prepare", stage.Name)
+		}
+
+		var dir string
+		if stage.Dir != "" {
+			dir, err = capComm.ExpandString(ctx, "dir", stage.Dir)
+			if err != nil {
+				return nil, errors.Wrapf(err, "%s dir expand", stage.Name)
+			}
 		}
 
 		if len(ops) > 0 {
 			operations = append(operations, &operation{
 				description: fmt.Sprintf("stage: %s", stage.Name),
-				makeItSo:    engage(ctx, ops),
+				makeItSo:    engage(ctx, ops, dir),
 				try:         stage.Try,
 			})
 		}
 	}
 
-	return runOperations(ctx, operations)
+	return operations, nil
 }
 
 func runOperations(ctx context.Context, operations operations) error {
@@ -166,7 +238,22 @@ func runOperations(ctx context.Context, operations operations) error {
 	return nil
 }
 
+func checkMustHaveParams(params Getter, must MustHaveParams) error {
+	var err error
+	for _, m := range must {
+		if params.Get(m) == "" {
+			err = multierror.Append(err, fmt.Errorf("param %s must bet set to a non blank value", m))
+		}
+	}
+
+	return loggee.BindMultiErrorFormatting(err)
+}
+
 func (mc *missionControl) prepareStage(ctx context.Context, missionCapComm *CapComm, stage Stage) (operations, error) {
+	if err := checkMustHaveParams(missionCapComm.params, stage.Must); err != nil {
+		return nil, err
+	}
+
 	operations := make(operations, 0, 10)
 
 	// Create a new CapComm for the stage
@@ -209,6 +296,10 @@ func (mc *missionControl) prepareStage(ctx context.Context, missionCapComm *CapC
 }
 
 func (mc *missionControl) prepareTask(ctx context.Context, stageCapComm *CapComm, task Task) (*operation, error) {
+	if err := checkMustHaveParams(stageCapComm.params, task.Must); err != nil {
+		return nil, err
+	}
+
 	// Create a new CapComm for the task
 	capComm := stageCapComm.Copy(task.NoTrust).
 		MergeBasicEnvMap(task.BasicEnv)
@@ -243,11 +334,34 @@ func (mc *missionControl) prepareTask(ctx context.Context, stageCapComm *CapComm
 		return nil, nil
 	}
 
+	var dir string
+	if task.Dir != "" {
+		dir, err = capComm.ExpandString(ctx, "dir", task.Dir)
+		if err != nil {
+			return nil, errors.Wrapf(err, "%s dir expand", task.Name)
+		}
+	}
+
 	return &operation{
 		description: fmt.Sprintf("task: %s", task.Name),
-		makeItSo:    taskFunc,
+		makeItSo:    taskSwapDir(dir, taskFunc),
 		try:         task.Try,
 	}, nil
+}
+
+func taskSwapDir(dir string, fn ExecuteFunc) ExecuteFunc {
+	if dir == "" {
+		return fn
+	}
+	return func(ctx context.Context) error {
+		pop, err := swapDir(dir)
+		if err != nil {
+			return err
+		}
+		defer pop()
+
+		return fn(ctx)
+	}
 }
 
 func processGlobals(ctx context.Context, capComm *CapComm, mission *Mission, suppliedParams []Param) (*CapComm, error) {
@@ -352,8 +466,48 @@ func runOp(ctx context.Context, op *operation) error {
 	return nil
 }
 
-func engage(_ context.Context, ops operations) ExecuteFunc {
+// swapDir changes to the new directory and resurns a function to resore the current dir, or the functionreturns an error.
+// If the restore function fails to restor the working dir it will panic.
+func swapDir(dir string) (func(), error) {
+	// return no op if no dir change requested
+	if dir == "" {
+		return func() {}, nil
+	}
+	cwd, err := os.Getwd()
+	if err != nil {
+		return nil, err
+	}
+
+	// decode any urls
+	u, err := resource.UltimateURL(dir)
+	if err != nil {
+		return nil, err
+	}
+	dir, err = resource.URLToPath(u)
+	if err != nil {
+		return nil, err
+	}
+
+	err = os.Chdir(dir)
+	if err != nil {
+		return nil, err
+	}
+
+	return func() {
+		if e := os.Chdir(cwd); e != nil {
+			panic(e)
+		}
+	}, nil
+}
+
+func engage(_ context.Context, ops operations, dir string) ExecuteFunc {
 	return func(ctx context.Context) error {
+		pop, err := swapDir(dir)
+		if err != nil {
+			return err
+		}
+		defer pop()
+
 		for _, op := range ops {
 			if ctx.Err() != nil {
 				return nil

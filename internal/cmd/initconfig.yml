@@ -31,6 +31,12 @@ params:
   # skipExpand: false
   # optional: false
 
+# must section can be supplied on missions, stages or tasks.  It checks that the caller of that activity
+# has provided the a parameter with the name of the must entry.  If it is not provided an error occurs.
+# this check can be used to safeguard an activity against bad input config
+# must:
+#   - list of param names that must be provided to the task before starting
+
 # env contains environment variables that are defined for use in template expansion or passed to any sub processes executed
 # env variables are subject to param expansion, so can for example be passed secrets from params.
 # env variables are accessible in template expansion as either ${var} or {{ .Env.var }} 
@@ -52,6 +58,8 @@ stages:
     # env:
     # param:
     # noTrust: true
+    # must:
+    #   - list of param names that must be provided to the stage before starting
 
     # a filter section can be added to tasks and stages, this limits the running of the step to
     # host applications running on specific operating systems or architectures.  This can be useful
@@ -76,8 +84,9 @@ stages:
         # env:
         # param:
         # noTrust: true
-        # filter:   
-        
+        # filter:    
+        # must:
+        #   - list of param names that must be provided to the task before starting
         type: run
         # run specific settings
         # command is the command to run.  It may include command line arguments

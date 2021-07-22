@@ -2,6 +2,7 @@ linters:
   enable:
     - bodyclose
     - cyclop
+    - godox
     - godot
     - gofmt
     - misspell
@@ -14,3 +15,26 @@ linters:
     - unparam
     - wastedassign
     - revive
+    - goheader
+
+linters-settings:
+  revive:
+    enableAllRules: true
+  goheader:
+    values:
+      const:
+        GROUP: 'The cirocket Authors'
+        
+      regexp:
+        AUTHORS: '(Neil Hemming.*)'
+    template-path: .header
+
+issues:
+  #https://github.com/golangci/golangci-lint/blob/a20748098fb3cb4b69f6b6ebb7809e7741122ef8/pkg/config/issues.go
+  exclude-use-default: true
+  include:
+    - EXC0002
+    - EXC0012
+    - EXC0013
+    - EXC0014
+    - EXC0015
