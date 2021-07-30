@@ -21,6 +21,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -63,6 +64,7 @@ type (
 		debug            bool
 		silent           bool
 		logger           loggee.Logger
+		homeDir          string
 	}
 )
 
@@ -96,6 +98,11 @@ func runWithArgs(ctx context.Context, args []string, logger loggee.Logger) int {
 
 	// Create the cli and root command
 	cli := newCli(ctx, logger)
+
+	if err := cli.setHomeDir(); err != nil {
+		loggee.Error(err.Error())
+		return ExitCodeError
+	}
 
 	// Bind the args
 	cli.rootCmd.SetArgs(args)
@@ -155,8 +162,8 @@ func newCli(ctx context.Context, logger loggee.Logger) *cli {
 
 	cli.rootCmd.PersistentFlags().StringVar(&cli.configFile, flagConfig, "",
 		filepath.FromSlash(
-			fmt.Sprintf("specify a configuration file (default is %s/%s.yml)", home,
-				cli.defaultConfigName())))
+			fmt.Sprintf("specify a configuration file (default is %s)",
+				cli.homeConfigName(home))))
 
 	cli.rootCmd.PersistentFlags().StringVar(&cli.workingDir, flagWorkingDir, "",
 		"specify a working directory (default is the starting directory)")
@@ -168,6 +175,16 @@ func newCli(ctx context.Context, logger loggee.Logger) *cli {
 		"silence output (ignored if debug is specified too)")
 
 	return cli
+}
+
+func (cli *cli) setHomeDir() error {
+	// Find home directory.
+	home, err := homedir.Dir()
+	if err != nil {
+		return err
+	}
+	cli.homeDir = home
+	return nil
 }
 
 // preRunCheckInitErrors checks for config errors.
@@ -202,7 +219,7 @@ func (cli *cli) loadMissionAndConfig() {
 	}
 
 	// load config
-	if err := cli.loadConfig(); err != nil {
+	if err := cli.loadConfig(cli.homeDir); err != nil {
 		cli.configError = err
 		return
 	}
@@ -213,25 +230,24 @@ func (cli *cli) loadMissionAndConfig() {
 	}
 }
 
-func (cli *cli) defaultConfigName() string {
-	return fmt.Sprintf(".%scfg", cli.appName)
+func (cli *cli) defaultLocalConfigName() string {
+	return fmt.Sprintf(".%scfg.yml", cli.appName)
+}
+
+func (cli *cli) configDir() string {
+	return fmt.Sprintf(".%s", cli.appName)
+}
+
+func (cli *cli) homeConfigName(home string) string {
+	return filepath.Join(home, cli.configDir(), "config.yml")
 }
 
 // loadConfig loads the users config.
-func (cli *cli) loadConfig() error {
+func (cli *cli) loadConfig(home string) error {
 	config := cli.config
 
-	// Find home directory.
-	home, err := homedir.Dir()
-	if err != nil {
-		return err
-	}
-
-	isCustomProfile := false
+	// Set the file type we expect
 	config.SetConfigType(configFileType)
-
-	// crete config name
-	configName := cli.defaultConfigName()
 
 	config.SetEnvPrefix(strings.ToUpper(cli.appName))
 	config.AutomaticEnv()
@@ -239,52 +255,63 @@ func (cli *cli) loadConfig() error {
 	if cli.configFile != "" {
 		// Use profile file from the flag.
 		config.SetConfigFile(cli.configFile)
-		isCustomProfile = true
-	} else {
-		// Search config in local di then home directory with name ".(appName)" (without extension).
-		config.AddConfigPath(".")
-		config.AddConfigPath(home)
-		config.SetConfigName(configName)
+		return config.ReadInConfig()
 	}
 
-	err = config.ReadInConfig()
-	if isCustomProfile {
+	// Try in local file and if that is unsuccessful try in home folder
+	cli.configFile = cli.defaultLocalConfigName()
+	config.SetConfigName(cli.configFile)
+	config.SetConfigFile(cli.configFile)
+	err := config.ReadInConfig()
+	if err == nil {
+		return nil
+	}
+
+	// See if not found
+	if _, ok := err.(*fs.PathError); !ok {
+		// was not a file not found error
 		return err
 	}
 
-	if _, ok := err.(viper.ConfigFileNotFoundError); ok {
-		// Create a default config in home
-		err = cli.createDefaultConfig(home, configName, configFileType)
-	} else {
-		cli.configFile = config.ConfigFileUsed()
+	// using home folder
+	cli.configFile = cli.homeConfigName(home)
+	config.SetConfigFile(cli.configFile)
+	err = config.ReadInConfig()
+	if err == nil {
+		return nil
 	}
 
-	return err
+	// See if not found
+	if _, ok := err.(*fs.PathError); !ok {
+		// was not a file not found error
+		return err
+	}
+
+	return cli.createDefaultConfig()
 }
 
 // createDefaultConfig creates a default user config.
-func (cli *cli) createDefaultConfig(configDir, configName, configType string) error {
-	// No config found, create one
-
-	configPath, err := filepath.Abs(filepath.Join(configDir, fmt.Sprintf("%s.%s", configName, configType)))
-	if err != nil {
-		return err
-	}
+func (cli *cli) createDefaultConfig() error {
+	dir, name := filepath.Split(cli.configFile)
 
 	// Set the assembly locations
 	cli.config.Set(configAssemblySources, []string{
 		"https://raw.githubusercontent.com/nehemming/cirocket-config/master/blueprints",
 	})
 
-	err = cli.config.SafeWriteConfigAs(configPath)
+	err := os.MkdirAll(dir, 0777)
+	if err != nil {
+		return err
+	}
+
+	err = cli.config.SafeWriteConfigAs(cli.configFile)
 	if err != nil {
 		return err
 	}
 
 	// Save values down
-	cli.config.SetConfigName(configName)
-	cli.config.SetConfigFile(configPath)
-	cli.configFile = configPath
+	cli.config.SetConfigName(name)
+	cli.config.SetConfigFile(cli.configFile)
 
 	return nil
 }

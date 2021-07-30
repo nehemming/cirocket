@@ -95,6 +95,7 @@ func TestLoadProfileAndConfig(t *testing.T) {
 		t.Error("configError pre init error", cli.missionFileError)
 	}
 	cli.appName = "notknown"
+	cli.homeDir = "testdata"
 
 	cli.loadMissionAndConfig()
 	if cli.configError != nil {
@@ -148,7 +149,6 @@ func TestCreateDefaultConfig(t *testing.T) {
 	}
 
 	// simulate init
-	cli.config.AddConfigPath("testdata")
 	cli.config.SetConfigType("yml")
 
 	cn := "test"
@@ -156,8 +156,9 @@ func TestCreateDefaultConfig(t *testing.T) {
 	_ = os.Remove(cp)
 	defer func() { _ = os.Remove(cp) }()
 
-	// creat default file
-	err = cli.createDefaultConfig("testdata", cn, configFileType)
+	// create default file
+	cli.configFile = cp
+	err = cli.createDefaultConfig()
 	if err != nil {
 		t.Error("unexpected", err)
 		return
