@@ -15,7 +15,7 @@ Rocket powered task runner to assist delivering developer and ci build missions.
 [![Coveralls](https://img.shields.io/coveralls/github/nehemming/cirocket?style=for-the-badge)](https://coveralls.io/github/nehemming/cirocket)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg?style=for-the-badge)](#license)
 [![GoReportCard](https://goreportcard.com/badge/github.com/nehemming/cirocket?test=0&style=for-the-badge)](https://goreportcard.com/report/github.com/nehemming/cirocket)
-[![Go Doc](https://img.shields.io/badge/godoc-reference-blue.svg?style=for-the-badge)](http://godoc.org/github.com/goreleaser/goreleaser)
+[![Go Doc](https://img.shields.io/badge/godoc-reference-blue.svg?style=for-the-badge)](http://godoc.org/github.com/nehemming/cirocket)
 [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg?style=for-the-badge)](https://conventionalcommits.org)
 [![Uses: cirocket](https://img.shields.io/badge/Uses-cirocket-orange?style=for-the-badge)](https://github.com/nehemming/cirocket)
 [![Uses: GoReleaser](https://img.shields.io/badge/uses-goreleaser-green.svg?style=for-the-badge)](https://github.com/goreleaser)

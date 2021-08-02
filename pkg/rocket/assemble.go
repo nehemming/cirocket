@@ -228,10 +228,13 @@ func decodeBluerint(b []byte) (*Blueprint, error) {
 			WeaklyTypedInput: true,
 			Result:           blueprint,
 		}); err != nil {
-		return nil, errors.Wrap(err, "runbook decoder")
+		return nil, errors.Wrap(err, "blueprint decoder")
 	} else if err := d.Decode(blueStuff); err != nil {
-		return nil, errors.Wrapf(loggee.BindMultiErrorFormatting(err), "parsing runbook")
+		return nil, errors.Wrapf(loggee.BindMultiErrorFormatting(err), "parsing blueprint")
 	}
+
+	// Remove trailing new lines from description
+	blueprint.Description = strings.Trim(blueprint.Description, " \n")
 
 	return blueprint, nil
 }

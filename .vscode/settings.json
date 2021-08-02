@@ -6,6 +6,7 @@
         "Wrapf",
         "apexcli",
         "cirocket",
+        "cliflags",
         "cliparser",
         "ctxhttp",
         "delims",
@@ -18,7 +19,8 @@
         "nehemming",
         "nolint",
         "runbook",
-        "testdata"
+        "testdata",
+        "yamlformatter"
     ],
 
     "psi-header.config": {

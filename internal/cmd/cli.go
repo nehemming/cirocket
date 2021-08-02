@@ -110,12 +110,19 @@ func runWithArgs(ctx context.Context, args []string, logger loggee.Logger) int {
 	// Add the commands
 	cli.rootCmd.AddCommand(cli.newAssemblyCommand())
 	cli.rootCmd.AddCommand(cli.newLaunchCommand())
+	cli.rootCmd.AddCommand(cli.newListCommand())
 
 	initCmd := cli.newInitCommand()
 
 	initCmd.AddCommand(cli.newInitMissionCommand())
 	initCmd.AddCommand(cli.newInitRunbookCommand())
 	cli.rootCmd.AddCommand(initCmd)
+
+	if cli.configError != nil {
+		// early exit due to config building error
+		loggee.Error(cli.configError.Error())
+		return ExitCodeError
+	}
 
 	// Register the config hook until processed the flags will not have been read.
 	cobra.OnInitialize(cli.loadMissionAndConfig)

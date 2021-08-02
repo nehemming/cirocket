@@ -5,7 +5,7 @@
 # cirocket assemble hello --runbook hello_runbook.yml
 description: |
   hello creates a simple hello world application and configures it to use cirocket to build.
-
+  
 # run book contains a template of the settings needed to assemble the blueprint
 runbook:
   path: runbook.yml

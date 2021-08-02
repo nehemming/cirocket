@@ -85,6 +85,9 @@ type (
 
 		// GetRunbook gets the runbook for a blueprint
 		GetRunbook(ctx context.Context, blueprintName string, sources []string) (string, error)
+
+		// ListBlueprints builds a list of all blueprints found in the passed sources
+		ListBlueprints(ctx context.Context, sources []string) ([]BlueprintInfo, error)
 	}
 
 	// operations is a collection of operations.
