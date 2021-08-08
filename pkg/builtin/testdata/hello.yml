@@ -1,0 +1,23 @@
+name: "say hello"
+params:
+ - name: person
+   value: bob
+ - name: code
+   file: template.go
+stages:
+    - tasks:
+      - type: template
+        name: sayhello
+        template:
+          inline: |
+            Hello World {{.person}}
+      
+      - type: template
+        name: list file
+        delims:
+          left: '[['
+          right: ']]'
+        template: 
+          path: "testdata/templtetest.txt"
+        output:
+          path: "testdata/{{.person}}.tmp"

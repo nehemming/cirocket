@@ -1,0 +1,183 @@
+# Sample configuration file
+# Edit this file to create a new mission
+
+# configuration values often support go template expansion using the {{ }} delimiters.  Any expansion should be specified in quote marks to form valid yaml.
+
+# All missions can be named.  If a name is not specified it is take from the base name of the configuration file.
+name: "init sample mission"
+
+# version is optional but if provided should vbe version 1.0
+version: '1.0'
+
+# sequences can be used to specify what stages are executed.  If they are not included all stages are run in file order.
+# when one or more sequences are defined the stages are run in the order of the requested sequence(s).
+# in the cas below the command would be: cirocket launch run
+# sequences:
+#   run: 
+#     -  "sample stage"
+
+# params are configuration settings.  The are accessible in all settings that support template expansion
+# params can be specified as part of the mission, stage or task.  Params are inherited and can be overbidden
+# all params must have aa name, the key by which they are accessible name: fred is accessible as {{ .fred }} in templates.
+# param values can be specified using the value tag or read from a file or web url.  Both are subject to template expansion.
+# If both value and file are specified the final value is the concatenation of the value property and file contents.
+# skipExpand stops template expansion occurring.  If optional is true no error will be raised if the file or url is not found
+params:
+  - name: welcome
+    value: hello world
+  #- name: secret
+  # path: some_file.txt
+  # url: "https//..."
+  # skipExpand: false
+  # optional: false
+
+# must section can be supplied on missions, stages or tasks.  It checks that the caller of that activity
+# has provided the a parameter with the name of the must entry.  If it is not provided an error occurs.
+# this check can be used to safeguard an activity against bad input config
+# must:
+#   - list of param names that must be provided to the task before starting
+
+# env contains environment variables that are defined for use in template expansion or passed to any sub processes executed
+# env variables are subject to param expansion, so can for example be passed secrets from params.
+# env variables are accessible in template expansion as either ${var} or {{ .Env.var }} 
+# all environment variables accessible to the host process are added to the default collection inherited by the mission.
+# env sections can be added at the mission, stage and task levels.
+# by default stages and tasks inherit their parents environment variables. If this is undesirable, for example you do not want
+# to run a sub process with API keys, these can either be overrides as blanks or the task/stage definition can include the 
+# noTrust: true setting.  This prevents inheritance.
+env:
+  THRUSTERS: go
+
+# missions are broken down into stages, each stage contains a set of zero or more tasks.
+# how stages are processed depends on the presence oor absence of the sequences section.  
+# If no sequences section is provided, stages are executed in the order they are defined in this file.
+# With a sequence file present the order and what is executed is determined by the sequence
+# each stage may have a name, and may contain stage level  param and env(ironment) variables.
+stages:
+  - name: "sample stage" 
+    # env:
+    # param:
+    # noTrust: true
+    # must:
+    #   - list of param names that must be provided to the stage before starting
+
+    # a filter section can be added to tasks and stages, this limits the running of the step to
+    # host applications running on specific operating systems or architectures.  This can be useful
+    # if task have windows or linux specific scripts etc.   Values used for filtering come form the go 
+    # architecture and os names ... i.e. macos is known as darwin.
+    # filter:
+    #   includeOS:
+    #     - windows
+    #   includeArch:
+    #     - amd64
+    #   excludeOS:
+    #     - linux
+    #   excludeArch:
+    #     - i386
+
+    # tasks are defined under a stage.  tasks represent a activity of a specific type
+    # types currently supported include 'run' and 'template'  Others may be added shortly.
+    # each task type may have type specific properties, however all share the properties (env,params, filter and noTrust)
+    # tasks can optionally have a name, other wise their name is task+ordinal position in list.
+    tasks:
+      - name: get the go version
+        # env:
+        # param:
+        # noTrust: true
+        # filter:    
+        # must:
+        #   - list of param names that must be provided to the task before starting
+        type: run
+        # run specific settings
+        # command is the command to run.  It may include command line arguments
+        # in the example below command: go version is equally valid
+        # args are appended to the arg list extracted from the command line
+        # command line and args can use templates
+        # glob specifies if args should be expanded linux shell style or passed as is to the program.
+        # to avoid globing wildcards can be enclosed in quotes.
+        command: go
+        args:
+          - version
+        # glob: false
+        # logStdOut: false
+
+        # sub process output is either sent to a file, the log or to the host applications stdout.
+        # redirection uses the input, output and error sub keys
+        # output allows a file or variable  to be specified, append controls if the file should be appended to or truncated
+        # logStdOut sends log output, if not going to a file to the log, otherwise its send to stdout.
+        # output: 
+        #   path: filename
+        #   variable: exported_variable
+        #   append: false
+        # logStdOut: true
+
+        # a input file can be specified in place of stdin, sources include variables, files, urls or inline
+        # all arguments support template expansion.  This can be disabled with the skipExpand arg. The timeout setting 
+        # allows a request timeout limit to be specified.   If blank default is 30 seconds.
+        # input: 
+        #   inline: test
+        #   path: file
+        #   url: url 
+        #   variable: exported_variable
+
+        # error output normally goes to the log, this can be modified using the error sub key
+        # it can be directed to a file, merged with the output file or direct to the host processes stderr.
+        # error: 
+        #   path: filename
+        #   variable: exported_variable
+        #   append: false
+        # directStdErr: false
+
+        # template tasks are used to run a go template
+      - name: template_example
+        type: template
+
+        # template input is defined by the template sub key and its output by the output key
+        # inline templates are not expanded prior to template processing
+        # template: 
+        #   inline: test
+        #   path: file
+        #   url: url 
+        #   variable: exported_variable
+
+        # output: 
+        #   path: filename
+        #   variable: exported_variable
+        #   append: false
+
+        # either a template or inline property must be specified.
+        # template is the name of the go template file
+        # inline is an inline expansion
+        #template: file
+        template:
+          inline: |
+            Say {{.welcome}}!
+
+        # template output is either sent to a file or to the host applications stdout.
+        # output: filename
+        # appendOutput: true
+
+        # cleaner tasks are used to delete files or directories
+        # param expansion can be used and the file specs perform globing
+      - name: cleaner_task
+        type: cleaner
+        log: true
+        # files:
+        #   - 'file-1'
+
+
+        # fetch pulls data from files, inline statements and urls into exported variables or local files.
+      - name: fetch_task
+        type: fetch
+        # resources:
+        #   - source:
+        #       inline: test
+        #       path: file
+        #       url: url 
+        #       variable: exported_variable
+        #     output: 
+        #       path: 'testdata/readme.tmp'
+        #       variable: exported_variable
+        #       append: false
+   
+# end of file

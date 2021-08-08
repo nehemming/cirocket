@@ -1,0 +1,11 @@
+name: "three"
+
+stages:
+ -  name: testing
+    tasks:
+      - type: testTask
+        name: task to test
+
+sequences:
+  run:
+    - testing

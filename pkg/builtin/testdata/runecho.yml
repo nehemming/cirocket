@@ -1,0 +1,15 @@
+name: "runecho"
+
+stages:
+ -  name: testing
+    tasks:
+      - type: run
+        filter: 
+          excludeOS: 
+            - windows
+        name: run echo
+        command: echo $LANG 
+        args:
+          - "{{ .Runtime.GOOS }}"
+        logStdOut: true
+        

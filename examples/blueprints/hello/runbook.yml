@@ -1,0 +1,19 @@
+name: create hello world application
+params: 
+  - name: project_name
+    description: mandatory, set project_name to the nam of the project
+    value: hello
+  - name: repo_user
+    description: mandatory, name of repository owner
+  - name: user_name
+    description: mandatory, name of running user
+    value: '{{ username }}'
+  - name: repo_host
+    description: optional,host where git hub is hosted
+    value: github.com
+  - name: project_description
+    description: optional, description of project
+    value: sample hello world application
+
+
+

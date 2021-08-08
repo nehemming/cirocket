@@ -1,0 +1,9 @@
+# comment preserved
+name: test
+params: 
+  - name: spec_one
+    value: hello
+  - name: spec_two
+    value: two
+sequence:
+  - hello

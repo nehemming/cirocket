@@ -1,0 +1,12 @@
+params:
+  - name: resDir
+    value: build
+  - name: dockerfile
+    value: '{{ .resDir }}/Dockerfile.release'
+    print: yes
+  - name: rainbow
+    value: 'mission: {{ .missionDir }} {{ .missionDirAbs }}'
+    print: yes
+  - name: kansas
+    value: 'work: {{ .workingDir }}'
+    print: yes

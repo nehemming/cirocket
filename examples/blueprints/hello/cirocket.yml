@@ -1,0 +1,35 @@
+
+
+name: "release the project"
+version: '1.0'
+
+includes:
+  - url: https://raw.githubusercontent.com/nehemming/cirocket-config/master/build/stdbuild.yml
+
+params:
+  - name: projectName
+    value: '{{- or .projectName "[[- .project_name]]"}}'
+    print: true
+
+  - name: description
+    value: '[[- .project_description]]'
+  - name: builtBy
+    value: '{{- or .builtBy .Runtime.UserName }}'
+    print: true
+  - name: repoUser
+    value: '{{- or .repoUser .Env.CIRCLE_PROJECT_USERNAME "[[- .user_name]]"}}'
+    print: true
+  - name: license
+    value: 'MIT'
+  # - name: includePackages
+  #   value: yes
+  # - name: includeDocker
+  #   value: yes
+  # - name: includeGHCR
+  #   value: yes
+  # - name: includeBrews
+  #   value: yes
+
+  # config for the header and footer
+  - name: dockerfile
+    value: '[[- .docker_filename]]'

@@ -1,0 +1,11 @@
+name: "three"
+
+includes:
+  - path: include.yml
+
+
+
+sequences:
+  run:
+    - testing
+    - flying

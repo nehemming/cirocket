@@ -1,0 +1,100 @@
+name: "release the project"
+version: '1.0'
+
+stages:
+  - name: create-project
+    must:
+      - repo_user
+      - user_name
+      - project_name
+
+    params:
+      # if project_dir is already set use exiting value otherwise make it project_name
+      - name: project_dir
+        value: '{{or .project_dir .project_name}}'
+        print: true
+      - name: repo_host
+        value: '{{or .repo_host "github.com"}}'
+        print: true
+      - name: project_description
+        value: '{{or .project_description .project_name}}'
+      - name: docker_filename
+        value: '{{or .docker_filename "Dockerfile"}}'
+
+    tasks:
+      - name: create_dir
+        type: mkdir
+        log: true
+        dirs:
+          - '{{ .project_dir }}'
+
+      - name: go_mod_init 
+        type: run
+        dir: '{{ .project_dir }}'
+        command: 'go mod init {{.repo_host}}/{{.repo_user}}/{{ .project_name}}'
+
+      - name: create_gitignore
+        type: template
+        template:
+          inline : |
+            {{ .project_name}}
+        output: 
+          path: '{{ .project_dir }}/.gitignore'
+
+      - name: create_readme
+        type: template
+        template:
+          inline : |
+            # {{ .project_name}}
+
+            Demonstration project creation blueprint
+        output: 
+          path: '{{ .project_dir }}/README.md'
+
+      - name: create_license
+        type: template
+        template:
+          path: '{{ .missionDirURL }}/mit_license'
+        output: 
+          path: '{{ .project_dir }}/LICENSE'
+
+      - name: create_dockerfile
+        type: template
+        template:
+          path: '{{ .missionDirURL }}/Dockerfile'
+        output: 
+          path: '{{ .project_dir }}/{{.docker_filename}}'
+
+      - name: create_cirocket
+        type: template
+        delims:
+          left: '[['
+          right: ']]'
+        template:
+          path: '{{ .missionDirURL }}/cirocket.yml'
+        output: 
+          path: '{{ .project_dir }}/.cirocket.yml'
+
+      - name: create_main
+        type: template
+        template:
+          path: '{{ .missionDirURL }}/main.go'
+        output: 
+          path: '{{ .project_dir }}/main.go'
+      
+      - name: go_build 
+        type: run
+        dir: '{{ .project_dir }}'
+        command: 'go build'
+
+      # if tool chain installed use
+      # - name: cirocket_launch 
+      #   type: run
+      #   command: 'cirocket launch --dir {{ .project_dir }}'
+
+
+        
+
+
+
+  

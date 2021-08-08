@@ -1,0 +1,12 @@
+name: "say hello"
+stages:
+    - tasks:
+      - type: cleaner
+        name: clean test data
+        log: true
+        files:
+          - 'testdata/clean-1/file-1'
+          - 'testdata/clean-2/file-*'
+          - 'testdata/clean-3'
+          - 'testdata/clean-4/*'
+          - 'testdata/clean-5/*'

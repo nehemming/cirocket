@@ -1,0 +1,12 @@
+name: "fetcher"
+stages:
+    - tasks:
+      - type: fetch
+        name: fetch test data
+        log: true
+        resources:
+          - source:
+              url: 'https://raw.githubusercontent.com/nehemming/cirocket/master/README.md'
+            output: 
+              path: 'testdata/readme.tmp'
+        
