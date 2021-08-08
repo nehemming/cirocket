@@ -118,7 +118,7 @@ func TestWriterFileAppend(t *testing.T) {
 
 	err = Remove(ctx, u)
 	if err != nil {
-		t.Error("unexpected", err)
+		t.Error("unexpected", err, u)
 		return
 	}
 

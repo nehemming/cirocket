@@ -19,6 +19,7 @@ package cmd
 import (
 	"bytes"
 	"fmt"
+	"runtime"
 
 	"github.com/nehemming/cirocket/pkg/rocket"
 	"github.com/nehemming/yaff/cliflags"
@@ -75,7 +76,13 @@ func (cli *cli) listBlueprints(cmd *cobra.Command) error {
 	// Get assembly sources
 	sources := cli.config.GetStringSlice(configAssemblySources)
 
-	cli.config.SetDefault(listOptions+"."+cliflags.ParamTtyWidth, term.Width())
+	width := term.Width()
+	if runtime.GOOS == "windows" {
+		// windows seems too wide in tests
+		width -= 2
+	}
+
+	cli.config.SetDefault(listOptions+"."+cliflags.ParamTtyWidth, width)
 	cli.config.SetDefault(listOptions+"."+cliflags.ParamsReportingStyle, "grid")
 
 	formatter, options, err := cliflags.GetFormmatterFromFlags(cmd.Flags(), cli.config, textformatter.Text, listOptions)

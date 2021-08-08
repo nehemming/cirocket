@@ -34,30 +34,69 @@ func TestGetParentLocationEmpty(t *testing.T) {
 	}
 }
 
+func fixUpWindows(url *url.URL) string {
+	p := url.Path
+	// in windows we get file:///c:/ so skip /c: /
+	if len(p) > 3 && isWindows(p[1:]) {
+		url.Path = p[3:]
+	}
+	return url.String()
+}
+
+func TestFixUpWindowsPath(t *testing.T) {
+	u, _ := url.Parse("file:///c:/test")
+
+	r := fixUpWindows(u)
+
+	if r != "file:///test" {
+		t.Error("unexpected url", u)
+	}
+}
+
+func TestFixUpWindowsRoot(t *testing.T) {
+	u, _ := url.Parse("file:///c:/")
+
+	r := fixUpWindows(u)
+
+	if r != "file:///" {
+		t.Error("unexpected url", u)
+	}
+}
+
+func TestFixUpLinux(t *testing.T) {
+	u, _ := url.Parse("file:///root")
+
+	r := fixUpWindows(u)
+
+	if r != "file:///root" {
+		t.Error("unexpected url", u)
+	}
+}
+
 func TestGetParentLocationRoot(t *testing.T) {
 	u, err := GetParentLocation("/")
-	if err != nil || u == nil || u.String() != "file:///" {
+	if err != nil || u == nil || fixUpWindows(u) != "file:///" {
 		t.Error("unexpected error", err, u)
 	}
 }
 
 func TestGetParentLocationDeep(t *testing.T) {
 	u, err := GetParentLocation("/home/work/seen")
-	if err != nil || u == nil || u.String() != "file:///home/work" {
+	if err != nil || u == nil || fixUpWindows(u) != "file:///home/work" {
 		t.Error("unexpected error", err, u)
 	}
 }
 
 func TestGetParentLocationDeepRel(t *testing.T) {
 	u, err := GetParentLocation("/home/work/seen/../down/..")
-	if err != nil || u == nil || u.String() != "file:///home" {
+	if err != nil || u == nil || fixUpWindows(u) != "file:///home" {
 		t.Error("unexpected error", err, u)
 	}
 }
 
 func TestGetParentLocationRooted(t *testing.T) {
 	u, err := GetParentLocation("/root")
-	if err != nil || u == nil || u.String() != "file:///" {
+	if err != nil || u == nil || fixUpWindows(u) != "file:///" {
 		t.Error("unexpected error", err, u)
 	}
 }
@@ -110,11 +149,17 @@ func TestGetParentLocationHome(t *testing.T) {
 		panic(err)
 	}
 
+	// Simulate creating url
+	home = filepath.ToSlash(home)
+	if isWindows(home) {
+		home = "/" + home
+	}
+
 	expected := fmt.Sprintf("file://%s/work", home)
 
 	u, err := GetParentLocation("~/work/seen")
 	if err != nil || u == nil || u.String() != expected {
-		t.Error("unexpected error", err, u)
+		t.Error("unexpected error", err, u, expected)
 	}
 }
 
@@ -127,14 +172,14 @@ func TestUltimateURLEmpty(t *testing.T) {
 
 func TestUltimateURLMultiFile(t *testing.T) {
 	u, err := UltimateURL("/home/work/seen/../down/..")
-	if err != nil || u == nil || u.String() != "file:///home/work" {
+	if err != nil || u == nil || fixUpWindows(u) != "file:///home/work" {
 		t.Error("unexpected error", err, u)
 	}
 }
 
 func TestUltimateURLMultiHttp(t *testing.T) {
 	u, err := UltimateURL("http://server/home/work/seen/../down/..")
-	if err != nil || u == nil || u.String() != "http://server/home/work" {
+	if err != nil || u == nil || fixUpWindows(u) != "http://server/home/work" {
 		t.Error("unexpected error", err, u)
 	}
 }
@@ -176,7 +221,7 @@ func TestUltimateUNCServerOnly(t *testing.T) {
 
 func TestUltimateUnix(t *testing.T) {
 	u, err := UltimateURL("/root/url/bin/", "somthing")
-	if err != nil || u == nil || u.String() != "file:///root/url/bin/somthing" {
+	if err != nil || u == nil || fixUpWindows(u) != "file:///root/url/bin/somthing" {
 		t.Error("unexpected error", err, u)
 	}
 }
@@ -187,8 +232,9 @@ func TestUltimateUnixHome(t *testing.T) {
 		t.Error("unexpected error", err, u)
 		return
 	}
+	expected := filepath.FromSlash(".home/thing")
 	p, err := URLToRelativePath(u, "~")
-	if err != nil || p != ".home/thing" {
+	if err != nil || p != expected {
 		t.Error("unexpected error", err, u, p)
 		return
 	}
@@ -268,6 +314,11 @@ func TestURLToPathFromLocal(t *testing.T) {
 		t.Error("unexpected error", err)
 	}
 
+	if runtime.GOOS == "windows" {
+		// fix up p as will start with a drive letter
+		p = strings.TrimPrefix(p, filepath.VolumeName(p))
+	}
+
 	if p != filepath.FromSlash("/server/data") {
 		t.Error("unexpected path", p)
 	}
@@ -311,7 +362,7 @@ func TestGetURLParentLocation(t *testing.T) {
 func TestUltimateURLMergePathsFile(t *testing.T) {
 	location, err := UltimateURL("/root", "thing")
 
-	if err != nil || location.String() != "file:///root/thing" {
+	if err != nil || fixUpWindows(location) != "file:///root/thing" {
 		t.Error("merge (1) file", location, err)
 	}
 }
@@ -319,7 +370,7 @@ func TestUltimateURLMergePathsFile(t *testing.T) {
 func TestUltimateURLMergePathsFileAbs(t *testing.T) {
 	location, err := UltimateURL("/root", "/thing")
 
-	if err != nil || location.String() != "file:///thing" {
+	if err != nil || fixUpWindows(location) != "file:///thing" {
 		t.Error("merge (1) file", location, err)
 	}
 }
@@ -375,7 +426,8 @@ func TestUltimateURLMergePathsFileUrlThreeSlash(t *testing.T) {
 func TestGetBaseLocationWindows(t *testing.T) {
 	loc, err := GetParentLocation("c:\\windows\\data")
 	if runtime.GOOS == "windows" {
-		if err != nil || loc.String() != "c:\\windows" {
+		// fix up drops the drive letter that can vary in builds
+		if err != nil || fixUpWindows(loc) != "file:///windows" {
 			t.Error("parsing windows", loc, err)
 		}
 	} else {
@@ -389,7 +441,7 @@ func TestGetBaseLocationWindows(t *testing.T) {
 func TestGetBaseLocationFile(t *testing.T) {
 	loc, err := GetParentLocation("/root/data/file.txt")
 
-	if err != nil || loc.String() != "file:///root/data" {
+	if err != nil || fixUpWindows(loc) != "file:///root/data" {
 		t.Error("parsing file", loc, err)
 	}
 }
@@ -397,7 +449,7 @@ func TestGetBaseLocationFile(t *testing.T) {
 func TestGetBaseLocationFileUrl(t *testing.T) {
 	loc, err := GetParentLocation("file:///root/data/file.txt")
 
-	if err != nil || loc.String() != "file:///root/data" {
+	if err != nil || fixUpWindows(loc) != "file:///root/data" {
 		t.Error("parsing file", loc, err)
 	}
 }

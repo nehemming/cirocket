@@ -18,12 +18,17 @@ package buildinfo
 
 import (
 	"context"
+	"runtime"
 	"strings"
 	"testing"
+
+	"github.com/nehemming/testsupport"
 )
 
 func TestNewInfo(t *testing.T) {
 	bi := NewInfo("v", "c", "d", "b", "cn")
+	bi.Architecture = "amd64"
+	bi.OperatingSystem = "darwin"
 
 	if bi.BuiltBy != "b" {
 		t.Error("Unexpected BuiltBy", bi.BuiltBy)
@@ -53,7 +58,7 @@ func TestNewInfo(t *testing.T) {
 		t.Error("Unexpected StartDir", bi.StartDir)
 	}
 
-	if bi.String() != "v c d cn [b]" {
+	if bi.String() != "v darwin/amd64 c d cn [b]" {
 		t.Error("Unexpected String", bi.String())
 	}
 }
@@ -86,4 +91,71 @@ func TestContextRoundTrip(t *testing.T) {
 	if ret.Version != bi.Version {
 		t.Error("Unexpected Version", ret.Version)
 	}
+}
+
+func TestContextRuntime(t *testing.T) {
+	bi := NewInfo("v", "c", "d", "b", "cn")
+
+	ctx := bi.NewContext(context.Background())
+
+	ret := GetBuildInfo(ctx)
+
+	if ret.Architecture != runtime.GOARCH {
+		t.Error("Unexpected Architecture", ret.Architecture)
+	}
+	if ret.OperatingSystem != runtime.GOOS {
+		t.Error("Unexpected OperatingSystem", ret.Version)
+	}
+	if ret.Compiler != runtime.Version() {
+		t.Error("Unexpected Compiler", ret.Compiler)
+	}
+}
+
+func TestStringVersion(t *testing.T) {
+	bi := NewInfo("v", "c", "d", "b", "cn")
+	bi.Architecture = "amd64"
+	bi.OperatingSystem = "darwin"
+	if r := bi.String(); r != "v darwin/amd64 c d cn [b]" {
+		t.Error("unexpected", r)
+	}
+}
+
+func TestBasicVersion(t *testing.T) {
+	bi := NewInfo("v", "c", "d", "b", "cn")
+	bi.Architecture = "amd64"
+	bi.OperatingSystem = "darwin"
+
+	if r := bi.BasicVersion(); r != "v darwin/amd64 c d cn [b]" {
+		t.Error("unexpected", r)
+	}
+}
+
+func TestBasicVersionLongCommitHash(t *testing.T) {
+	bi := NewInfo("v", "c23456789", "d", "b", "cn")
+	bi.Architecture = "amd64"
+	bi.OperatingSystem = "darwin"
+	bi.Compiler = "go1.16.6"
+
+	if r := bi.BasicVersion(); r != "v darwin/amd64 c234567 d cn [b]" {
+		t.Error("unexpected", r)
+	}
+}
+
+func TestTabularVersion(t *testing.T) {
+	const expected = `        Version: v
+   CompiledName: cn
+   Architecture: amd64
+OperatingSystem: darwin
+		   Date: d
+	     Commit: c
+	    BuiltBy: b
+	   Compiler: go1.16.6`
+
+	bi := NewInfo("v", "c", "d", "b", "cn")
+	// set fixed runtime values for test
+	bi.Architecture = "amd64"
+	bi.OperatingSystem = "darwin"
+	bi.Compiler = "go1.16.6"
+
+	testsupport.CompareStrings(t, expected, bi.TabularVersion())
 }

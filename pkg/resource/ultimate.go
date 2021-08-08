@@ -72,7 +72,14 @@ func URLToPath(url *url.URL) (string, error) {
 		return filepath.FromSlash("//" + url.Host + url.Path), nil
 	}
 
-	return filepath.FromSlash(url.Path), nil
+	// Windows url.Path has a leading /
+	// this needs to be removed
+	p := url.Path
+	if len(p) > 1 && isWindows(p[1:]) {
+		p = p[1:]
+	}
+	// Path needs to be absolute, so windows handles relative root dir to volume
+	return filepath.Abs(filepath.FromSlash(p))
 }
 
 // URLToRelativePath returns a file system path too the resource or an error.
@@ -228,7 +235,8 @@ func mergeUltimate(parts []string) (string, error) {
 			continue
 		}
 
-		if filepath.IsAbs(part) {
+		// Use path as has been standardized to slash format
+		if path.IsAbs(part) {
 			if insideURL {
 				// have abs path, but as extending an existing url it
 				// replaces only the path part
@@ -282,6 +290,12 @@ func join(root, addition string) string {
 }
 
 func expandHome(relPath, home string) string {
+	// Convert home to a url format
+	home = filepath.ToSlash(home)
+	if isWindows(home) {
+		home = "/" + home
+	}
+
 	if len(relPath) <= 1 {
 		return home
 	}

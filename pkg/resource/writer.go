@@ -22,7 +22,6 @@ import (
 	"io"
 	"net/url"
 	"os"
-	"path/filepath"
 	"runtime"
 
 	"github.com/pkg/errors"
@@ -48,12 +47,19 @@ func Remove(ctx context.Context, url *url.URL) error {
 
 	switch url.Scheme {
 	case "file":
-
-		path := url.Path
-		if url.Host != "" {
-			path = "//" + url.Host + url.Path
+		path, err := URLToPath(url)
+		if err != nil {
+			return err
 		}
-		path = filepath.FromSlash(path)
+
+		// path := url.Path
+		// if url.Host != "" {
+		// 	path = "//" + url.Host + url.Path
+		// }
+		// if len(path) > 1 && isWindows(path[1:]) {
+		// 	path = path[1:]
+		// }
+		// path = filepath.FromSlash(path)
 
 		stat, err := os.Stat(path)
 		if err != nil && !os.IsNotExist(err) {

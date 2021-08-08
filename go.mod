@@ -8,6 +8,7 @@ require (
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/mapstructure v1.4.1
+	github.com/nehemming/testsupport v0.0.0-20201206084157-e42fc749801f
 	github.com/nehemming/yaff v0.1.0
 	github.com/pkg/errors v0.8.1
 	github.com/spf13/cobra v1.2.1

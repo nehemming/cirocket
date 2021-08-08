@@ -321,7 +321,7 @@ func TestNewNewFileProviderFileDetails(t *testing.T) {
 
 	wd, _ := os.Getwd()
 	path := strings.TrimPrefix(fp.FilePath(), wd)
-	if path != "/fileprovider.go" {
+	if path != filepath.FromSlash("/fileprovider.go") {
 		t.Error("file path", fp.FilePath(), path)
 	}
 

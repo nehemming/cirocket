@@ -57,7 +57,7 @@ func TestAssembleOneSourcesBlueNoMission(t *testing.T) {
 	sources := []string{"testdata"}
 
 	err := mc.Assemble(ctx, "blue", sources, "", nil)
-	if err == nil || err.Error() != "loading mission for blueprint blue (testdata/blue): no source was specified" {
+	if err == nil || filepath.ToSlash(err.Error()) != "loading mission for blueprint blue (testdata/blue): no source was specified" {
 		t.Error("unexpected", err)
 	}
 }

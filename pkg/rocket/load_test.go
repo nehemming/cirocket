@@ -138,7 +138,7 @@ func TestLoadMissingIncludesMission(t *testing.T) {
 
 func TestGetStartingMissionURL(t *testing.T) {
 	u, err := getStartingMissionURL("/root/thing")
-	if err != nil || u.String() != "file:///root/thing" {
+	if err != nil || fixUpWindows(u) != "file:///root/thing" {
 		t.Error("unexpected", u, err)
 	}
 }

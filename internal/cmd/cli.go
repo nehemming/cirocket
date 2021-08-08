@@ -111,6 +111,7 @@ func runWithArgs(ctx context.Context, args []string, logger loggee.Logger) int {
 	cli.rootCmd.AddCommand(cli.newAssemblyCommand())
 	cli.rootCmd.AddCommand(cli.newLaunchCommand())
 	cli.rootCmd.AddCommand(cli.newListCommand())
+	cli.rootCmd.AddCommand(cli.newVersionCommand())
 
 	initCmd := cli.newInitCommand()
 
@@ -148,7 +149,7 @@ func newCli(ctx context.Context, logger loggee.Logger) *cli {
 			Long:          "rocket powered task runner to support delivering ci build missions",
 			Args:          cobra.NoArgs,
 			SilenceErrors: true,
-			Version:       info.String(),
+			Version:       info.Version,
 		},
 		ctx:     ctx,
 		mission: viper.New(),

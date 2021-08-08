@@ -19,13 +19,17 @@ package buildinfo
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 )
 
 // Info is information about the build.
 type Info struct {
+	// Architecture is the build processor architecture.
+	Architecture string
 	// BuiltBy who/what build this version.
 	BuiltBy string
 	// Date compiled.
@@ -34,12 +38,16 @@ type Info struct {
 	Commit string
 	// CompiledName compile name used for build.
 	CompiledName string
+	// Compiler used to build
+	Compiler string
+	// OperatingSystem is the build operating system.
+	OperatingSystem string
 	// RunName is the name of the program obtained from arg[0].
 	RunName string
-	// Version is the version of the program.
-	Version string
 	// Start dir is the working directory when the program starts.
 	StartDir string
+	// Version is the version of the program.
+	Version string
 }
 
 // ctxKeyType private context key type.
@@ -71,13 +79,16 @@ func NewInfo(version, commit, date, builtBy, compiledName string) Info {
 	sd, _ := os.Getwd()
 
 	return Info{
-		CompiledName: compiledName,
-		RunName:      GetRunNameForProgram(),
-		Version:      version,
-		Commit:       commit,
-		Date:         date,
-		BuiltBy:      builtBy,
-		StartDir:     sd,
+		CompiledName:    compiledName,
+		RunName:         GetRunNameForProgram(),
+		Version:         version,
+		Commit:          commit,
+		Date:            date,
+		BuiltBy:         builtBy,
+		StartDir:        sd,
+		OperatingSystem: runtime.GOOS,
+		Architecture:    runtime.GOARCH,
+		Compiler:        runtime.Version(),
 	}
 }
 
@@ -86,22 +97,57 @@ func GetRunNameForProgram() string {
 	return strings.ToLower(filepath.Base(os.Args[0]))
 }
 
-// String converts the build info to a string.
-func (info Info) String() string {
+// BasicVersion converts the build info to a string.
+func (info Info) BasicVersion() string {
 	builtBy := info.BuiltBy
 
+	osArch := info.OperatingSystem + "/" + info.Architecture
+
+	var commit string
+	if len(info.Commit) > 7 {
+		commit = info.Commit[:7]
+	} else {
+		commit = info.Commit
+	}
 	if builtBy != "" {
 		builtBy = "[" + builtBy + "]"
 	}
 
 	v := info.Version
-	for _, p := range []string{info.Commit, info.Date, info.CompiledName, builtBy} {
+	for _, p := range []string{osArch, commit, info.Date, info.CompiledName, builtBy} {
 		if p != "" {
 			v = v + " " + p
 		}
 	}
 
 	return v
+}
+
+const tabFmt = `        Version: %s
+   CompiledName: %s
+   Architecture: %s
+OperatingSystem: %s
+           Date: %s
+         Commit: %s
+        BuiltBy: %s
+       Compiler: %s`
+
+// TabularVersion converts the build info to a tabular string.
+func (info Info) TabularVersion() string {
+	return fmt.Sprintf(tabFmt,
+		info.Version,
+		info.CompiledName,
+		info.Architecture,
+		info.OperatingSystem,
+		info.Date,
+		info.Commit,
+		info.BuiltBy,
+		info.Compiler)
+}
+
+// String converts the build info to a string.
+func (info Info) String() string {
+	return info.BasicVersion()
 }
 
 // NewContext creates a new context containing the build information.

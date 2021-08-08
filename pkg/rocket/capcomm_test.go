@@ -1607,7 +1607,13 @@ func TestBaseNameFilePath(t *testing.T) {
 }
 
 func TestUltimate(t *testing.T) {
-	if d, e := ultimate("/a/b/c"); d != "file:///a/b/c" || e != nil {
+	if runtime.GOOS == "windows" {
+		return // skip as covered in resources
+	}
+
+	d, e := ultimate("/a/b/c")
+
+	if d != "file:///a/b/c" || e != nil {
 		t.Error("unexpected", d, e)
 	}
 }

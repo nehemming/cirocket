@@ -83,7 +83,7 @@ func TestRunInitMissionFileExists(t *testing.T) {
 	cli.missionFile = cp
 
 	err := cli.runInitMissionCmd(cmd, []string{})
-	if err == nil || err.Error() != "mission file testdata/mission.yml already exists" {
+	if err == nil || filepath.ToSlash(err.Error()) != "mission file testdata/mission.yml already exists" {
 		t.Error("unexpected", err)
 	}
 
