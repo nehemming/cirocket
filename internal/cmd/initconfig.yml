@@ -31,6 +31,21 @@ params:
   # skipExpand: false
   # optional: false
 
+  # a filter section can be added to params, if the filter excludes the param the entry is ignored. 
+  # The filter can exclude specific operating systems or architectures on which cirocket is running.  
+  # This can be useful if task have windows or linux specific scripts/settings etc.   
+  # Values used for filtering come from the go 
+  # architecture and os names ... i.e. macos is known as darwin.
+  # filter:
+  #   includeOS:
+  #     - windows
+  #   includeArch:
+  #     - amd64
+  #   excludeOS:
+  #     - linux
+  #   excludeArch:
+  #     - i386
+
 # must section can be supplied on missions, stages or tasks.  It checks that the caller of that activity
 # has provided the a parameter with the name of the must entry.  If it is not provided an error occurs.
 # this check can be used to safeguard an activity against bad input config
@@ -63,7 +78,7 @@ stages:
 
     # a filter section can be added to tasks and stages, this limits the running of the step to
     # host applications running on specific operating systems or architectures.  This can be useful
-    # if task have windows or linux specific scripts etc.   Values used for filtering come form the go 
+    # if task have windows or linux specific scripts etc.   Values used for filtering come from the go 
     # architecture and os names ... i.e. macos is known as darwin.
     # filter:
     #   includeOS:

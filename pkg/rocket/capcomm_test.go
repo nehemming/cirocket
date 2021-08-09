@@ -1087,87 +1087,6 @@ func TestGetExecEnv(t *testing.T) {
 	}
 }
 
-func TestIsFilteredInclude(t *testing.T) {
-	capComm := NewCapComm(testMissionFile, stdlog.New())
-
-	if capComm.isFiltered(nil) != false {
-		t.Error("Nil should not filter")
-	}
-
-	// Included testing
-	f := &Filter{}
-	if capComm.isFiltered(f) != false {
-		t.Error("Empty should not filter")
-	}
-	f.IncludeOS = []string{runtime.GOOS}
-	if capComm.isFiltered(f) != false {
-		t.Error("Same Os should not filter")
-	}
-	f.IncludeArch = []string{runtime.GOARCH}
-	if capComm.isFiltered(f) != false {
-		t.Error("Same Arch should not filter")
-	}
-}
-
-func TestIsFilteredNotInclude(t *testing.T) {
-	capComm := NewCapComm(testMissionFile, stdlog.New())
-
-	if capComm.isFiltered(nil) != false {
-		t.Error("Nil should not filter")
-	}
-
-	// Not included testing
-	f := &Filter{}
-	f.IncludeOS = []string{runtime.GOOS + "nope"}
-	if capComm.isFiltered(f) != true {
-		t.Error("Diff Os should filter")
-	}
-	f.IncludeArch = []string{runtime.GOARCH + "nope"}
-	if capComm.isFiltered(f) != true {
-		t.Error("Diff Arch should filter")
-	}
-}
-
-func TestIsFilteredExclude(t *testing.T) {
-	capComm := NewCapComm(testMissionFile, stdlog.New())
-
-	if capComm.isFiltered(nil) != false {
-		t.Error("Nil should not filter")
-	}
-
-	// Exclude
-	f := &Filter{}
-	f.ExcludeOS = []string{runtime.GOOS}
-	if capComm.isFiltered(f) != true {
-		t.Error("Same Os should exclude filter")
-	}
-	f = &Filter{}
-	f.ExcludeArch = []string{runtime.GOARCH}
-	if capComm.isFiltered(f) != true {
-		t.Error("Same Arch should exclude filter")
-	}
-}
-
-func TestIsFilteredNotExclude(t *testing.T) {
-	capComm := NewCapComm(testMissionFile, stdlog.New())
-
-	if capComm.isFiltered(nil) != false {
-		t.Error("Nil should not filter")
-	}
-
-	// Non exclude test
-	f := &Filter{}
-	f.ExcludeOS = []string{runtime.GOOS + "nope"}
-	if capComm.isFiltered(f) != false {
-		t.Error("Diff Os should exclude filter")
-	}
-	f = &Filter{}
-	f.ExcludeArch = []string{runtime.GOARCH + "nope"}
-	if capComm.isFiltered(f) != false {
-		t.Error("Diff Arch should exclude filter")
-	}
-}
-
 func TestMustNotBeSealed(t *testing.T) {
 	defer func() {
 		if r := recover(); r == nil {
@@ -1542,7 +1461,7 @@ func TestStringExpandNoValueIssue(t *testing.T) {
 	}
 }
 
-func TestExpandAdjacentMergeParamsWorks(t *testing.T) {
+func TestExpandAdjacentMergeParamsExpandsInOrder(t *testing.T) {
 	ctx := context.Background()
 	capComm := NewCapComm(testMissionFile, stdlog.New())
 
@@ -1567,6 +1486,69 @@ func TestExpandAdjacentMergeParamsWorks(t *testing.T) {
 
 	if v != "here" {
 		t.Error("unexpected v", v)
+	}
+}
+
+func TestParamsFilter(t *testing.T) {
+	ctx := context.Background()
+	capComm := NewCapComm(testMissionFile, stdlog.New())
+
+	params := []Param{
+		{
+			Name:  "one",
+			Value: "here",
+		},
+		{
+			Name:   "two",
+			Value:  "two",
+			Print:  true,
+			Filter: &Filter{Skip: true},
+		},
+	}
+
+	err := capComm.MergeParams(ctx, params)
+	if err != nil {
+		t.Error("unexpected", err)
+	}
+
+	v := capComm.params.Get("two")
+
+	if v != "" {
+		t.Error("unexpected v filtered", v)
+	}
+}
+
+func TestParamsFilterDuplicated(t *testing.T) {
+	ctx := context.Background()
+	capComm := NewCapComm(testMissionFile, stdlog.New())
+
+	params := []Param{
+		{
+			Name:  "one",
+			Value: "here",
+		},
+		{
+			Name:  "two",
+			Value: "this one",
+			Print: true,
+		},
+		{
+			Name:   "two",
+			Value:  "two",
+			Print:  true,
+			Filter: &Filter{Skip: true},
+		},
+	}
+
+	err := capComm.MergeParams(ctx, params)
+	if err != nil {
+		t.Error("unexpected", err)
+	}
+
+	v := capComm.params.Get("two")
+
+	if v != "this one" {
+		t.Error("unexpected v picked wrong one", v)
 	}
 }
 

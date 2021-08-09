@@ -656,6 +656,11 @@ func (capComm *CapComm) MergeParams(ctx context.Context, params []Param) error {
 	kvg := capComm.params.(*KeyValueGetter)
 
 	for index, p := range params {
+		// exclude filtered
+		if p.Filter.IsFiltered() {
+			continue
+		}
+
 		if p.Name == "" {
 			return fmt.Errorf("parameter %d has no name", index)
 		}
@@ -674,7 +679,7 @@ func (capComm *CapComm) MergeParams(ctx context.Context, params []Param) error {
 func (capComm *CapComm) MergeTemplateEnvs(ctx context.Context, env EnvMap) error {
 	capComm.mustNotBeSealed()
 
-	// Params need to be expanded prior to merging
+	// Envs need to be expanded prior to merging
 	expanded := make(map[string]string)
 
 	for k, p := range env {
@@ -887,65 +892,6 @@ func (capComm *CapComm) expandParam(ctx context.Context, param Param) (string, e
 	}
 
 	return value, nil
-}
-
-// isFiltered returns true if the filter restricts
-// the item from being included.
-// False means do not process any further.
-func (capComm *CapComm) isFiltered(filter *Filter) bool { //nolint remain as iis for now
-	if filter == nil {
-		return false
-	}
-
-	if filter.Skip {
-		return true
-	}
-
-	if len(filter.ExcludeArch) > 0 {
-		for _, a := range filter.ExcludeArch {
-			if a == capComm.runtime.GOARCH {
-				return true
-			}
-		}
-	}
-
-	if len(filter.ExcludeOS) > 0 {
-		for _, o := range filter.ExcludeOS {
-			if o == capComm.runtime.GOOS {
-				return true
-			}
-		}
-	}
-
-	if len(filter.IncludeArch) > 0 {
-		included := false
-		for _, a := range filter.IncludeArch {
-			if a == capComm.runtime.GOARCH {
-				included = true
-				break
-			}
-		}
-
-		if !included {
-			return true
-		}
-	}
-
-	if len(filter.IncludeOS) > 0 {
-		included := false
-		for _, o := range filter.IncludeOS {
-			if o == capComm.runtime.GOOS {
-				included = true
-				break
-			}
-		}
-
-		if !included {
-			return true
-		}
-	}
-
-	return false
 }
 
 // mustNotBeSealed asserts that the seal is not in place.

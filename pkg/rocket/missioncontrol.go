@@ -263,7 +263,7 @@ func (mc *missionControl) prepareStage(ctx context.Context, missionCapComm *CapC
 	capComm := missionCapComm.Copy(stage.NoTrust).
 		MergeBasicEnvMap(stage.BasicEnv)
 
-	if capComm.isFiltered(stage.Filter) {
+	if stage.Filter.IsFiltered() {
 		return operations, nil
 	}
 
@@ -307,7 +307,7 @@ func (mc *missionControl) prepareTask(ctx context.Context, stageCapComm *CapComm
 	capComm := stageCapComm.Copy(task.NoTrust).
 		MergeBasicEnvMap(task.BasicEnv)
 
-	if capComm.isFiltered(task.Filter) {
+	if task.Filter.IsFiltered() {
 		return nil, nil
 	}
 

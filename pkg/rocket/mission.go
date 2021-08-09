@@ -78,11 +78,11 @@ type (
 
 	// Param is an expandible parameter.
 	Param struct {
-		// Name is the name of the parameter
-		// Name is mandatory
+		// Name is the name of the parameter.
+		// Name is mandatory.
 		Name string `mapstructure:"name"`
 
-		// Description is a free text description of the parameter
+		// Description is a free text description of the parameter.
 		Description string `mapstructure:"description"`
 
 		// Value is the value of the parameter.  If SkipExpand is false the value will
@@ -101,14 +101,18 @@ type (
 		// any additional expansion.
 		Path string `mapstructure:"path"`
 
-		// SkipExpand skip templating the param
+		// SkipExpand skip templating the param.
 		SkipExpand bool `mapstructure:"skipExpand"`
 
-		// Optional if true allows the file not to exist
+		// Optional if true allows the file not to exist.
 		Optional bool `mapstructure:"optional"`
 
-		// Print if true will display the value of the parameter once expanded to the log
+		// Print if true will display the value of the parameter once expanded to the log.
 		Print bool `mapstructure:"print"`
+
+		// Filter is an optional filter on the param.
+		// If the param criteria are not met the param value will not be set.
+		Filter *Filter `mapstructure:"filter"`
 	}
 
 	// EnvMap is a map of environment variables to their values.

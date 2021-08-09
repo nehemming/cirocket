@@ -143,7 +143,9 @@ func mergeParamSets(sourceParams []Param, additional ...Param) []Param {
 	params := make([]Param, 0, len(additional))
 	for _, p := range additional {
 		if _, ok := m[p.Name]; !ok || p.Name == "" {
-			params = append(params, p)
+			if !p.Filter.IsFiltered() {
+				params = append(params, p)
+			}
 		}
 	}
 
