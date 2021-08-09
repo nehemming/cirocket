@@ -1,10 +1,25 @@
+/*
+Copyright (c) 2021 The cirocket Authors (Neil Hemming)
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package builtin
 
 import (
 	"context"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/nehemming/cirocket/pkg/loggee"
@@ -13,7 +28,7 @@ import (
 )
 
 type (
-	// Cleaner task is used to run a specific task.
+	// Cleaner task is used clean up files.
 	Cleaner struct {
 		Files []string `mapstructure:"files"`
 		Log   bool     `mapstructure:"log"`
@@ -60,19 +75,15 @@ func (cleanerType) Prepare(ctx context.Context, capComm *rocket.CapComm, task ro
 
 func globFile(specs []string) ([]string, error) {
 	files := make([]string, 0, len(specs))
-	for _, runbook := range specs {
-		if strings.ContainsAny(runbook, "*?") {
-			list, err := filepath.Glob(runbook)
-			if err != nil {
-				return nil, errors.Wrapf(err, "globbing %s", runbook)
-			}
-			files = append(files, list...)
-		} else {
-			files = append(files, runbook)
+	for _, spec := range specs {
+		list, err := recursiveGlob(spec)
+		if err != nil {
+			return nil, errors.Wrapf(err, "globbing %s", spec)
 		}
+		files = append(files, list...)
 	}
 
-	return files, nil
+	return toDistinctStrings(files...), nil
 }
 
 func deleteFiles(files []string, log bool) error {
@@ -98,11 +109,25 @@ func deleteFiles(files []string, log bool) error {
 
 		// log
 		if log {
-			loggee.Infof("removed %s", file)
+			loggee.Infof("removed %s", friendlyRelativePath(file))
 		}
 	}
 
 	return nil
+}
+
+func toDistinctStrings(files ...string) []string {
+	// Make list distinct, as more than one ref may match
+	m := make(map[string]bool)
+	res := make([]string, 0, len(files))
+	for _, v := range files {
+		if m[v] {
+			continue
+		}
+		m[v] = true
+		res = append(res, v)
+	}
+	return res
 }
 
 func init() {

@@ -25,10 +25,17 @@ import (
 	"github.com/nehemming/testsupport"
 )
 
-func TestNewInfo(t *testing.T) {
+func TestNewInfo(t *testing.T) { //nolint:cyclop
 	bi := NewInfo("v", "c", "d", "b", "cn")
 	bi.Architecture = "amd64"
 	bi.OperatingSystem = "darwin"
+	if runtime.GOOS == "windows" {
+		if bi.CompiledName != "cn.exe" {
+			t.Error("unexpected bi", bi.CompiledName)
+			return
+		}
+		bi.CompiledName = "cn" // make compatible with test
+	}
 
 	if bi.BuiltBy != "b" {
 		t.Error("Unexpected BuiltBy", bi.BuiltBy)
@@ -60,6 +67,26 @@ func TestNewInfo(t *testing.T) {
 
 	if bi.String() != "v darwin/amd64 c d cn [b]" {
 		t.Error("Unexpected String", bi.String())
+	}
+}
+
+func TestFormWindowsName(t *testing.T) {
+	r := formWindowsName("")
+
+	if r != "" {
+		t.Error("blank", r)
+	}
+
+	r = formWindowsName("app")
+
+	if r != "app.exe" {
+		t.Error("app", r)
+	}
+
+	r = formWindowsName("dir/app")
+
+	if r != "dir/app.exe" {
+		t.Error("dir/app", r)
 	}
 }
 
@@ -115,6 +142,14 @@ func TestStringVersion(t *testing.T) {
 	bi := NewInfo("v", "c", "d", "b", "cn")
 	bi.Architecture = "amd64"
 	bi.OperatingSystem = "darwin"
+	if runtime.GOOS == "windows" {
+		if bi.CompiledName != "cn.exe" {
+			t.Error("unexpected bi", bi.CompiledName)
+			return
+		}
+		bi.CompiledName = "cn" // make compatible with test
+	}
+
 	if r := bi.String(); r != "v darwin/amd64 c d cn [b]" {
 		t.Error("unexpected", r)
 	}
@@ -124,6 +159,14 @@ func TestBasicVersion(t *testing.T) {
 	bi := NewInfo("v", "c", "d", "b", "cn")
 	bi.Architecture = "amd64"
 	bi.OperatingSystem = "darwin"
+
+	if runtime.GOOS == "windows" {
+		if bi.CompiledName != "cn.exe" {
+			t.Error("unexpected bi", bi.CompiledName)
+			return
+		}
+		bi.CompiledName = "cn" // make compatible with test
+	}
 
 	if r := bi.BasicVersion(); r != "v darwin/amd64 c d cn [b]" {
 		t.Error("unexpected", r)
@@ -135,6 +178,14 @@ func TestBasicVersionLongCommitHash(t *testing.T) {
 	bi.Architecture = "amd64"
 	bi.OperatingSystem = "darwin"
 	bi.Compiler = "go1.16.6"
+
+	if runtime.GOOS == "windows" {
+		if bi.CompiledName != "cn.exe" {
+			t.Error("unexpected bi", bi.CompiledName)
+			return
+		}
+		bi.CompiledName = "cn" // make compatible with test
+	}
 
 	if r := bi.BasicVersion(); r != "v darwin/amd64 c234567 d cn [b]" {
 		t.Error("unexpected", r)
@@ -156,6 +207,14 @@ OperatingSystem: darwin
 	bi.Architecture = "amd64"
 	bi.OperatingSystem = "darwin"
 	bi.Compiler = "go1.16.6"
+
+	if runtime.GOOS == "windows" {
+		if bi.CompiledName != "cn.exe" {
+			t.Error("unexpected bi", bi.CompiledName)
+			return
+		}
+		bi.CompiledName = "cn" // make compatible with test
+	}
 
 	testsupport.CompareStrings(t, expected, bi.TabularVersion())
 }

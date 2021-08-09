@@ -1,0 +1,10 @@
+name: "test copy"
+stages:
+    - tasks:
+      - type: copy
+        name: copy data
+        log: true
+        sources:
+          - "**/*.go"
+          - "**/*.yml"
+        destination: "testdata/cpt/"

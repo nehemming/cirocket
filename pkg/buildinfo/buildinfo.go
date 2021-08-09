@@ -78,6 +78,10 @@ func GetBuildInfo(ctx context.Context) Info {
 func NewInfo(version, commit, date, builtBy, compiledName string) Info {
 	sd, _ := os.Getwd()
 
+	if runtime.GOOS == "windows" {
+		compiledName = formWindowsName(compiledName)
+	}
+
 	return Info{
 		CompiledName:    compiledName,
 		RunName:         GetRunNameForProgram(),
@@ -90,6 +94,14 @@ func NewInfo(version, commit, date, builtBy, compiledName string) Info {
 		Architecture:    runtime.GOARCH,
 		Compiler:        runtime.Version(),
 	}
+}
+
+func formWindowsName(compiledName string) string {
+	ext := filepath.Ext(compiledName)
+	if compiledName != "" && ext == "" {
+		return compiledName + ".exe"
+	}
+	return compiledName
 }
 
 // GetRunNameForProgram returns the base name of the running program.

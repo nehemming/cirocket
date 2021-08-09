@@ -11,6 +11,8 @@
         "ctxhttp",
         "delims",
         "dockerhub",
+        "globber",
+        "globbing",
         "hashicorp",
         "initialise",
         "ironment",

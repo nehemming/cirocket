@@ -4,6 +4,7 @@ go 1.16
 
 require (
 	github.com/apex/log v1.9.0
+	github.com/bmatcuk/doublestar/v4 v4.0.2
 	github.com/buger/goterm v1.0.1
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/mitchellh/go-homedir v1.1.0
