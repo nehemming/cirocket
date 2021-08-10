@@ -206,7 +206,6 @@ func TestCopyRun(t *testing.T) {
 func validateCopyTest(t *testing.T, dir string) {
 	t.Helper()
 	// Check and clean
-
 	src, _ := globFileAbsRel("*/*.yml", "*.go")
 	dest, _ := globFileAbsRel(filepath.Join(dir, "**"))
 	if len(src) != len(dest) {

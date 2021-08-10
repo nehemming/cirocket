@@ -44,6 +44,7 @@ type (
 	Copy struct {
 		Sources     []string `mapstructure:"sources"`
 		Destination string   `mapstructure:"destination"`
+		Overwrite   bool     `mapstructure:"overwrite"`
 		Log         bool     `mapstructure:"log"`
 	}
 
@@ -92,7 +93,7 @@ func (copyType) Prepare(ctx context.Context, capComm *rocket.CapComm, task rocke
 		}
 
 		// copy
-		return copyFiles(execCtx, files, destSpec, copyCfg.Log)
+		return copyFiles(execCtx, files, destSpec, copyCfg.Overwrite, copyCfg.Log)
 	}
 
 	return fn, nil
@@ -201,20 +202,20 @@ func toDistinctAbsRelSlice(files ...AbsRel) []AbsRel {
 	return res
 }
 
-func copyFiles(ctx context.Context, sources []AbsRel, dest DestSpec, log bool) error {
+func copyFiles(ctx context.Context, sources []AbsRel, dest DestSpec, allowOverwrite, log bool) error {
 	for _, source := range sources {
 		if ctx.Err() != nil {
 			return ctx.Err()
 		}
 
-		if err := copyFile(source, dest, log); err != nil {
+		if err := copyFile(source, dest, allowOverwrite, log); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func copyFile(source AbsRel, dest DestSpec, log bool) error {
+func copyFile(source AbsRel, dest DestSpec, allowOverwrite, log bool) error {
 	// Get the source files permission
 	stat, err := os.Stat(source.Abs)
 	if err != nil {
@@ -228,42 +229,67 @@ func copyFile(source AbsRel, dest DestSpec, log bool) error {
 	}
 	defer srcFile.Close()
 
+	destAbsRel, err := prepDestination(source, dest, allowOverwrite)
+	if err != nil {
+		return err
+	}
+	if destAbsRel == nil || source.Abs == destAbsRel.Abs {
+		// skipping
+		if log {
+			loggee.Infof("skipping %s", source.Rel)
+		}
+		return nil
+	}
+
+	destFile, err := os.OpenFile(destAbsRel.Abs, os.O_RDWR|os.O_CREATE|os.O_TRUNC, stat.Mode())
+	if err != nil {
+		return errors.Wrapf(err, "dest %s:", destAbsRel.Rel)
+	}
+	defer destFile.Close()
+
+	// Do copy
+	_, err = io.Copy(destFile, srcFile)
+	if err != nil {
+		return errors.Wrapf(err, "copy %s => %s:", source.Rel, destAbsRel.Rel)
+	}
+
+	// log
+	if log {
+		loggee.Infof("copy %s => %s", source.Rel, destAbsRel.Rel)
+	}
+
+	return nil
+}
+
+func prepDestination(source AbsRel, dest DestSpec, allowOverwrite bool) (*AbsRel, error) {
 	var finalPath string
 	if dest.IsDir {
 		finalPath = filepath.Join(dest.Path, source.Rel)
 	} else {
 		finalPath = dest.Path
 	}
-	dir := filepath.Dir(finalPath)
-	err = os.MkdirAll(dir, 0777)
-
-	if err != nil {
-		return errors.Wrapf(err, "dir %s:", dir)
-	}
-
-	destFile, err := os.OpenFile(finalPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, stat.Mode())
-	if err != nil {
-		return errors.Wrapf(err, "dest %s:", finalPath)
-	}
-	defer destFile.Close()
 
 	destRel, err := filepath.Rel(dest.Path, finalPath)
 	if err != nil {
-		return errors.Wrapf(err, "dest %s, rel %s:", dest.Path, finalPath)
+		return nil, errors.Wrapf(err, "dest %s, rel %s:", dest.Path, finalPath)
 	}
 
-	// Do copy
-	_, err = io.Copy(destFile, srcFile)
+	if !allowOverwrite {
+		_, err := os.Stat(finalPath)
+		if err == nil {
+			// skip
+			return nil, nil
+		}
+	}
+
+	// create dir if needed
+	dir := filepath.Dir(finalPath)
+	err = os.MkdirAll(dir, 0777)
 	if err != nil {
-		return errors.Wrapf(err, "copy %s => %s:", source.Rel, destRel)
+		return nil, errors.Wrapf(err, "dir %s:", dir)
 	}
 
-	// log
-	if log {
-		loggee.Infof("copy %s => %s", source.Rel, destRel)
-	}
-
-	return nil
+	return &AbsRel{Abs: finalPath, Rel: destRel}, nil
 }
 
 func init() {

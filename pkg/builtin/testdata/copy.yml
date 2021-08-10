@@ -2,9 +2,22 @@ name: "test copy"
 stages:
     - tasks:
       - type: copy
-        name: copy data
+        name: test deep copy
         log: true
         sources:
           - "**/*.go"
           - "**/*.yml"
+        destination: "testdata/cpt/"
+      - type: copy
+        name: copy skips
+        log: true
+        sources:
+          - "*.go"
+        destination: "testdata/cpt/"
+      - type: copy
+        name: copy overwrite
+        log: true
+        overwrite: true
+        sources:
+          - "*.go"
         destination: "testdata/cpt/"
