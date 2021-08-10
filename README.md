@@ -116,7 +116,7 @@ Launch features are delivered through two commands.
 |move|moves files matching the source glob specs to the destination folder.|
 |remove|deletes files matching on of the file glob specs.|
 |run|executes a program and awaits its response.|
-|template| processes an input template to generate output.|
+|template|processes an input template to generate output.|
 
 Use the command below to list the supported types 
 
