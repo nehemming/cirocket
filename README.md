@@ -1,6 +1,11 @@
-# cirocket
+<p align="center">
+  <img alt="GoReleaser Logo" src="build/rocket.svg"  />
+  <h3 align="center">cirocket</h3>
+</p>
 
-Rocket powered task runner to assist delivering developer and ci build missions.
+---
+Rocket powered cross platform task runner delivering developer and ci build missions.
+
 
  * [Installation](#install)
  * [Features](#features)
@@ -44,6 +49,16 @@ The application can be installed via:
 brew install nehemming/tap/cirocket
 ```
 
+### Mint/Umbuntu/Debian package install
+
+`cirocket` is distributed as a `deb` package and can be installed using the commands below.  If a different version or architecture is required edit the file name as required.
+
+```sh
+curl -LO https://github.com/nehemming/cirocket/releases/download/v0.2.1/cirocket_0.2.1_linux_amd64.deb
+
+dpkg -i cirocket_0.2.1_linux_amd64.deb
+```
+
 ### Go tool chain
 
 ```sh
@@ -60,7 +75,7 @@ go install
 ```
 ## <a name="features"></a> Features
 
-cirocket is a task runner that is designed to support developers' local and ci build processes in a platform agnostic way. 
+`cirocket` is a task runner that is designed to support developers' local and ci build processes in a platform agnostic way. 
 
 It provides two modes of operation:
 
@@ -69,7 +84,7 @@ It provides two modes of operation:
 
 ### Launching missions
 
-Launch scripts are typically used to run local build/test/venerability scripts or to prepare a project for pushing to a public repo.  In a ci environment cirocket can help sequence the build steps, report code coverage, Fossa checks etc.
+Launch scripts are typically used to run local build/test/venerability scripts or to prepare a project for pushing to a public repo.  In a ci environment `cirocket` can help sequence the build steps, report code coverage, Fossa checks etc.
 
 Examples used by the authors can be found at [cirocket-config](https://github.com/nehemming/cirocket-config).
 
@@ -90,9 +105,28 @@ Launch features are delivered through two commands.
 |`cirocket init mission`|Creates a starting mission script that is ready for you to edit.  The default script created is called `.cirocket.yml` and is placed in the current working directory.  It will NOT overwrite an existing script.  The arg `--mission [path]` allows an alterative local file to be specified.|
 |`cirocket launch`|Runs the mission script, either identified by `--mission [path]` or the default `.cirocket.yml`.| 
 
+#### Supported task types
+
+|Type|Description|
+|-|-|
+|cleaner|cleans up files matching on of the file glob specs.|
+|copy|copies files matching a source glob pattern into the destination folder.|
+|fetch|fetches url bases resources and makes a local copy.|
+|mkdir|creates directories as needed from the dirs list.|
+|move|moves files matching the source glob specs to the destination folder.|
+|remove|deletes files matching on of the file glob specs.|
+|run|executes a program and awaits its response.|
+|template| processes an input template to generate output.|
+
+Use the command below to list the supported types 
+
+```sh
+cirocket list tasktypes
+```
+
 ### Assembling blueprints
 
-Blueprints are essentially template cirocket scripts that c an be run to carry out common project or development tasks.   The [example script](examples/blueprints/hello) contained in this project creates a new hello world project and builds it.
+Blueprints are essentially template `cirocket` scripts that c an be run to carry out common project or development tasks.   The [example script](examples/blueprints/hello) contained in this project creates a new hello world project and builds it.
 
 Blueprints are intended  to replace a reliance of shell history or adhoc shell./ batch scripts to accomplish common tasks.
 
@@ -110,6 +144,13 @@ Launch features are delivered through two commands.
 |`cirocket init runbook [blueprint]`|Finds the blue print and creates a new Yaml runbook file ready for local editing.|
 |`cirocket assemble [blueprint]`|Locates and runs the blueprint.  If `--runbook [runbook_path]` is specified the selected runbook will be used to control the blueprint build.|
 
+### List blueprints
+
+`cirocket` can list available blueprints using the command:
+
+```sh
+cirocket list blueprints
+```
 
 ## <a name="basic"></a>Basic usage
 

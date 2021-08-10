@@ -55,7 +55,7 @@ func (templateType) Type() string {
 }
 
 func (templateType) Description() string {
-	return "processes the input template to generate output.."
+	return "processes an input template to generate output."
 }
 
 func configureSources(ctx context.Context, capComm *rocket.CapComm, templateCfg *Template) error {
