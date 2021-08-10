@@ -40,11 +40,11 @@ type (
 		IsDir bool
 	}
 
-	// Copy task is used to run a specific task.
+	// Copy task is used to copy files.
 	Copy struct {
 		Sources     []string `mapstructure:"sources"`
 		Destination string   `mapstructure:"destination"`
-		Overwrite   bool     `mapstructure:"overwrite"`
+		Overwrite   string   `mapstructure:"overwrite"`
 		Log         bool     `mapstructure:"log"`
 	}
 
@@ -55,17 +55,27 @@ func (copyType) Type() string {
 	return "copy"
 }
 
+func (copyType) Description() string {
+	return "copies files matching a source glob pattern into the destination folder."
+}
+
 // Prepare loads the tasks configuration and returns the operation function or an error.
 func (copyType) Prepare(ctx context.Context, capComm *rocket.CapComm, task rocket.Task) (rocket.ExecuteFunc, error) {
 	copyCfg := &Copy{}
 
-	if err := mapstructure.Decode(task.Definition, copyCfg); err != nil {
+	if err := mapstructure.WeakDecode(task.Definition, copyCfg); err != nil {
 		return nil, errors.Wrap(err, "parsing template type")
 	}
 
 	fn := func(execCtx context.Context) error {
 		// get the destination
 		dest, err := capComm.ExpandString(ctx, "dir", copyCfg.Destination)
+		if err != nil {
+			return errors.Wrapf(err, "expanding dest %s", copyCfg.Destination)
+		}
+
+		// get the overrite value
+		overwrite, err := capComm.ExpandBool(ctx, "overrite", copyCfg.Overwrite)
 		if err != nil {
 			return errors.Wrapf(err, "expanding dest %s", copyCfg.Destination)
 		}
@@ -93,7 +103,7 @@ func (copyType) Prepare(ctx context.Context, capComm *rocket.CapComm, task rocke
 		}
 
 		// copy
-		return copyFiles(execCtx, files, destSpec, copyCfg.Overwrite, copyCfg.Log)
+		return copyFiles(execCtx, files, destSpec, overwrite, copyCfg.Log)
 	}
 
 	return fn, nil

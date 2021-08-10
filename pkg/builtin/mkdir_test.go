@@ -19,6 +19,14 @@ func TestMkDirType(t *testing.T) {
 	}
 }
 
+func TestMkDirDesc(t *testing.T) {
+	var rt mkDirType
+
+	if rt.Description() == "" {
+		t.Error("needs description", rt.Type())
+	}
+}
+
 func TestMkDirRun(t *testing.T) {
 	loggee.SetLogger(stdlog.New())
 

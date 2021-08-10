@@ -28,32 +28,61 @@ import (
 )
 
 type (
-	// Cleaner task is used clean up files.
-	Cleaner struct {
+
+	// Remove lists files or directories to remove
+	Remove struct {
 		Files []string `mapstructure:"files"`
 		Log   bool     `mapstructure:"log"`
 	}
 
+	removeType  struct{}
 	cleanerType struct{}
 )
+
+func (removeType) Type() string {
+	return "remove"
+}
+
+func (removeType) Description() string {
+	return "deletes files matching on of the file glob specs."
+}
 
 func (cleanerType) Type() string {
 	return "cleaner"
 }
 
-// Prepare loads the tasks configuration and returns the operation function or an error.
-func (cleanerType) Prepare(ctx context.Context, capComm *rocket.CapComm, task rocket.Task) (rocket.ExecuteFunc, error) {
-	cleanCfg := &Cleaner{}
+func (cleanerType) Description() string {
+	return "cleans up files matching on of the file glob specs."
+}
 
-	if err := mapstructure.Decode(task.Definition, cleanCfg); err != nil {
+// Prepare prepares the cleaner task and returns an operation or an error.
+func (cleanerType) Prepare(ctx context.Context, capComm *rocket.CapComm, task rocket.Task) (rocket.ExecuteFunc, error) {
+	removeType := &Remove{}
+
+	if err := mapstructure.WeakDecode(task.Definition, removeType); err != nil {
 		return nil, errors.Wrap(err, "parsing template type")
 	}
 
+	return buildRemoveOp(capComm, removeType)
+}
+
+// Prepare loads the tasks configuration and returns the operation function or an error.
+func (removeType) Prepare(ctx context.Context, capComm *rocket.CapComm, task rocket.Task) (rocket.ExecuteFunc, error) {
+	removeType := &Remove{}
+
+	if err := mapstructure.WeakDecode(task.Definition, removeType); err != nil {
+		return nil, errors.Wrap(err, "parsing template type")
+	}
+
+	return buildRemoveOp(capComm, removeType)
+}
+
+func buildRemoveOp(capComm *rocket.CapComm, config *Remove) (rocket.ExecuteFunc, error) {
 	fn := func(execCtx context.Context) error {
 		// Expand files
-		specs := make([]string, 0, len(cleanCfg.Files))
-		for index, f := range cleanCfg.Files {
-			fileSpec, err := capComm.ExpandString(ctx, "file", f)
+		specs := make([]string, 0, len(config.Files))
+		for index, f := range config.Files {
+			fileSpec, err := capComm.ExpandString(execCtx, "file", f)
 			if err != nil {
 				return errors.Wrapf(err, "expanding file %d", index)
 			}
@@ -67,7 +96,7 @@ func (cleanerType) Prepare(ctx context.Context, capComm *rocket.CapComm, task ro
 		}
 
 		// clean
-		return deleteFiles(files, cleanCfg.Log)
+		return deleteFiles(files, config.Log)
 	}
 
 	return fn, nil
@@ -131,5 +160,5 @@ func toDistinctStrings(files ...string) []string {
 }
 
 func init() {
-	rocket.Default().RegisterTaskTypes(cleanerType{})
+	rocket.Default().RegisterTaskTypes(cleanerType{}, removeType{})
 }

@@ -38,6 +38,10 @@ func (fetchType) Type() string {
 	return "fetch"
 }
 
+func (fetchType) Description() string {
+	return "fetches url bases resources and makes a local copy."
+}
+
 func (fetchType) Prepare(ctx context.Context, capComm *rocket.CapComm, task rocket.Task) (rocket.ExecuteFunc, error) {
 	fetchCfg := &Fetch{}
 

@@ -35,6 +35,14 @@ func TestCopyType(t *testing.T) {
 	}
 }
 
+func TestCopyDesc(t *testing.T) {
+	var rt copyType
+
+	if rt.Description() == "" {
+		t.Error("needs description", rt.Type())
+	}
+}
+
 func TestGlobFileAbsRel(t *testing.T) {
 	files, err := globFileAbsRel("c*.go")
 	if err != nil {
@@ -88,7 +96,7 @@ func TestGlobFileAbsRelDeep(t *testing.T) {
 		return
 	}
 
-	if len(files) != 10 {
+	if len(files) != 12 {
 		t.Error("unexpected len", len(files), files)
 		return
 	}

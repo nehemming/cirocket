@@ -28,6 +28,7 @@ import (
 	"path"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 	"text/template"
 	"time"
@@ -697,6 +698,19 @@ func (capComm *CapComm) MergeTemplateEnvs(ctx context.Context, env EnvMap) error
 	}
 
 	return nil
+}
+
+// ExpandBool expands a template expression and converts the result to a bool value.
+func (capComm *CapComm) ExpandBool(ctx context.Context, name, value string) (bool, error) {
+	v, err := capComm.ExpandString(ctx, name, value)
+	if err != nil {
+		return false, err
+	}
+	// default value if empty
+	if v == "" {
+		return false, nil
+	}
+	return strconv.ParseBool(v)
 }
 
 // ExpandString expands a templated string using the capComm's template data.

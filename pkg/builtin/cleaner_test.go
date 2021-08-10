@@ -36,6 +36,14 @@ func TestCleanerType(t *testing.T) {
 	}
 }
 
+func TestCleanerDesc(t *testing.T) {
+	var rt cleanerType
+
+	if rt.Description() == "" {
+		t.Error("needs description", rt.Type())
+	}
+}
+
 func testCounts(t *testing.T, i int, files []string, dir string) {
 	t.Helper()
 	count := len(files)
@@ -81,6 +89,14 @@ func validateCleanerTest(t *testing.T) {
 }
 
 func TestCleanerRun(t *testing.T) {
+	removeRun(t, "cleaner")
+}
+
+func TestRemoveRun(t *testing.T) {
+	removeRun(t, "remove")
+}
+
+func removeRun(t *testing.T, missionName string) {
 	loggee.SetLogger(stdlog.New())
 
 	mc := rocket.NewMissionControl()
@@ -105,7 +121,7 @@ func TestCleanerRun(t *testing.T) {
 		}
 	}
 
-	mission, cfgFile := loadMission("cleaner")
+	mission, cfgFile := loadMission(missionName)
 
 	if err := mc.LaunchMission(context.Background(), cfgFile, mission); err != nil {
 		t.Error("failure", err)

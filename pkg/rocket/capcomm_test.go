@@ -1451,6 +1451,38 @@ func TestAttachRedirectLogOutput(t *testing.T) {
 	}
 }
 
+func TestBoolExpandNoValue(t *testing.T) {
+	capComm := NewCapComm(testMissionFile, stdlog.New())
+	ctx := context.Background()
+
+	b, err := capComm.ExpandBool(ctx, "bool", "{{.notfound}}")
+	if b || err != nil {
+		t.Error("unexpected", b, err)
+	}
+}
+
+func TestBoolExpandEpandsTrue(t *testing.T) {
+	capComm := NewCapComm(testMissionFile, stdlog.New())
+	ctx := context.Background()
+
+	params := []Param{
+		{
+			Name:  "one",
+			Value: "true",
+		},
+	}
+
+	err := capComm.MergeParams(ctx, params)
+	if err != nil {
+		t.Error("unexpected", err)
+	}
+
+	b, err := capComm.ExpandBool(ctx, "bool", "{{.one}}")
+	if !b || err != nil {
+		t.Error("unexpected", b, err)
+	}
+}
+
 func TestStringExpandNoValueIssue(t *testing.T) {
 	capComm := NewCapComm(testMissionFile, stdlog.New())
 	ctx := context.Background()

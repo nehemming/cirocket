@@ -19,6 +19,14 @@ func TestFetchType(t *testing.T) {
 	}
 }
 
+func TestFetchDesc(t *testing.T) {
+	var rt fetchType
+
+	if rt.Description() == "" {
+		t.Error("needs description", rt.Type())
+	}
+}
+
 func TestFetchRun(t *testing.T) {
 	loggee.SetLogger(stdlog.New())
 

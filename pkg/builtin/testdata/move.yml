@@ -1,0 +1,30 @@
+
+name: "test move"
+stages:
+    - tasks:
+      - type: copy
+        name: create a deep we can move
+        log: true
+        sources:
+          - "**/*.go"
+          - "**/*.yml"
+        destination: "testdata/mv/s/"
+      - type: move
+        name: move it
+        log: true
+        sources:
+          - "testdata/mv/s/**"
+        destination: "testdata/mv/d/"
+      - type: copy
+        name: create a second deep we can move
+        log: true
+        sources:
+          - "*.go"
+          - "*/*.yml"
+        destination: "testdata/mv/k/"
+      - type: move
+        name: move it
+        log: true
+        sources:
+          - "testdata/mv/k/**"
+        destination: "testdata/mv/d/"

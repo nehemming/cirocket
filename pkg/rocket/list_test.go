@@ -14,20 +14,29 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package builtin
+package rocket
 
-import "github.com/nehemming/cirocket/pkg/rocket"
+import (
+	"context"
+	"testing"
 
-// RegisterAll all built-in task types with the passed mission control.
-func RegisterAll(mc rocket.MissionController) {
-	mc.RegisterTaskTypes(
-		templateType{},
-		runType{},
-		cleanerType{},
-		removeType{},
-		fetchType{},
-		mkDirType{},
-		copyType{},
-		moveType{},
-	)
+	"github.com/nehemming/cirocket/pkg/loggee"
+	"github.com/nehemming/cirocket/pkg/loggee/stdlog"
+)
+
+func TestListTypes(t *testing.T) {
+	loggee.SetLogger(stdlog.New())
+	mc := NewMissionControl()
+
+	tt := &testTaskType{t: t}
+	mc.RegisterTaskTypes(tt)
+
+	l, err := mc.ListTaskTypes(context.Background())
+	if err != nil {
+		t.Error("unexpected error", err)
+	}
+
+	if len(l) != 1 {
+		t.Error("len", len(l))
+	}
 }

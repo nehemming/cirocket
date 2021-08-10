@@ -48,7 +48,8 @@ type testTaskType struct {
 	ch       chan struct{}
 }
 
-func (tt *testTaskType) Type() string { return "testTask" }
+func (tt *testTaskType) Type() string        { return "testTask" }
+func (tt *testTaskType) Description() string { return "testing task" }
 
 // Prepare the task from the input details.
 func (tt *testTaskType) Prepare(ctx context.Context, capComm *CapComm, task Task) (ExecuteFunc, error) {

@@ -14,20 +14,23 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package builtin
+package rocket
 
-import "github.com/nehemming/cirocket/pkg/rocket"
+// TaskTypeInfoList is a list of task type info.
+type TaskTypeInfoList []TaskTypeInfo
 
-// RegisterAll all built-in task types with the passed mission control.
-func RegisterAll(mc rocket.MissionController) {
-	mc.RegisterTaskTypes(
-		templateType{},
-		runType{},
-		cleanerType{},
-		removeType{},
-		fetchType{},
-		mkDirType{},
-		copyType{},
-		moveType{},
-	)
+// Len is the number of elements in the collection.
+func (list TaskTypeInfoList) Len() int {
+	return len(list)
+}
+
+// Less reports whether the element with index i
+// must sort before the element with index j.
+func (list TaskTypeInfoList) Less(i, j int) bool {
+	return list[i].Type < list[j].Type
+}
+
+// Swap swaps the elements with indexes i and j.
+func (list TaskTypeInfoList) Swap(i, j int) {
+	list[i], list[j] = list[j], list[i]
 }

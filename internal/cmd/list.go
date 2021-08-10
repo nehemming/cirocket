@@ -33,9 +33,9 @@ const listOptions = "list.opt"
 
 func (cli *cli) newListCommand() *cobra.Command {
 	listCmd := &cobra.Command{
-		Use:           "list [type]",
-		Short:         "list lists resources (types ; blueprints)\U0001F517",
-		Long:          "list lists resources of the specified type.  Currently only 'blueprints' is supported",
+		Use:           "list [blueprints|tasktypes]",
+		Short:         "list lists resources (types: blueprints, tasktypes) \U0001F517",
+		Long:          "list lists resources of the specified type.\nCurrently 'blueprints' and 'tasktypes' are supported",
 		Args:          cobra.ExactArgs(1),
 		SilenceErrors: true,
 		SilenceUsage:  false,
@@ -69,28 +69,35 @@ func (cli *cli) lookuplistType(listType string) (func(*cobra.Command) error, err
 		return cli.listBlueprints, nil
 	}
 
+	if listType == "types" || listType == "tasktypes" {
+		return cli.listTaskTypes, nil
+	}
 	return nil, fmt.Errorf("unknown type: %s", listType)
 }
 
-func (cli *cli) listBlueprints(cmd *cobra.Command) error {
-	// Get assembly sources
-	sources := cli.config.GetStringSlice(configAssemblySources)
-
+func getwidth() int {
 	width := term.Width()
 	if runtime.GOOS == "windows" {
 		// windows seems too wide in tests
 		width -= 2
 	}
+	return width
+}
 
-	cli.config.SetDefault(listOptions+"."+cliflags.ParamTtyWidth, width)
+func (cli *cli) setStandardReportTypes() {
+	cli.config.SetDefault(listOptions+"."+cliflags.ParamTtyWidth, getwidth())
 	cli.config.SetDefault(listOptions+"."+cliflags.ParamsReportingStyle, "grid")
+}
+
+func (cli *cli) runReport(cmd *cobra.Command, getData func() (interface{}, error)) error {
+	cli.setStandardReportTypes()
 
 	formatter, options, err := cliflags.GetFormmatterFromFlags(cmd.Flags(), cli.config, textformatter.Text, listOptions)
 	if err != nil {
 		return err
 	}
 
-	list, err := rocket.Default().ListBlueprints(cli.ctx, sources)
+	list, err := getData()
 	if err != nil {
 		return err
 	}
@@ -107,4 +114,19 @@ func (cli *cli) listBlueprints(cmd *cobra.Command) error {
 	fmt.Println(buf.String())
 
 	return err
+}
+
+func (cli *cli) listTaskTypes(cmd *cobra.Command) error {
+	return cli.runReport(cmd, func() (interface{}, error) {
+		return rocket.Default().ListTaskTypes(cli.ctx)
+	})
+}
+
+func (cli *cli) listBlueprints(cmd *cobra.Command) error {
+	return cli.runReport(cmd, func() (interface{}, error) {
+		// Get assembly sources
+		sources := cli.config.GetStringSlice(configAssemblySources)
+
+		return rocket.Default().ListBlueprints(cli.ctx, sources)
+	})
 }

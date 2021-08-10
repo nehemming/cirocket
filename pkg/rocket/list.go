@@ -19,6 +19,7 @@ package rocket
 import (
 	"bytes"
 	"context"
+	"sort"
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/nehemming/cirocket/pkg/loggee"
@@ -28,6 +29,15 @@ import (
 )
 
 type (
+	// TaskTypeInfo describes a task type.
+	TaskTypeInfo struct {
+		// Type of task.
+		Type string `mapstructure:"name"`
+
+		// Description is a free text description of the task
+		Description string `json:"description,omitempty" yaml:"description,omitempty" mapstructure:"description"`
+	}
+
 	// BlueprintInfo contains information about a blueprint.
 	BlueprintInfo struct {
 		// Name of the blueprint.
@@ -48,6 +58,21 @@ type (
 		Items []string `mapstructure:"items"`
 	}
 )
+
+// ListTaskTypes list the types of task registered withmission control.
+func (mc *missionControl) ListTaskTypes(ctx context.Context) (TaskTypeInfoList, error) {
+	var list TaskTypeInfoList
+	for _, tt := range mc.types {
+		list = append(list, TaskTypeInfo{
+			Type:        tt.Type(),
+			Description: tt.Description(),
+		})
+	}
+
+	sort.Sort(list)
+
+	return list, nil
+}
 
 // ListBlueprints builds a list of all blueprints found in the passed sources.
 func (mc *missionControl) ListBlueprints(ctx context.Context, sources []string) ([]BlueprintInfo, error) {

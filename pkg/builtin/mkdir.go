@@ -25,6 +25,10 @@ func (mkDirType) Type() string {
 	return "mkdir"
 }
 
+func (mkDirType) Description() string {
+	return "creates directories as needed from the dirs list."
+}
+
 func (mkDirType) Prepare(ctx context.Context, capComm *rocket.CapComm, task rocket.Task) (rocket.ExecuteFunc, error) {
 	mkDirCfg := &MkDir{}
 

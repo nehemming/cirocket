@@ -20,6 +20,14 @@ func TestRunType(t *testing.T) {
 	}
 }
 
+func TestRunDesc(t *testing.T) {
+	var rt runType
+
+	if rt.Description() == "" {
+		t.Error("needs description", rt.Type())
+	}
+}
+
 func loadMission(missionName string) (map[string]interface{}, string) {
 	fileName := filepath.Join(".", "testdata", missionName+".yml")
 	fh, err := os.Open(fileName)

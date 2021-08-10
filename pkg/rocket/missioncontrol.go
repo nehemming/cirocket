@@ -49,8 +49,11 @@ type (
 	// TaskType represents a specific task type.
 	TaskType interface {
 
-		// Type of the task
+		// Type of the task.
 		Type() string
+
+		// Description is a free text description of the type
+		Description() string
 
 		// Prepare the task from the input details.
 		Prepare(ctx context.Context, capComm *CapComm, task Task) (ExecuteFunc, error)
@@ -88,6 +91,8 @@ type (
 
 		// ListBlueprints builds a list of all blueprints found in the passed sources
 		ListBlueprints(ctx context.Context, sources []string) ([]BlueprintInfo, error)
+
+		ListTaskTypes(ctx context.Context) (TaskTypeInfoList, error)
 	}
 
 	// operations is a collection of operations.

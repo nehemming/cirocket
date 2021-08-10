@@ -30,7 +30,7 @@ import (
 )
 
 type (
-	// Run task is used to run a specific task.
+	// Run task is used to execute a specific command line program.
 	Run struct {
 
 		// Command to execute.  This is a raw executed command and is not
@@ -54,6 +54,10 @@ type (
 
 func (runType) Type() string {
 	return "run"
+}
+
+func (runType) Description() string {
+	return "executes a program and awaits its response."
 }
 
 func (runType) Prepare(ctx context.Context, capComm *rocket.CapComm, task rocket.Task) (rocket.ExecuteFunc, error) {

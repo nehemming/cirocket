@@ -14,20 +14,27 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package builtin
+package rocket
 
-import "github.com/nehemming/cirocket/pkg/rocket"
+import (
+	"sort"
+	"testing"
+)
 
-// RegisterAll all built-in task types with the passed mission control.
-func RegisterAll(mc rocket.MissionController) {
-	mc.RegisterTaskTypes(
-		templateType{},
-		runType{},
-		cleanerType{},
-		removeType{},
-		fetchType{},
-		mkDirType{},
-		copyType{},
-		moveType{},
-	)
+func TestTaskTypeInfoListSort(t *testing.T) {
+	data := TaskTypeInfoList{{"a", "a desc"}, {"c", "c desc"}, {"b", "a desc"}}
+
+	if data.Len() != 3 {
+		t.Error("len", data.Len())
+	}
+
+	if data.Less(1, 2) {
+		t.Error("less reversed")
+	}
+
+	sort.Sort(data)
+
+	if data[0].Type != "a" || data[1].Type != "b" {
+		t.Error("sorting issue", data)
+	}
 }
