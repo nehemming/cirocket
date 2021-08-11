@@ -26,7 +26,7 @@ func TestMissionMergeParams(t *testing.T) {
 	addition := &Mission{
 		Name:    "hello",
 		Version: "v20",
-		Params: []Param{
+		Params: Params{
 			{Name: "one", Value: "1"},
 		},
 	}
@@ -46,14 +46,14 @@ func TestMissionMergeParamsMany(t *testing.T) {
 	// load them in
 
 	mission := &Mission{
-		Params: []Param{
+		Params: Params{
 			{Name: "one", Value: "0"},
 			{Name: "two", Value: "2"},
 		},
 	}
 
 	addition := &Mission{
-		Params: []Param{
+		Params: Params{
 			{Name: "one", Value: "1"},
 			{Name: "three", Value: "3"},
 		},
@@ -76,12 +76,50 @@ func TestMissionMergeParamsMany(t *testing.T) {
 	}
 }
 
+func TestMergeMissionsFailStage(t *testing.T) {
+	mission := &Mission{
+		Description: "test",
+		OnFail:      &Stage{Name: "test"},
+	}
+
+	addition := &Mission{
+		Description: "extra",
+	}
+	mergeMissions(mission, addition)
+
+	if mission.Description != "test" {
+		t.Error("mission.Description", mission.Description)
+	}
+
+	if mission.OnFail == nil || mission.OnFail.Name != "test" {
+		t.Error("mission.OnFailStage", mission.OnFail)
+	}
+}
+
+func TestMergeMissionsFailStageFromAddition(t *testing.T) {
+	mission := &Mission{}
+
+	addition := &Mission{
+		Description: "extra",
+		OnFail:      &Stage{Name: "test"},
+	}
+	mergeMissions(mission, addition)
+
+	if mission.Description != "extra" {
+		t.Error("mission.Description", mission.Description)
+	}
+
+	if mission.OnFail == nil || mission.OnFail.Name != "test" {
+		t.Error("mission.OnFailStage", mission.OnFail)
+	}
+}
+
 func TestMergeMissions(t *testing.T) {
 	mission := &Mission{}
 	addition := &Mission{
 		Name:    "add",
 		Version: "1000.0.0",
-		Params: []Param{
+		Params: Params{
 			{Name: "test", Value: "vone"},
 		},
 	}

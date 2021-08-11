@@ -36,6 +36,9 @@ type (
 		// Mission name, defsaults to the config file name
 		Name string `mapstructure:"name"`
 
+		// Description is a free text description of the mission.
+		Description string `mapstructure:"description"`
+
 		// Additional contains any additional parameters specified in the
 		// configuration.  They are included in the template data set
 		// but will be overridden by any other duplicate keys
@@ -56,7 +59,7 @@ type (
 		// Params is a collection of parameters that can be used within
 		// the child stages.  Parameters are template expanded and can use
 		// Environment variables defined in Env
-		Params []Param `mapstructure:"params"`
+		Params Params `mapstructure:"params"`
 
 		// Sequences specify a list of stages to run.
 		// If no sequences are provides all stages are run in the order they are defined.
@@ -66,7 +69,10 @@ type (
 		// Stages represents the stages of the mission
 		// If no sequences are included in the file all stages are executed in ordinal order.
 		// If a sequence is included in the mission file the launch mission call must specify the sequence to use.
-		Stages []Stage `mapstructure:"stages"`
+		Stages Stages `mapstructure:"stages"`
+
+		// OnFail is a stage that is executed if the mission fails.
+		OnFail *Stage `mapstructure:"onfail"`
 
 		// Version of the mission definition
 		Version string `mapstructure:"version"`
@@ -75,6 +81,15 @@ type (
 	// MustHaveParams is a slice of param names that must be definedbefore a mission, stage or activity starts.
 	// The list is checked prior too processing the activities own set of param definitions.
 	MustHaveParams []string
+
+	// Stages is a slice of stages.
+	Stages []*Stage
+
+	// Tasks is a slice of tasks
+	Tasks []Task
+
+	// Params is a slice of params
+	Params []Param
 
 	// Param is an expandible parameter.
 	Param struct {
@@ -125,6 +140,12 @@ type (
 		// If it is not provided it default to the ordinal ID of the stage within the mission
 		Name string `mapstructure:"name"`
 
+		// Stage is impmented by another named stage.
+		Ref string `mapstructure:"ref"`
+
+		// Description is a free text description of the stage.
+		Description string `mapstructure:"description"`
+
 		// BasicEnv is a map of additional environment variables
 		// They are not template expanded
 		BasicEnv EnvMap `mapstructure:"basicEnv"`
@@ -152,14 +173,17 @@ type (
 		// Params is a collection of parameters that can be used within
 		// the child stages.  Parameters are template expanded and can use
 		// Environment variables defined in Env
-		Params []Param `mapstructure:"params"`
+		Params Params `mapstructure:"params"`
 
 		// Tasks is a collection of one or more tasks to complete
 		// Tasks are executed sequentally
-		Tasks []Task `mapstructure:"tasks"`
+		Tasks Tasks `mapstructure:"tasks"`
+
+		// OnFail is a task that is executed if the stage fails.
+		OnFail *Task `mapstructure:"onfail"`
 
 		// Try to run the stage but if it fails do no abort the whole run
-		Try bool `mapstructure:"try"`
+		Try string `mapstructure:"try"`
 	}
 
 	// Task is an activity that is executed.
@@ -171,6 +195,12 @@ type (
 		// Name of the task.
 		// If it is not provided it default to the ordinal ID of the task within the stage
 		Name string `mapstructure:"name"`
+
+		// Task is impmented by another named task in the same stage.
+		Ref string `mapstructure:"ref"`
+
+		// Description is a free text description of the task.
+		Description string `mapstructure:"description"`
 
 		// Definition contains the additional data required to process the task type
 		Definition map[string]interface{} `mapstructure:",remain"`
@@ -202,10 +232,10 @@ type (
 		// Params is a collection of parameters that can be used within
 		// the child stages.  Parameters are template expanded and can use
 		// Environment variables defined in Env
-		Params []Param `mapstructure:"params"`
+		Params Params `mapstructure:"params"`
 
 		// Try to run the task but if it fails do no abort the whole run
-		Try bool `mapstructure:"try"`
+		Try string `mapstructure:"try"`
 	}
 
 	// Filter restricts running an activity
@@ -323,4 +353,47 @@ func (l *Include) Validate() error {
 	}
 
 	return nil
+}
+
+// Copy copies an environment map.
+func (em EnvMap) Copy() EnvMap {
+	c := make(EnvMap)
+	for k, v := range em {
+		c[k] = v
+	}
+	return c
+}
+
+// Copy copies the must have params.
+func (params MustHaveParams) Copy() MustHaveParams {
+	c := make(MustHaveParams, len(params))
+	copy(c, params)
+	return c
+}
+
+// Copy the params.
+func (params Params) Copy() Params {
+	c := make(Params, len(params))
+	copy(c, params)
+	return c
+}
+
+// Copy the tasks.
+func (tasks Tasks) Copy() Tasks {
+	c := make(Tasks, len(tasks))
+	copy(c, tasks)
+	return c
+}
+
+// ToMap converts the task slice to a map using the task name as the key.
+func (tasks Tasks) ToMap() TaskMap {
+	c := make(TaskMap)
+
+	for _, v := range tasks {
+		if v.Name != "" {
+			c[v.Name] = &v
+		}
+	}
+
+	return c
 }

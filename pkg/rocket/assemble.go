@@ -33,7 +33,7 @@ import (
 )
 
 // Assemble locates a blueprint from the assembly sources, loads the runbook and builds the assembly following the blueprint.
-func (mc *missionControl) Assemble(ctx context.Context, blueprintName string, sources []string, runbook string, params []Param) error {
+func (mc *missionControl) Assemble(ctx context.Context, blueprintName string, sources []string, runbook string, params Params) error {
 	// blueprint, if not abs need to search sources to locate
 	// once blueprint found extract it
 	blueprint, blueprintLocation, err := mc.searchSources(ctx, blueprintName, sources, mc.missionLog())

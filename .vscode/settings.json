@@ -21,6 +21,7 @@
         "mitchellh",
         "nehemming",
         "nolint",
+        "onfail",
         "runbook",
         "testdata",
         "yamlformatter"

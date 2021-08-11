@@ -20,8 +20,17 @@ func mergeMissions(mission, addition *Mission) {
 	if mission.Name == "" {
 		mission.Name = addition.Name
 	}
+
+	if mission.Description == "" {
+		mission.Description = addition.Description
+	}
+
 	if mission.Version == "" {
 		mission.Version = addition.Version
+	}
+
+	if mission.OnFail == nil {
+		mission.OnFail = addition.OnFail
 	}
 
 	missionMergeEnv(mission, addition)
@@ -68,7 +77,7 @@ func missionMergeParams(mission, addition *Mission) {
 		m[p.Name] = true
 	}
 
-	params := make([]Param, 0, len(addition.Params))
+	params := make(Params, 0, len(addition.Params))
 	for _, p := range addition.Params {
 		if _, ok := m[p.Name]; !ok || p.Name == "" {
 			params = append(params, p)
@@ -84,7 +93,7 @@ func missionMergeStages(mission, addition *Mission) {
 		m[st.Name] = true
 	}
 
-	stages := make([]Stage, 0, len(addition.Stages))
+	stages := make(Stages, 0, len(addition.Stages))
 	for _, st := range addition.Stages {
 		if _, ok := m[st.Name]; !ok || st.Name == "" {
 			stages = append(stages, st)
