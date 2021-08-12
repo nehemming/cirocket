@@ -82,16 +82,16 @@ type (
 	// The list is checked prior too processing the activities own set of param definitions.
 	MustHaveParams []string
 
-	// Exports is a list of exported variables from on task context to another
+	// Exports is a list of exported variables from on task context to another.
 	Exports []string
 
 	// Stages is a slice of stages.
 	Stages []Stage
 
-	// Tasks is a slice of tasks
+	// Tasks is a slice of tasks.
 	Tasks []Task
 
-	// Params is a slice of params
+	// Params is a slice of params.
 	Params []Param
 
 	// Param is an expandible parameter.

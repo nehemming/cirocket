@@ -55,7 +55,7 @@ type (
 	// ExecuteFunc is the function signature of an activity that can be executed.
 	ExecuteFunc = loggee.ActivityFunc
 
-	// Stage map is a map of stage names to stages
+	// StageMap is a map of stage names to stages.
 	StageMap map[string]Stage
 
 	// TaskMap maps the task name to the task.
@@ -837,7 +837,6 @@ func runOp(ctx context.Context, op *operation) error {
 		if op.try {
 			loggee.Warnf("try failed: %s", errors.Wrap(err, op.description))
 		} else {
-
 			if op.onFail != nil {
 				runOnFail(ctx, op.onFail, op.description)
 			}
