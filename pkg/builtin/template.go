@@ -32,6 +32,15 @@ const (
 )
 
 type (
+	// Delims are the delimiters to use to escape template functions.
+	Delims struct {
+		// Left is the opening delimiter
+		Left string `mapstructure:"left"`
+
+		// Right is the closing delimiter
+		Right string `mapstructure:"right"`
+	}
+
 	// Template is a task to expand the input file using
 	// the Template file. Output is written to the redirected STDOUT
 	// Delims is used to change the standard golang templatiing delimiters
@@ -44,7 +53,7 @@ type (
 
 		// Delims are the delimiters used to identify template script.
 		// Leave blank for the default go templating delimiters
-		Delims rocket.Delims `mapstructure:"delims"`
+		Delims Delims `mapstructure:"delims"`
 	}
 
 	templateType struct{}

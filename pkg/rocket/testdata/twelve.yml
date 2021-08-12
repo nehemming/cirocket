@@ -1,0 +1,14 @@
+
+name: "twelve"
+
+stages:
+ -  name: testing
+    tasks:
+      - name: peter
+        group:
+          - type: testTask
+            name: paul
+          - ref: paul
+            name: mary
+      - name: phil
+        ref: peter

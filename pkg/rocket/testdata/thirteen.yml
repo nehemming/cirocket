@@ -1,0 +1,13 @@
+name: "thirteen"
+
+stages:
+ -  name: testing
+    tasks:
+      - type: testTask
+        name: task to test
+        breakInRun: yes
+      - type: testTask
+        name: clean up
+    onfail:
+      type: testTask
+      ref: clean up

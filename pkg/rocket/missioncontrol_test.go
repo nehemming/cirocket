@@ -18,6 +18,7 @@ package rocket
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -66,7 +67,7 @@ func (tt *testTaskType) Prepare(ctx context.Context, capComm *CapComm, task Task
 
 	return func(ctx context.Context) error {
 		tt.runCount++
-
+		fmt.Println("run:", task.Name)
 		if tt.ch != nil {
 			close(tt.ch)
 
@@ -254,6 +255,37 @@ func TestLaunchMissionSeven(t *testing.T) {
 
 	if err := mc.LaunchMission(context.Background(), missionLocation, mission); err != nil {
 		t.Error("Mission error for a try stage", err)
+	}
+}
+
+func TestLaunchMissionTwelve(t *testing.T) {
+	loggee.SetLogger(stdlog.New())
+
+	mc := NewMissionControl()
+	tt := &testTaskType{t: t}
+
+	mc.RegisterTaskTypes(tt)
+
+	mission, missionLocation := loadMission("twelve")
+
+	if err := mc.LaunchMission(context.Background(), missionLocation, mission); err != nil {
+		t.Error("Mission error for a ref group task", err)
+	}
+}
+
+func TestLaunchMissionThirteen(t *testing.T) {
+	loggee.SetLogger(stdlog.New())
+
+	mc := NewMissionControl()
+	tt := &testTaskType{t: t}
+
+	mc.RegisterTaskTypes(tt)
+
+	// expect to break
+	mission, missionLocation := loadMission("thirteen")
+
+	if err := mc.LaunchMission(context.Background(), missionLocation, mission); err == nil {
+		t.Error("Mission no error for a fail task")
 	}
 }
 

@@ -319,6 +319,15 @@ func (capComm *CapComm) ExportVariable(key, value string) *CapComm {
 	return capComm
 }
 
+// ExportVariables exports a list of variables if set in the capComm to aa parent.
+func (capComm *CapComm) ExportVariables(exports Exports) {
+	for _, key := range exports {
+		if value, ok := capComm.variables[key]; ok {
+			capComm.exportTo[key] = value
+		}
+	}
+}
+
 // WithMission attaches the mission to the CapComm.
 func (capComm *CapComm) WithMission(mission *Mission) *CapComm {
 	capComm.mustNotBeSealed()

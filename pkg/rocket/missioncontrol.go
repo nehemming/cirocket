@@ -36,6 +36,15 @@ var (
 	defaultControl MissionController
 )
 
+type taskKind int
+
+const (
+	taskKindNone = taskKind(iota)
+	taskKindType
+	taskKindTry
+	taskKindGroup
+)
+
 type (
 
 	// Option is the interface supported by all mission options.
@@ -47,10 +56,10 @@ type (
 	ExecuteFunc = loggee.ActivityFunc
 
 	// Stage map is a map of stage names to stages
-	StageMap map[string]*Stage
+	StageMap map[string]Stage
 
 	// TaskMap maps the task name to the task.
-	TaskMap map[string]*Task
+	TaskMap map[string]Task
 
 	// TaskType represents a specific task type.
 	TaskType interface {
@@ -208,7 +217,7 @@ func (mc *missionControl) LaunchMissionWithParams(ctx context.Context, location 
 
 	var fallbackOp *operation
 	if mission.OnFail != nil {
-		fallbackOp, err = mc.prepareFailStage(ctx, capComm, stageMap, mission.OnFail)
+		fallbackOp, err = mc.prepareFailStage(ctx, capComm, stageMap, *mission.OnFail)
 		if err != nil {
 			return err
 		}
@@ -223,8 +232,8 @@ func mergeStages(stage *Stage, ref string, stageMap StageMap, circular map[strin
 	}
 	circular[ref] = true
 
-	src := stageMap[ref]
-	if src == nil {
+	src, ok := stageMap[ref]
+	if !ok {
 		return fmt.Errorf("unknown stage ref %s", ref)
 	}
 
@@ -235,10 +244,6 @@ func mergeStages(stage *Stage, ref string, stageMap StageMap, circular map[strin
 
 	if stage.Dir == "" {
 		stage.Dir = src.Dir
-	}
-
-	if stage.Try == "" {
-		stage.Try = src.Try
 	}
 
 	if len(stage.BasicEnv) == 0 {
@@ -301,8 +306,8 @@ func mergeTasks(task *Task, ref string, taskMap TaskMap, circular map[string]boo
 	}
 	circular[ref] = true
 
-	src := taskMap[ref]
-	if src == nil {
+	src, ok := taskMap[ref]
+	if !ok {
 		return fmt.Errorf("unknown task ref %s", ref)
 	}
 
@@ -311,12 +316,24 @@ func mergeTasks(task *Task, ref string, taskMap TaskMap, circular map[string]boo
 		task.Description = src.Description
 	}
 
+	if task.Type == "" {
+		task.Type = src.Type
+	}
+
+	if len(task.Export) == 0 {
+		task.Export = src.Export.Copy()
+	}
+
 	if task.Dir == "" {
 		task.Dir = src.Dir
 	}
 
-	if task.Try == "" {
-		task.Try = src.Try
+	if len(task.Try) == 0 {
+		task.Try = src.Try.Copy()
+	}
+
+	if len(task.Group) == 0 {
+		task.Group = src.Group.Copy()
 	}
 
 	if len(task.BasicEnv) == 0 {
@@ -341,6 +358,11 @@ func mergeTasks(task *Task, ref string, taskMap TaskMap, circular map[string]boo
 
 	if len(task.Params) == 0 {
 		task.Params = src.Params.Copy()
+	}
+
+	if task.OnFail == nil && src.OnFail != nil {
+		c := *src.OnFail
+		task.OnFail = &c
 	}
 
 	mergeDefinition(task.Definition, src.Definition)
@@ -369,37 +391,19 @@ func (mc *missionControl) prepareStages(ctx context.Context, capComm *CapComm, s
 
 		// check stage to see if it has a reference to another stage
 		if stage.Ref != "" {
-			if err := mergeStageRef(stage, stageMap); err != nil {
+			if err := mergeStageRef(&stage, stageMap); err != nil {
 				return nil, errors.Wrapf(err, "%s merge with ref %s", stage.Name, stage.Ref)
 			}
 		}
 
 		// prepare the stage
-		ops, onFail, err := mc.prepareStage(ctx, capComm, stage)
+		op, err := mc.prepareStage(ctx, capComm, stage)
 		if err != nil {
 			return nil, errors.Wrapf(err, "%s prepare", stage.Name)
 		}
 
-		var dir string
-		if stage.Dir != "" {
-			dir, err = capComm.ExpandString(ctx, "dir", stage.Dir)
-			if err != nil {
-				return nil, errors.Wrapf(err, "%s dir expand", stage.Name)
-			}
-		}
-
-		if len(ops) > 0 {
-			try, err := capComm.ExpandBool(ctx, "try", stage.Try)
-			if err != nil {
-				return nil, errors.Wrapf(err, "%s try expand", stage.Name)
-			}
-
-			operations = append(operations, &operation{
-				description: fmt.Sprintf("stage: %s", stage.Name),
-				makeItSo:    engage(ctx, ops, dir),
-				try:         try,
-				onFail:      onFail,
-			})
+		if op != nil {
+			operations = append(operations, op)
 		}
 	}
 
@@ -436,46 +440,27 @@ func checkMustHaveParams(params Getter, must MustHaveParams) error {
 	return loggee.BindMultiErrorFormatting(err)
 }
 
-func (mc *missionControl) prepareFailStage(ctx context.Context, capComm *CapComm, stageMap StageMap, stage *Stage) (*operation, error) {
+func (mc *missionControl) prepareFailStage(ctx context.Context, capComm *CapComm, stageMap StageMap, stage Stage) (*operation, error) {
 	if stage.Name == "" {
 		stage.Name = "onfail"
 	}
 
 	// check stage to see if it has a reference to another stage
 	if stage.Ref != "" {
-		if err := mergeStageRef(stage, stageMap); err != nil {
+		if err := mergeStageRef(&stage, stageMap); err != nil {
 			return nil, errors.Wrapf(err, "%s merge with ref %s", stage.Name, stage.Ref)
 		}
 	}
 
 	// prepare the stage
-	ops, onFail, err := mc.prepareStage(ctx, capComm, stage)
+	op, err := mc.prepareStage(ctx, capComm, stage)
 	if err != nil {
 		return nil, errors.Wrapf(err, "%s prepare", stage.Name)
 	}
-
-	if len(ops) == 0 {
-		return nil, nil
-	}
-
-	// handle any dir change
-	var dir string
-	if stage.Dir != "" {
-		dir, err = capComm.ExpandString(ctx, "dir", stage.Dir)
-		if err != nil {
-			return nil, errors.Wrapf(err, "%s dir expand", stage.Name)
-		}
-	}
-
-	return &operation{
-		description: fmt.Sprintf("stage: %s", stage.Name),
-		makeItSo:    engage(ctx, ops, dir),
-		try:         false,
-		onFail:      onFail,
-	}, nil
+	return op, nil
 }
 
-func createStageCapComm(ctx context.Context, missionCapComm *CapComm, stage *Stage) (*CapComm, error) {
+func createStageCapComm(ctx context.Context, missionCapComm *CapComm, stage Stage) (*CapComm, error) {
 	// Create a new CapComm for the stage
 	capComm := missionCapComm.Copy(stage.NoTrust).
 		MergeBasicEnvMap(stage.BasicEnv)
@@ -494,63 +479,22 @@ func createStageCapComm(ctx context.Context, missionCapComm *CapComm, stage *Sta
 	return capComm, nil
 }
 
-func (mc *missionControl) prepareStage(ctx context.Context, missionCapComm *CapComm, stage *Stage) (operations, ExecuteFunc, error) {
-	var operations operations
-
+func (mc *missionControl) prepareStage(ctx context.Context, missionCapComm *CapComm, stage Stage) (*operation, error) {
 	if stage.Filter.IsFiltered() {
-		return operations, nil, nil
+		return nil, nil
 	}
 
 	if err := checkMustHaveParams(missionCapComm.params, stage.Must); err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	// Create the cap comm for the stage
 	capComm, err := createStageCapComm(ctx, missionCapComm, stage)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
-	// unlike stages tasks don't map unamed tasks
-	// stages needed to do this to support sequences but tasks don't.
-	taskMap := stage.Tasks.ToMap()
-
-	// Move onto tasks
-	for index, task := range stage.Tasks {
-		if task.Name == "" {
-			task.Name = fmt.Sprintf("task[%d]", index)
-		}
-
-		// merge tasks if ref'd
-		if task.Ref != "" {
-			if err := mergeTaskRef(&task, taskMap); err != nil {
-				return nil, nil, errors.Wrapf(err, "%s merge with ref %s", task.Name, task.Ref)
-			}
-		}
-
-		// prepare the task
-		op, err := mc.prepareTask(ctx, capComm, task)
-		if err != nil {
-			return nil, nil, errors.Wrapf(err, "prepare: %s", task.Name)
-		}
-
-		if op != nil {
-			operations = append(operations, op)
-		}
-	}
-
-	// Is there ar failure task?
-	var onFail ExecuteFunc
-	if stage.OnFail != nil {
-		onFailOp, err := mc.prepareFailTask(ctx, capComm, *stage.OnFail)
-		if err != nil {
-			return nil, nil, err
-		}
-
-		onFail = onFailOp.makeItSo
-	}
-
-	return operations, onFail, nil
+	return mc.prepareTaskList(ctx, capComm, "stage: "+stage.Name, stage.Tasks, stage.OnFail, false, stage.Dir)
 }
 
 func (mc *missionControl) prepareFailTask(ctx context.Context, capComm *CapComm, task Task) (*operation, error) {
@@ -567,18 +511,10 @@ func (mc *missionControl) prepareFailTask(ctx context.Context, capComm *CapComm,
 	return op, nil
 }
 
-func (mc *missionControl) prepareTask(ctx context.Context, stageCapComm *CapComm, task Task) (*operation, error) {
-	if err := checkMustHaveParams(stageCapComm.params, task.Must); err != nil {
-		return nil, err
-	}
-
+func taskCapComm(ctx context.Context, parentCapComm *CapComm, task Task) (*CapComm, error) {
 	// Create a new CapComm for the task
-	capComm := stageCapComm.Copy(task.NoTrust).
+	capComm := parentCapComm.Copy(task.NoTrust).
 		MergeBasicEnvMap(task.BasicEnv)
-
-	if task.Filter.IsFiltered() {
-		return nil, nil
-	}
 
 	// Merge the parameters
 	if err := capComm.MergeParams(ctx, task.Params); err != nil {
@@ -590,6 +526,156 @@ func (mc *missionControl) prepareTask(ctx context.Context, stageCapComm *CapComm
 		return nil, errors.Wrap(err, "merging template envs")
 	}
 
+	return capComm, nil
+}
+
+func (mc *missionControl) prepareTask(ctx context.Context, parentCapComm *CapComm, task Task) (*operation, error) {
+	if task.Filter.IsFiltered() {
+		return nil, nil
+	}
+
+	if err := checkMustHaveParams(parentCapComm.params, task.Must); err != nil {
+		return nil, err
+	}
+
+	capComm, err := taskCapComm(ctx, parentCapComm, task)
+	if err != nil {
+		return nil, err
+	}
+
+	// determin task kind
+	taskKind, err := getTaskKind(task)
+	if err != nil {
+		return nil, err
+	}
+
+	var op *operation
+
+	switch taskKind {
+	case taskKindType:
+		return mc.prepareTaskKindType(ctx, capComm, task)
+	case taskKindTry:
+		op, err = mc.prepareTaskList(ctx, capComm, "try: "+task.Name, task.Try, task.OnFail, true, task.Dir)
+	case taskKindGroup:
+		op, err = mc.prepareTaskList(ctx, capComm, "group: "+task.Name, task.Group, task.OnFail, false, task.Dir)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	if op != nil && len(task.Export) > 0 {
+		// add in the exports
+		op.AddHandler(func(next ExecuteFunc) ExecuteFunc {
+			return func(opCtx context.Context) error {
+				err := next(opCtx)
+				if err == nil {
+					capComm.ExportVariables(task.Export)
+				}
+				return err
+			}
+		})
+	}
+
+	return op, nil
+}
+
+func getTaskKind(task Task) (taskKind, error) {
+	kinds := 0
+
+	if task.Type != "" {
+		kinds++
+	}
+	if len(task.Try) > 0 {
+		kinds++
+	}
+	if len(task.Group) > 0 {
+		kinds++
+	}
+
+	if kinds == 0 {
+		return taskKindNone, fmt.Errorf("task %s kind not specificed needs to be a type, group or try task", task.Name)
+	}
+
+	if kinds > 1 {
+		return taskKindNone, fmt.Errorf("task %s has multiple kinds needs to be a single type, group or try task", task.Name)
+	}
+	if task.Type != "" {
+		return taskKindType, nil
+	}
+	if len(task.Try) > 0 {
+		return taskKindTry, nil
+	}
+	if len(task.Group) > 0 {
+		return taskKindGroup, nil
+	}
+	panic("kind?")
+}
+
+func (mc *missionControl) prepareTaskList(ctx context.Context, capComm *CapComm,
+	groupDesc string, tasks Tasks, onFailTask *Task,
+	tryOp bool, taskDir string) (*operation, error) {
+	taskMap := tasks.ToMap()
+	var operations operations
+
+	// Move onto tasks
+	for index, task := range tasks {
+		if task.Name == "" {
+			task.Name = fmt.Sprintf("task[%d]", index)
+		}
+
+		// merge tasks if ref'd
+		if task.Ref != "" {
+			if err := mergeTaskRef(&task, taskMap); err != nil {
+				return nil, errors.Wrapf(err, "%s merge with ref %s", task.Name, task.Ref)
+			}
+		}
+
+		// prepare the task
+		op, err := mc.prepareTask(ctx, capComm, task)
+		if err != nil {
+			return nil, errors.Wrapf(err, "prepare: %s", task.Name)
+		}
+
+		if op != nil {
+			operations = append(operations, op)
+		}
+	}
+
+	// Is there ar failure task?
+	var onFail ExecuteFunc
+	if onFailTask != nil {
+		onFailOp, err := mc.prepareFailTask(ctx, capComm, *onFailTask)
+		if err != nil {
+			return nil, err
+		}
+
+		onFail = onFailOp.makeItSo
+	}
+
+	if len(operations) == 0 {
+		return nil, nil
+	}
+
+	// handle any dir change
+	var dir string
+	var err error
+	if taskDir != "" {
+		dir, err = capComm.ExpandString(ctx, "dir", taskDir)
+		if err != nil {
+			return nil, errors.Wrapf(err, "%s dir expand", groupDesc)
+		}
+	}
+
+	return &operation{
+		description: groupDesc,
+		makeItSo:    engage(ctx, operations, dir),
+		try:         tryOp,
+		onFail:      onFail,
+	}, nil
+}
+
+func (mc *missionControl) prepareTaskKindType(ctx context.Context, capComm *CapComm, task Task) (*operation, error) {
 	// Look up task
 	tt, ok := mc.types[task.Type]
 	if !ok {
@@ -606,6 +692,17 @@ func (mc *missionControl) prepareTask(ctx context.Context, stageCapComm *CapComm
 		return nil, nil
 	}
 
+	// Is there ar failure task?
+	var onFail ExecuteFunc
+	if task.OnFail != nil {
+		onFailOp, err := mc.prepareFailTask(ctx, capComm, *task.OnFail)
+		if err != nil {
+			return nil, err
+		}
+
+		onFail = onFailOp.makeItSo
+	}
+
 	var dir string
 	if task.Dir != "" {
 		dir, err = capComm.ExpandString(ctx, "dir", task.Dir)
@@ -614,15 +711,11 @@ func (mc *missionControl) prepareTask(ctx context.Context, stageCapComm *CapComm
 		}
 	}
 
-	try, err := capComm.ExpandBool(ctx, "dir", task.Try)
-	if err != nil {
-		return nil, errors.Wrapf(err, "%s try expand", task.Name)
-	}
-
 	return &operation{
 		description: fmt.Sprintf("task: %s", task.Name),
 		makeItSo:    taskSwapDir(dir, taskFunc),
-		try:         try,
+		try:         false,
+		onFail:      onFail,
 	}, nil
 }
 
@@ -705,13 +798,14 @@ func getStagesTooRun(mission *Mission, stageMap StageMap, flightSequences []stri
 	return stagesToRun, nil
 }
 
-func convertStagesToMap(stages Stages) (map[string]*Stage, error) {
-	m := make(map[string]*Stage)
+func convertStagesToMap(stages Stages) (StageMap, error) {
+	m := make(StageMap)
 
 	// prepare stages
-	for index, stage := range stages {
+	for _, stage := range stages {
+		// ignore un named stages
 		if stage.Name == "" {
-			stage.Name = fmt.Sprintf("stage[%d]", index)
+			continue
 		}
 
 		if _, ok := m[stage.Name]; ok {
@@ -812,4 +906,11 @@ func engage(_ context.Context, ops operations, dir string) ExecuteFunc {
 
 		return nil
 	}
+}
+
+// OperationHandler is a handler function that given a operations next function returns the function replacing it.
+type OperationHandler func(next ExecuteFunc) ExecuteFunc
+
+func (op *operation) AddHandler(handler OperationHandler) {
+	op.makeItSo = handler(op.makeItSo)
 }

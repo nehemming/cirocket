@@ -82,8 +82,11 @@ type (
 	// The list is checked prior too processing the activities own set of param definitions.
 	MustHaveParams []string
 
+	// Exports is a list of exported variables from on task context to another
+	Exports []string
+
 	// Stages is a slice of stages.
-	Stages []*Stage
+	Stages []Stage
 
 	// Tasks is a slice of tasks
 	Tasks []Task
@@ -150,20 +153,20 @@ type (
 		// They are not template expanded
 		BasicEnv EnvMap `mapstructure:"basicEnv"`
 
-		// Dir is the directory to execute the stage in
+		// Dir is the directory to execute the stage in.
 		Dir string `mapstructure:"dir"`
 
 		// Env is a map of additional environment variables
-		// These are subject to template expansion after the params have been expanded
+		// These are subject to template expansion after the params have been expanded.
 		Env EnvMap `mapstructure:"env"`
 
-		// Filter is an optional filter on the stage
-		// If the filter criteria are not met the stage will not be executed
+		// Filter is an optional filter on the stage.
+		// If the filter criteria are not met the stage will not be executed.
 		Filter *Filter `mapstructure:"filter"`
 
-		// NoTrust indicates the stage should not inherit environment
+		// NoTrust indicates the stage should not inherit environment.
 		// variables or parameters from its parent.  This can be used with a run stage
-		// where you do not want the process to receive API tokens etc
+		// where you do not want the process to receive API tokens etc.
 		NoTrust bool `mapstructure:"noTrust"`
 
 		// Must is a slice of params that must be defined prior to the stage starting
@@ -181,9 +184,6 @@ type (
 
 		// OnFail is a task that is executed if the stage fails.
 		OnFail *Task `mapstructure:"onfail"`
-
-		// Try to run the stage but if it fails do no abort the whole run
-		Try string `mapstructure:"try"`
 	}
 
 	// Task is an activity that is executed.
@@ -205,24 +205,24 @@ type (
 		// Definition contains the additional data required to process the task type
 		Definition map[string]interface{} `mapstructure:",remain"`
 
-		// BasicEnv is a map of additional environment variables
-		// They are not template expanded
+		// BasicEnv is a map of additional environment variables.
+		// They are not template expanded.
 		BasicEnv EnvMap `mapstructure:"basicEnv"`
 
-		// Dir is the directory to execute the task in
+		// Dir is the directory to execute the task within.
 		Dir string `mapstructure:"dir"`
 
-		// Env is a map of additional environment variables
-		// These are subject to template expansion after the params have been expanded
+		// Env is a map of additional environment variables.
+		// These are subject to template expansion after the params have been expanded.
 		Env EnvMap `mapstructure:"env"`
 
-		// Filter is an optional filter on the task
-		// If the filter criteria are not met the task will not be executed
+		// Filter is an optional filter on the task.
+		// If the filter criteria are not met the task will not be executed.
 		Filter *Filter `mapstructure:"filter"`
 
 		// NoTrust indicates the task should not inherit environment
 		// variables or parameters from the parent.  This can be used with a run task
-		// where you do not want the process to receive API tokens etc
+		// where you do not want the process to receive API tokens etc.
 		NoTrust bool `mapstructure:"noTrust"`
 
 		// Must is a slice of params that must be defined prior to the task starting
@@ -231,27 +231,37 @@ type (
 
 		// Params is a collection of parameters that can be used within
 		// the child stages.  Parameters are template expanded and can use
-		// Environment variables defined in Env
+		// Environment variables defined in Env.
 		Params Params `mapstructure:"params"`
 
-		// Try to run the task but if it fails do no abort the whole run
-		Try string `mapstructure:"try"`
+		// Try is a list of tasks to try.
+		Try Tasks `mapstructure:"try"`
+
+		// Try is a list of tasks to try.
+		Group Tasks `mapstructure:"group"`
+
+		// OnFail is a task that is executed if the stage fails.
+		OnFail *Task `mapstructure:"onfail"`
+
+		// Export is a list of variables to export. This list can be used by try and group task types
+		// to export their variables (output from sub tasks) to their parent stage or task.
+		Export Exports `mapstructure:"export"`
 	}
 
 	// Filter restricts running an activity
 	// The filter applis to the OS and Architecture of the machine running
 	// rocket.   This allows OS specific scripts to be used.
 	Filter struct {
-		// IncludeOS is a list of operating systems to include
+		// IncludeOS is a list of operating systems to include.
 		IncludeOS []string `mapstructure:"includeOS"`
 
-		// IncludeArch is a list of architectures to permit
+		// IncludeArch is a list of architectures to permit.
 		IncludeArch []string `mapstructure:"includeArch"`
 
-		// ExcludeOS restricts an operating system from running
+		// ExcludeOS restricts an operating system from running.
 		ExcludeOS []string `mapstructure:"excludeOS"`
 
-		// ExcludeArch restricts specific architectures from running
+		// ExcludeArch restricts specific architectures from running.
 		ExcludeArch []string `mapstructure:"excludeArch"`
 
 		// Skip prevents theactivity from running if true.
@@ -261,13 +271,13 @@ type (
 	// OutputSpec defines the method of outputtting for a given resource.  The choice is
 	// either variables or files.
 	OutputSpec struct {
-		// Variable is an exported variable available to later tasks in the same stage
+		// Variable is an exported variable available to later tasks in the same stage.
 		Variable string `mapstructure:"variable"`
 
-		// Output is a path to a file replacing STDOUT
+		// Output is a path to a file replacing STDOUT.
 		Path string `mapstructure:"path"`
 
-		// AppendOutput specifies if output should append
+		// AppendOutput specifies if output should append.
 		Append bool `mapstructure:"append"`
 
 		// SkipExpand when true skips template expansion of the runbook.
@@ -280,7 +290,7 @@ type (
 	// InputSpec is a resource input specificsation.  Input data can be provided from
 	// inline valuses, exported stage variables, local files or a web url.
 	InputSpec struct {
-		// Variable name to import from
+		// Variable name to import from.
 		Variable string `mapstructure:"variable"`
 
 		Inline string `mapstructure:"inline"`
@@ -325,15 +335,6 @@ type (
 		// When DirectError is false std error output is logged.
 		DirectError bool `mapstructure:"directStdErr"`
 	}
-
-	// Delims are the delimiters to use to escape template functions.
-	Delims struct {
-		// Left is the opening delimiter
-		Left string `mapstructure:"left"`
-
-		// Right is the closing delimiter
-		Right string `mapstructure:"right"`
-	}
 )
 
 // Validate checks that include has one and only one resource identifier defined.
@@ -371,6 +372,13 @@ func (params MustHaveParams) Copy() MustHaveParams {
 	return c
 }
 
+// Copy copies the must have params.
+func (exports Exports) Copy() Exports {
+	c := make(Exports, len(exports))
+	copy(c, exports)
+	return c
+}
+
 // Copy the params.
 func (params Params) Copy() Params {
 	c := make(Params, len(params))
@@ -391,7 +399,7 @@ func (tasks Tasks) ToMap() TaskMap {
 
 	for _, v := range tasks {
 		if v.Name != "" {
-			c[v.Name] = &v
+			c[v.Name] = v
 		}
 	}
 
