@@ -103,9 +103,12 @@ type (
 		// Description is a free text description of the parameter.
 		Description string `mapstructure:"description"`
 
-		// Value is the value of the parameter.  If SkipExpand is false the value will
-		// be transformed using template expansion.
-		Value string `mapstructure:"value"`
+		// Filter is an optional filter on the param.
+		// If the param criteria are not met the param value will not be set.
+		Filter *Filter `mapstructure:"filter"`
+
+		// Optional if true allows the file not to exist.
+		Optional bool `mapstructure:"optional"`
 
 		// Path is the location of a resource that can provide the parameter's value.
 		// Paths may be either a local file system path or a url to file or http(s) resource.
@@ -119,18 +122,15 @@ type (
 		// any additional expansion.
 		Path string `mapstructure:"path"`
 
-		// SkipExpand skip templating the param.
-		SkipExpand bool `mapstructure:"skipExpand"`
-
-		// Optional if true allows the file not to exist.
-		Optional bool `mapstructure:"optional"`
-
 		// Print if true will display the value of the parameter once expanded to the log.
 		Print bool `mapstructure:"print"`
 
-		// Filter is an optional filter on the param.
-		// If the param criteria are not met the param value will not be set.
-		Filter *Filter `mapstructure:"filter"`
+		// SkipExpand skip templating the param.
+		SkipExpand bool `mapstructure:"skipExpand"`
+
+		// Value is the value of the parameter.  If SkipExpand is false the value will
+		// be transformed using template expansion.
+		Value string `mapstructure:"value"`
 	}
 
 	// EnvMap is a map of environment variables to their values.
@@ -153,6 +153,10 @@ type (
 		// They are not template expanded
 		BasicEnv EnvMap `mapstructure:"basicEnv"`
 
+		// Condition if present is evaluated prior to running a stage.  If the condition template expression evaluates to true/yes/1 the
+		// stage will be run.  If the template is blank or non true value the stage will not be run and the step will be skipped.
+		Condition string `mapstructure:"condition"`
+
 		// Dir is the directory to execute the stage in.
 		Dir string `mapstructure:"dir"`
 
@@ -164,14 +168,17 @@ type (
 		// If the filter criteria are not met the stage will not be executed.
 		Filter *Filter `mapstructure:"filter"`
 
+		// Must is a slice of params that must be defined prior to the stage starting
+		// Iif any are missing the mission will fail.
+		Must MustHaveParams `mapstructure:"must"`
+
 		// NoTrust indicates the stage should not inherit environment.
 		// variables or parameters from its parent.  This can be used with a run stage
 		// where you do not want the process to receive API tokens etc.
 		NoTrust bool `mapstructure:"noTrust"`
 
-		// Must is a slice of params that must be defined prior to the stage starting
-		// Iif any are missing the mission will fail.
-		Must MustHaveParams `mapstructure:"must"`
+		// OnFail is a task that is executed if the stage fails.
+		OnFail *Task `mapstructure:"onfail"`
 
 		// Params is a collection of parameters that can be used within
 		// the child stages.  Parameters are template expanded and can use
@@ -181,17 +188,10 @@ type (
 		// Tasks is a collection of one or more tasks to complete
 		// Tasks are executed sequentally
 		Tasks Tasks `mapstructure:"tasks"`
-
-		// OnFail is a task that is executed if the stage fails.
-		OnFail *Task `mapstructure:"onfail"`
 	}
 
 	// Task is an activity that is executed.
 	Task struct {
-		// Type is the type of the task.  The task type must have been rejiggered
-		// with the mission control.  Tasks not registered will fail the mission.
-		Type string `mapstructure:"type"`
-
 		// Name of the task.
 		// If it is not provided it default to the ordinal ID of the task within the stage
 		Name string `mapstructure:"name"`
@@ -199,15 +199,22 @@ type (
 		// Task is impmented by another named task in the same stage.
 		Ref string `mapstructure:"ref"`
 
+		// BasicEnv is a map of additional environment variables.
+		// They are not template expanded.
+		BasicEnv EnvMap `mapstructure:"basicEnv"`
+
+		// Concurrent is a list of tasks to execute concurrently.
+		Concurrent Tasks `mapstructure:"concurrent"`
+
+		// Condition if present is evaluated prior to running a task.  If the condition template expression evaluates to true/yes/1 the
+		// task will be run.  If the template is blank or non true value the task will not be run and the step will be skipped.
+		Condition string `mapstructure:"condition"`
+
 		// Description is a free text description of the task.
 		Description string `mapstructure:"description"`
 
 		// Definition contains the additional data required to process the task type
 		Definition map[string]interface{} `mapstructure:",remain"`
-
-		// BasicEnv is a map of additional environment variables.
-		// They are not template expanded.
-		BasicEnv EnvMap `mapstructure:"basicEnv"`
 
 		// Dir is the directory to execute the task within.
 		Dir string `mapstructure:"dir"`
@@ -216,18 +223,28 @@ type (
 		// These are subject to template expansion after the params have been expanded.
 		Env EnvMap `mapstructure:"env"`
 
+		// Export is a list of variables to export. This list can be used by try and group task types
+		// to export their variables (output from sub tasks) to their parent stage or task.
+		Export Exports `mapstructure:"export"`
+
 		// Filter is an optional filter on the task.
 		// If the filter criteria are not met the task will not be executed.
 		Filter *Filter `mapstructure:"filter"`
+
+		// Try is a list of tasks to try.
+		Group Tasks `mapstructure:"group"`
+
+		// Must is a slice of params that must be defined prior to the task starting
+		// Iif any are missing the mission will fail.
+		Must MustHaveParams `mapstructure:"must"`
 
 		// NoTrust indicates the task should not inherit environment
 		// variables or parameters from the parent.  This can be used with a run task
 		// where you do not want the process to receive API tokens etc.
 		NoTrust bool `mapstructure:"noTrust"`
 
-		// Must is a slice of params that must be defined prior to the task starting
-		// Iif any are missing the mission will fail.
-		Must MustHaveParams `mapstructure:"must"`
+		// OnFail is a task that is executed if the stage fails.
+		OnFail *Task `mapstructure:"onfail"`
 
 		// Params is a collection of parameters that can be used within
 		// the child stages.  Parameters are template expanded and can use
@@ -237,15 +254,9 @@ type (
 		// Try is a list of tasks to try.
 		Try Tasks `mapstructure:"try"`
 
-		// Try is a list of tasks to try.
-		Group Tasks `mapstructure:"group"`
-
-		// OnFail is a task that is executed if the stage fails.
-		OnFail *Task `mapstructure:"onfail"`
-
-		// Export is a list of variables to export. This list can be used by try and group task types
-		// to export their variables (output from sub tasks) to their parent stage or task.
-		Export Exports `mapstructure:"export"`
+		// Type is the type of the task.  The task type must have been rejiggered
+		// with the mission control.  Tasks not registered will fail the mission.
+		Type string `mapstructure:"type"`
 	}
 
 	// Filter restricts running an activity

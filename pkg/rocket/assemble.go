@@ -36,7 +36,7 @@ import (
 func (mc *missionControl) Assemble(ctx context.Context, blueprintName string, sources []string, runbook string, params Params) error {
 	// blueprint, if not abs need to search sources to locate
 	// once blueprint found extract it
-	blueprint, blueprintLocation, err := mc.searchSources(ctx, blueprintName, sources, mc.missionLog())
+	blueprint, blueprintLocation, err := mc.searchSources(ctx, blueprintName, sources)
 	if err != nil {
 		return err
 	}
@@ -155,7 +155,7 @@ func mergeParamSets(sourceParams []Param, additional ...Param) []Param {
 const manifestFileName = "/blueprint.yml"
 
 func (mc *missionControl) searchSources(ctx context.Context, blueprintName string,
-	sources []string, log loggee.Logger) (*Blueprint, string, error) {
+	sources []string) (*Blueprint, string, error) {
 	blueprintName = filepath.ToSlash(blueprintName)
 
 	if strings.HasSuffix(blueprintName, manifestFileName) {
@@ -179,7 +179,7 @@ func (mc *missionControl) searchSources(ctx context.Context, blueprintName strin
 		return nil, "", fmt.Errorf("name %s is malformed", blueprintName)
 	}
 
-	return loadBlueprint(ctx, blueprintName, log, sources)
+	return loadBlueprint(ctx, blueprintName, mc.missionLog(), sources)
 }
 
 func loadBlueprint(ctx context.Context, blueprintName string,

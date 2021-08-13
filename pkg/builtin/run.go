@@ -24,7 +24,6 @@ import (
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/nehemming/cirocket/pkg/cliparse"
-	"github.com/nehemming/cirocket/pkg/loggee"
 	"github.com/nehemming/cirocket/pkg/rocket"
 	"github.com/pkg/errors"
 )
@@ -126,7 +125,7 @@ func getCommandLine(ctx context.Context, capComm *rocket.CapComm, runCfg *Run) (
 	return commandLine, nil
 }
 
-func startProcessSignalHandlee(ctx context.Context, cmd *exec.Cmd) chan struct{} {
+func startProcessSignalHandlee(ctx context.Context, capComm *rocket.CapComm, cmd *exec.Cmd) chan struct{} {
 	done := make(chan struct{})
 
 	go func() {
@@ -136,7 +135,7 @@ func startProcessSignalHandlee(ctx context.Context, cmd *exec.Cmd) chan struct{}
 			if cmd.Process != nil {
 				err := cmd.Process.Signal(os.Interrupt)
 				if err != nil {
-					loggee.Warnf("run signal error: %s", err)
+					capComm.Log().Warnf("run signal error: %s", err)
 				}
 			}
 		case <-done:
@@ -185,7 +184,7 @@ func runCmd(ctx context.Context, capComm *rocket.CapComm, cmd *exec.Cmd) error {
 	}
 
 	// setup signal handler and close on exit
-	signalHandlerDoneChannel := startProcessSignalHandlee(ctx, cmd)
+	signalHandlerDoneChannel := startProcessSignalHandlee(ctx, capComm, cmd)
 	defer close(signalHandlerDoneChannel)
 
 	// Wait for process exit

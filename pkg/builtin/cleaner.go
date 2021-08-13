@@ -96,10 +96,19 @@ func buildRemoveOp(capComm *rocket.CapComm, config *Remove) (rocket.ExecuteFunc,
 		}
 
 		// clean
-		return deleteFiles(files, config.Log)
+		return deleteFiles(files, getLogFromCapComm(capComm, config.Log))
 	}
 
 	return fn, nil
+}
+
+// getLogFromCapComm returns the capComm logger or nil based on the log bool value.
+func getLogFromCapComm(capComm *rocket.CapComm, log bool) loggee.Logger {
+	if log {
+		return capComm.Log()
+	}
+
+	return nil
 }
 
 func globFile(specs []string) ([]string, error) {
@@ -115,7 +124,7 @@ func globFile(specs []string) ([]string, error) {
 	return toDistinctStrings(files...), nil
 }
 
-func deleteFiles(files []string, log bool) error {
+func deleteFiles(files []string, log loggee.Logger) error {
 	for _, file := range files {
 		stat, err := os.Stat(filepath.FromSlash(file))
 		if err != nil && !os.IsNotExist(err) {
@@ -137,8 +146,8 @@ func deleteFiles(files []string, log bool) error {
 		}
 
 		// log
-		if log {
-			loggee.Infof("removed %s", friendlyRelativePath(file))
+		if log != nil {
+			log.Infof("removed %s", friendlyRelativePath(file))
 		}
 	}
 

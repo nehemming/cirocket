@@ -133,7 +133,7 @@ func removeRun(t *testing.T, missionName string) {
 func TestDeleteMissing(t *testing.T) {
 	files := []string{"filenotexists.gogo"}
 
-	err := deleteFiles(files, false)
+	err := deleteFiles(files, nil)
 	if err != nil {
 		t.Error("unexpected", err)
 	}

@@ -1097,48 +1097,20 @@ func TestMustNotBeSealed(t *testing.T) {
 	newCapCommFromEnvironment(getTestMissionFile(), stdlog.New()).mustNotBeSealed()
 }
 
-func TestIndentTemplateFunc(t *testing.T) {
-	ctx := context.Background()
-	capComm := NewCapComm(testMissionFile, stdlog.New())
-
-	s, err := capComm.ExpandString(ctx, "spacing", `{{"\nhello"|indent 6}}
-	`)
-	if err != nil {
-		t.Error("unexpected error", err)
-	}
-
-	if !strings.HasPrefix(s, "\n      hello") {
-		t.Error("indent missing", s)
-	}
-}
-
-func TestIndentFirstLineTemplateFunc(t *testing.T) {
-	ctx := context.Background()
-	capComm := NewCapComm(testMissionFile, stdlog.New())
-
-	s, err := capComm.ExpandString(ctx, "spacing", `{{"hello"|indent 6}}
-	`)
-	if err != nil {
-		t.Error("unexpected error", err)
-	}
-
-	if !strings.HasPrefix(s, "hello") {
-		t.Error("indent present", s)
-	}
-}
-
 func TestExportVariable(t *testing.T) {
 	capComm := NewCapComm(testMissionFile, stdlog.New())
 
-	if len(capComm.variables) != 0 {
-		t.Error("pre existing vars", len(capComm.variables))
+	vars := capComm.variables.All()
+
+	if len(vars) != 0 {
+		t.Error("pre existing vars", len(vars))
 	}
 
 	taskCapCom := capComm.Copy(true)
 
 	taskCapCom.ExportVariable("hello", "there")
 
-	if v, ok := capComm.variables["hello"]; !ok || v != "there" {
+	if v, ok := capComm.variables.Get("hello"); !ok || v != "there" {
 		t.Error("var not exported", ok, v)
 	}
 }
@@ -1328,8 +1300,10 @@ func TestCreateProviderFromoutputSpec(t *testing.T) {
 		w.Close()
 	}
 
-	if capComm.exportTo["test_it"] != "" {
-		t.Error("Variable not set")
+	v, _ := capComm.exportTo.Get("test_it")
+
+	if v != "" {
+		t.Error("Variable is set")
 	}
 }
 
@@ -1583,74 +1557,3 @@ func TestParamsFilterDuplicated(t *testing.T) {
 		t.Error("unexpected v picked wrong one", v)
 	}
 }
-
-func TestDirName(t *testing.T) {
-	if d := dirname("a/b/c"); d != "a/b" {
-		t.Error("unexpected", d)
-	}
-}
-
-func TestDirNameURL(t *testing.T) {
-	if d := dirname("file:///a/b/c"); d != "file:/a/b" {
-		t.Error("unexpected", d)
-	}
-}
-
-func TestDirNameFilePath(t *testing.T) {
-	if d := dirname(filepath.Join("a", "b", "c")); d != "a/b" {
-		t.Error("unexpected", d)
-	}
-}
-
-func TestBaseName(t *testing.T) {
-	if d := basedname("a/b/c"); d != "c" {
-		t.Error("unexpected", d)
-	}
-}
-
-func TestBaseNameURL(t *testing.T) {
-	if d := basedname("file:///a/b/c"); d != "c" {
-		t.Error("unexpected", d)
-	}
-}
-
-func TestBaseNameFilePath(t *testing.T) {
-	if d := basedname(filepath.Join("a", "b", "c.txt")); d != "c.txt" {
-		t.Error("unexpected", d)
-	}
-}
-
-func TestUltimate(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		return // skip as covered in resources
-	}
-
-	d, e := ultimate("/a/b/c")
-
-	if d != "file:///a/b/c" || e != nil {
-		t.Error("unexpected", d, e)
-	}
-}
-
-func TestBUltimateURL(t *testing.T) {
-	if d, e := ultimate("file:///a/b/c"); d != "file:///a/b/c" || e != nil {
-		t.Error("unexpected", d, e)
-	}
-}
-
-func TestUltimateFilePath(t *testing.T) {
-	if d, e := ultimate(filepath.Join("a", "b", "c.txt")); !strings.HasSuffix(d, "/a/b/c.txt") || e != nil {
-		t.Error("unexpected", d, e)
-	}
-}
-
-/*
-
-
-func ultimate(p ...string) (string, error) {
-	u, e := resource.UltimateURL(p...)
-	if e != nil {
-		return "", e
-	}
-	return u.String(), nil
-}*/

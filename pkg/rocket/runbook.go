@@ -42,7 +42,7 @@ type (
 func (mc *missionControl) GetRunbook(ctx context.Context, blueprintName string, sources []string) (string, error) {
 	// blueprint, if not abs need to search sources to locate
 	// once blueprint found extract it
-	blueprint, blueprintLocation, err := mc.searchSources(ctx, blueprintName, sources, mc.missionLog())
+	blueprint, blueprintLocation, err := mc.searchSources(ctx, blueprintName, sources)
 	if err != nil {
 		return "", err
 	}

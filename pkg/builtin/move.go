@@ -95,13 +95,13 @@ func (moveType) Prepare(ctx context.Context, capComm *rocket.CapComm, task rocke
 		}
 
 		// copy
-		return moveFiles(execCtx, files, destSpec, overwrite, moveCfg.Log)
+		return moveFiles(execCtx, files, destSpec, overwrite, getLogFromCapComm(capComm, moveCfg.Log))
 	}
 
 	return fn, nil
 }
 
-func moveFiles(ctx context.Context, sources []AbsRel, dest DestSpec, allowOverwrite, log bool) error {
+func moveFiles(ctx context.Context, sources []AbsRel, dest DestSpec, allowOverwrite bool, log loggee.Logger) error {
 	for _, source := range sources {
 		if ctx.Err() != nil {
 			return ctx.Err()
@@ -114,7 +114,7 @@ func moveFiles(ctx context.Context, sources []AbsRel, dest DestSpec, allowOverwr
 	return nil
 }
 
-func moveFile(source AbsRel, dest DestSpec, allowOverwrite, log bool) error {
+func moveFile(source AbsRel, dest DestSpec, allowOverwrite bool, log loggee.Logger) error {
 	// Get the source files permission
 	stat, err := os.Stat(source.Abs)
 	if err != nil {
@@ -132,8 +132,8 @@ func moveFile(source AbsRel, dest DestSpec, allowOverwrite, log bool) error {
 	}
 	if destAbsRel == nil || source.Abs == destAbsRel.Abs {
 		// skipping
-		if log {
-			loggee.Infof("skipping %s", source.Rel)
+		if log != nil {
+			log.Infof("skipping %s", source.Rel)
 		}
 		return nil
 	}
@@ -145,8 +145,8 @@ func moveFile(source AbsRel, dest DestSpec, allowOverwrite, log bool) error {
 	}
 
 	// log
-	if log {
-		loggee.Infof("move %s => %s", source.Rel, destAbsRel.Rel)
+	if log != nil {
+		log.Infof("move %s => %s", source.Rel, destAbsRel.Rel)
 	}
 
 	return nil

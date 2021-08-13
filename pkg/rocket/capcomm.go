@@ -24,7 +24,6 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"os/user"
 	"path"
 	"path/filepath"
 	"runtime"
@@ -33,7 +32,6 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/mitchellh/go-homedir"
 	"github.com/nehemming/cirocket/pkg/buildinfo"
 	"github.com/nehemming/cirocket/pkg/loggee"
 	"github.com/nehemming/cirocket/pkg/providers"
@@ -113,24 +111,11 @@ type (
 		sealed                bool
 		mission               *Mission
 		resources             providers.ResourceProviderMap
-		variables             exportMap
-		exportTo              exportMap
+		variables             *variableSet
+		exportTo              *variableSet
 		log                   loggee.Logger
 	}
-
-	exportMap map[string]string
 )
-
-// All returns a copy of all the exported variables.
-func (export exportMap) All() map[string]string {
-	m := make(map[string]string)
-
-	for k, v := range export {
-		m[k] = v
-	}
-
-	return m
-}
 
 // setParamsFromMissionLocation adds config file entries to the environment map.
 func setParamsFromMissionLocation(params map[string]string, missionLocation *url.URL) {
@@ -154,72 +139,6 @@ func setParamsFromMissionLocation(params map[string]string, missionLocation *url
 		params[MissionDirParamName] = osMissionDir
 		params[MissionDirAbsParamName] = osMissionAbsDir
 	}
-}
-
-func initFuncMap() template.FuncMap {
-	fm := template.FuncMap{
-
-		"Indent":   indent,
-		"indent":   indent,
-		"username": getUserName,
-		"now":      time.Now,
-		"pwd":      os.Getwd,
-		"dirname":  dirname,
-		"basename": basedname,
-		"ultimate": ultimate,
-		"relative": resource.Relative,
-		"home":     homedir.Dir,
-	}
-
-	return fm
-}
-
-func indent(indent int, text string) string {
-	// indent indents all lines, except the first line by indent spaces
-	// use in templates as a pipeline '|'
-	lines := strings.Split(text, "\n")
-	sb := strings.Builder{}
-	spaces := strings.Repeat(" ", indent)
-	for i, line := range lines {
-		if i > 0 {
-			sb.WriteString(spaces)
-		}
-		sb.WriteString(line)
-		sb.WriteString("\n")
-	}
-	return sb.String()
-}
-
-func dirname(p string) string {
-	return path.Dir(filepath.ToSlash(p))
-}
-
-func basedname(p string) string {
-	return path.Base(filepath.ToSlash(p))
-}
-
-func ultimate(p ...string) (string, error) {
-	u, e := resource.UltimateURL(p...)
-	if e != nil {
-		return "", e
-	}
-	return u.String(), nil
-}
-
-func getUserName() string {
-	if u, err := user.Current(); err == nil {
-		if u.Name != "" {
-			return u.Name
-		}
-		if u.Username != "" {
-			return u.Username
-		}
-		if u.Uid != "" {
-			return u.Uid
-		}
-	}
-
-	return "unknown"
 }
 
 // NewCapComm returns a cap comm object that is suitable for using for testing.
@@ -248,7 +167,7 @@ func newCapCommFromEnvironment(missionLocation *url.URL, log loggee.Logger) *Cap
 			UserName: getUserName(),
 		},
 		resources: make(providers.ResourceProviderMap),
-		variables: make(exportMap),
+		variables: newVariableSet(),
 		log:       log,
 	}
 
@@ -276,7 +195,7 @@ func (capComm *CapComm) Copy(noTrust bool) *CapComm {
 		params:                NewKeyValueGetter(capComm.params),
 		runtime:               capComm.runtime,
 		resources:             capComm.resources.Copy(),
-		variables:             make(exportMap),
+		variables:             newVariableSet(),
 		exportTo:              capComm.variables,
 		log:                   capComm.log,
 	}
@@ -315,17 +234,43 @@ func (capComm *CapComm) Log() loggee.Logger {
 
 // ExportVariable exports the passed variable to all capComm's sharing the same parent as the receiver.
 func (capComm *CapComm) ExportVariable(key, value string) *CapComm {
-	capComm.exportTo[key] = value
+	capComm.exportTo.Set(key, value)
 	return capComm
 }
 
-// ExportVariables exports a list of variables if set in the capComm to aa parent.
+// ExportVariables exports a list of variables if set in the capComm to aa parent.  If the variable is not found
+// the exported name will be checked against the params and exported.
 func (capComm *CapComm) ExportVariables(exports Exports) {
 	for _, key := range exports {
-		if value, ok := capComm.variables[key]; ok {
-			capComm.exportTo[key] = value
+		if value, ok := capComm.variables.Get(key); ok {
+			capComm.exportTo.Set(key, value)
+		} else if value := capComm.params.Get(key); value != "" {
+			capComm.exportTo.Set(key, value)
 		}
 	}
+}
+
+func (capComm *CapComm) getTemplateVariables() map[string]string {
+	m := capComm.variables.All()
+
+	for k, v := range capComm.exportTo.All() {
+		if _, ok := m[k]; !ok {
+			m[k] = v
+		}
+	}
+
+	return m
+}
+
+// GetVariable gets the value of a variable, first from local variables and then if not found from the exported parent variables.
+func (capComm *CapComm) GetVariable(key string) (string, bool) {
+	if value, ok := capComm.variables.Get(key); ok {
+		return value, true
+	}
+	if value, ok := capComm.exportTo.Get(key); ok {
+		return value, true
+	}
+	return "", false
 }
 
 // WithMission attaches the mission to the CapComm.
@@ -427,7 +372,7 @@ func (capComm *CapComm) createProviderFromInputSpec(ctx context.Context, inputSp
 	var err error
 	var v string
 	if inputSpec.Variable != "" {
-		v, ok := capComm.exportTo[inputSpec.Variable]
+		v, ok := capComm.GetVariable(inputSpec.Variable)
 		if !ok && !inputSpec.Optional {
 			return nil, fmt.Errorf("variable %s not found", inputSpec.Variable)
 		}
@@ -715,6 +660,9 @@ func (capComm *CapComm) ExpandBool(ctx context.Context, name, value string) (boo
 	if err != nil {
 		return false, err
 	}
+
+	v = strings.Trim(v, " ")
+
 	// default value if empty
 	if v == "" {
 		return false, nil
@@ -798,7 +746,7 @@ func (capComm *CapComm) GetTemplateData(ctx context.Context) TemplateData {
 	data[EnvTag] = capComm.env.All()
 
 	// Add in variables
-	data[VariableTag] = capComm.variables.All()
+	data[VariableTag] = capComm.getTemplateVariables()
 
 	if capComm.entrustedParentEnv != nil {
 		data[ParentEnvTag] = capComm.entrustedParentEnv.All()

@@ -43,6 +43,7 @@ const (
 	taskKindType
 	taskKindTry
 	taskKindGroup
+	taskKindConcurrent
 )
 
 type (
@@ -223,10 +224,10 @@ func (mc *missionControl) LaunchMissionWithParams(ctx context.Context, location 
 		}
 	}
 
-	return runOperations(ctx, operations, fallbackOp)
+	return runOperations(ctx, capComm, operations, fallbackOp)
 }
 
-func mergeStages(stage *Stage, ref string, stageMap StageMap, circular map[string]bool) error {
+func mergeStages(stage *Stage, ref string, stageMap StageMap, circular map[string]bool) error { // nolint:cyclop
 	if circular[ref] {
 		return fmt.Errorf("circular ref %s", ref)
 	}
@@ -300,7 +301,7 @@ func mergeDefinition(dest, src map[string]interface{}) {
 	}
 }
 
-func mergeTasks(task *Task, ref string, taskMap TaskMap, circular map[string]bool) error {
+func mergeTasks(task *Task, ref string, taskMap TaskMap, circular map[string]bool) error { //nolint:cyclop
 	if circular[ref] {
 		return fmt.Errorf("circular ref %s", ref)
 	}
@@ -410,7 +411,7 @@ func (mc *missionControl) prepareStages(ctx context.Context, capComm *CapComm, s
 	return operations, nil
 }
 
-func runOperations(ctx context.Context, operations operations, onFailStage *operation) error {
+func runOperations(ctx context.Context, capComm *CapComm, operations operations, onFailStage *operation) error {
 	//	Run mission
 	for _, op := range operations {
 		if ctx.Err() != nil {
@@ -418,9 +419,9 @@ func runOperations(ctx context.Context, operations operations, onFailStage *oper
 		}
 
 		// Handle mission failure
-		if err := runOp(ctx, op); err != nil {
+		if err := runOp(ctx, op, capComm.Log()); err != nil {
 			if onFailStage != nil {
-				runOnFail(ctx, onFailStage.makeItSo, onFailStage.description)
+				runOnFail(ctx, onFailStage.makeItSo, onFailStage.description, capComm.Log())
 			}
 			return err
 		}
@@ -494,7 +495,29 @@ func (mc *missionControl) prepareStage(ctx context.Context, missionCapComm *CapC
 		return nil, err
 	}
 
-	return mc.prepareTaskList(ctx, capComm, "stage: "+stage.Name, stage.Tasks, stage.OnFail, false, stage.Dir)
+	op, err := mc.prepareSequentialTaskList(ctx, capComm, "stage: "+stage.Name, stage.Tasks, stage.OnFail, false, stage.Dir)
+	if err != nil {
+		return nil, err
+	}
+
+	if stage.Condition != "" {
+		return op.AddHandler(func(next ExecuteFunc) ExecuteFunc {
+			return func(execCtx context.Context) error {
+				ok, err := capComm.ExpandBool(ctx, "condition", stage.Condition)
+				if err != nil {
+					return err
+				}
+
+				if !ok {
+					return nil
+				}
+
+				return next(execCtx)
+			}
+		}), nil
+	}
+
+	return op, nil
 }
 
 func (mc *missionControl) prepareFailTask(ctx context.Context, capComm *CapComm, task Task) (*operation, error) {
@@ -529,6 +552,21 @@ func taskCapComm(ctx context.Context, parentCapComm *CapComm, task Task) (*CapCo
 	return capComm, nil
 }
 
+func (mc *missionControl) switchTaskType(ctx context.Context, capComm *CapComm, task Task, taskKind taskKind) (*operation, error) {
+	switch taskKind {
+	case taskKindType:
+		return mc.prepareTaskKindType(ctx, capComm, task)
+	case taskKindTry:
+		return mc.prepareSequentialTaskList(ctx, capComm, "try: "+task.Name, task.Try, task.OnFail, true, task.Dir)
+	case taskKindGroup:
+		return mc.prepareSequentialTaskList(ctx, capComm, "group: "+task.Name, task.Group, task.OnFail, false, task.Dir)
+	case taskKindConcurrent:
+		return mc.prepareConcurrentTaskList(ctx, capComm, "concurrent: "+task.Name, task.Concurrent, task.OnFail, false, task.Dir)
+	}
+
+	return nil, nil
+}
+
 func (mc *missionControl) prepareTask(ctx context.Context, parentCapComm *CapComm, task Task) (*operation, error) {
 	if task.Filter.IsFiltered() {
 		return nil, nil
@@ -549,22 +587,20 @@ func (mc *missionControl) prepareTask(ctx context.Context, parentCapComm *CapCom
 		return nil, err
 	}
 
-	var op *operation
-
-	switch taskKind {
-	case taskKindType:
-		return mc.prepareTaskKindType(ctx, capComm, task)
-	case taskKindTry:
-		op, err = mc.prepareTaskList(ctx, capComm, "try: "+task.Name, task.Try, task.OnFail, true, task.Dir)
-	case taskKindGroup:
-		op, err = mc.prepareTaskList(ctx, capComm, "group: "+task.Name, task.Group, task.OnFail, false, task.Dir)
-	}
-
+	op, err := mc.switchTaskType(ctx, capComm, task, taskKind)
 	if err != nil {
 		return nil, err
 	}
 
-	if op != nil && len(task.Export) > 0 {
+	if op != nil {
+		applyTaskHandlers(ctx, capComm, task, op, taskKind)
+	}
+
+	return op, nil
+}
+
+func applyTaskHandlers(ctx context.Context, capComm *CapComm, task Task, op *operation, taskKind taskKind) {
+	if taskKind != taskKindType && len(task.Export) > 0 {
 		// add in the exports
 		op.AddHandler(func(next ExecuteFunc) ExecuteFunc {
 			return func(opCtx context.Context) error {
@@ -577,10 +613,25 @@ func (mc *missionControl) prepareTask(ctx context.Context, parentCapComm *CapCom
 		})
 	}
 
-	return op, nil
+	if task.Condition != "" {
+		op.AddHandler(func(next ExecuteFunc) ExecuteFunc {
+			return func(execCtx context.Context) error {
+				ok, err := capComm.ExpandBool(ctx, "condition", task.Condition)
+				if err != nil {
+					return err
+				}
+
+				if !ok {
+					return nil
+				}
+
+				return next(execCtx)
+			}
+		})
+	}
 }
 
-func getTaskKind(task Task) (taskKind, error) {
+func validateTaskKind(task Task) error {
 	kinds := 0
 
 	if task.Type != "" {
@@ -592,14 +643,26 @@ func getTaskKind(task Task) (taskKind, error) {
 	if len(task.Group) > 0 {
 		kinds++
 	}
+	if len(task.Concurrent) > 0 {
+		kinds++
+	}
 
 	if kinds == 0 {
-		return taskKindNone, fmt.Errorf("task %s kind not specificed needs to be a type, group or try task", task.Name)
+		return fmt.Errorf("task %s kind not specificed needs to be a type, concurrent, group or try task", task.Name)
 	}
 
 	if kinds > 1 {
-		return taskKindNone, fmt.Errorf("task %s has multiple kinds needs to be a single type, group or try task", task.Name)
+		return fmt.Errorf("task %s has multiple kinds needs to be a single type, concurrent, group or try task", task.Name)
 	}
+
+	return nil
+}
+
+func getTaskKind(task Task) (taskKind, error) {
+	if err := validateTaskKind(task); err != nil {
+		return taskKindNone, err
+	}
+
 	if task.Type != "" {
 		return taskKindType, nil
 	}
@@ -609,50 +672,14 @@ func getTaskKind(task Task) (taskKind, error) {
 	if len(task.Group) > 0 {
 		return taskKindGroup, nil
 	}
+	if len(task.Concurrent) > 0 {
+		return taskKindConcurrent, nil
+	}
 	panic("kind?")
 }
 
-func (mc *missionControl) prepareTaskList(ctx context.Context, capComm *CapComm,
-	groupDesc string, tasks Tasks, onFailTask *Task,
-	tryOp bool, taskDir string) (*operation, error) {
-	taskMap := tasks.ToMap()
-	var operations operations
-
-	// Move onto tasks
-	for index, task := range tasks {
-		if task.Name == "" {
-			task.Name = fmt.Sprintf("task[%d]", index)
-		}
-
-		// merge tasks if ref'd
-		if task.Ref != "" {
-			if err := mergeTaskRef(&task, taskMap); err != nil {
-				return nil, errors.Wrapf(err, "%s merge with ref %s", task.Name, task.Ref)
-			}
-		}
-
-		// prepare the task
-		op, err := mc.prepareTask(ctx, capComm, task)
-		if err != nil {
-			return nil, errors.Wrapf(err, "prepare: %s", task.Name)
-		}
-
-		if op != nil {
-			operations = append(operations, op)
-		}
-	}
-
-	// Is there ar failure task?
-	var onFail ExecuteFunc
-	if onFailTask != nil {
-		onFailOp, err := mc.prepareFailTask(ctx, capComm, *onFailTask)
-		if err != nil {
-			return nil, err
-		}
-
-		onFail = onFailOp.makeItSo
-	}
-
+func combineSequentialTaskListOperations(ctx context.Context, capComm *CapComm, operations operations, onFail ExecuteFunc,
+	groupDesc string, tryOp bool, taskDir string) (*operation, error) {
 	if len(operations) == 0 {
 		return nil, nil
 	}
@@ -669,10 +696,99 @@ func (mc *missionControl) prepareTaskList(ctx context.Context, capComm *CapComm,
 
 	return &operation{
 		description: groupDesc,
-		makeItSo:    engage(ctx, operations, dir),
+		makeItSo:    engage(operations, dir, capComm.Log()),
 		try:         tryOp,
 		onFail:      onFail,
 	}, nil
+}
+
+func combineConcurrentTaskListOperations(ctx context.Context, capComm *CapComm, operations operations, onFail ExecuteFunc,
+	groupDesc string, tryOp bool, taskDir string) (*operation, error) {
+	if len(operations) == 0 {
+		return nil, nil
+	}
+
+	// handle any dir change
+	var dir string
+	var err error
+	if taskDir != "" {
+		dir, err = capComm.ExpandString(ctx, "dir", taskDir)
+		if err != nil {
+			return nil, errors.Wrapf(err, "%s dir expand", groupDesc)
+		}
+	}
+
+	return &operation{
+		description: groupDesc,
+		makeItSo:    warpTen(operations, dir, capComm.Log()),
+		try:         tryOp,
+		onFail:      onFail,
+	}, nil
+}
+
+func (mc *missionControl) prepareOperationsFromTaskList(ctx context.Context, capComm *CapComm,
+	tasks Tasks, onFailTask *Task) (operations, ExecuteFunc, error) {
+	taskMap := tasks.ToMap()
+	var operations operations
+
+	// Move onto tasks
+	for index, task := range tasks {
+		if task.Name == "" {
+			task.Name = fmt.Sprintf("task[%d]", index)
+		}
+
+		// merge tasks if ref'd
+		if task.Ref != "" {
+			if err := mergeTaskRef(&task, taskMap); err != nil {
+				return nil, nil, errors.Wrapf(err, "%s merge with ref %s", task.Name, task.Ref)
+			}
+		}
+
+		// prepare the task
+		op, err := mc.prepareTask(ctx, capComm, task)
+		if err != nil {
+			return nil, nil, errors.Wrapf(err, "prepare: %s", task.Name)
+		}
+
+		if op != nil {
+			operations = append(operations, op)
+		}
+	}
+
+	// Is there ar failure task?
+	var onFail ExecuteFunc
+	if onFailTask != nil {
+		onFailOp, err := mc.prepareFailTask(ctx, capComm, *onFailTask)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		onFail = onFailOp.makeItSo
+	}
+
+	return operations, onFail, nil
+}
+
+func (mc *missionControl) prepareConcurrentTaskList(ctx context.Context, capComm *CapComm,
+	groupDesc string, tasks Tasks, onFailTask *Task,
+	tryOp bool, taskDir string) (*operation, error) {
+	operations, onFail, err := mc.prepareOperationsFromTaskList(ctx, capComm, tasks, onFailTask)
+	if err != nil {
+		return nil, err
+	}
+
+	return combineConcurrentTaskListOperations(ctx, capComm, operations, onFail, groupDesc, tryOp, taskDir)
+}
+
+func (mc *missionControl) prepareSequentialTaskList(ctx context.Context, capComm *CapComm,
+	groupDesc string, tasks Tasks, onFailTask *Task,
+	tryOp bool, taskDir string) (*operation, error) {
+	operations, onFail, err := mc.prepareOperationsFromTaskList(ctx, capComm, tasks, onFailTask)
+	if err != nil {
+		return nil, err
+	}
+
+	return combineSequentialTaskListOperations(ctx, capComm, operations, onFail, groupDesc, tryOp, taskDir)
 }
 
 func (mc *missionControl) prepareTaskKindType(ctx context.Context, capComm *CapComm, task Task) (*operation, error) {
@@ -818,27 +934,27 @@ func convertStagesToMap(stages Stages) (StageMap, error) {
 	return m, nil
 }
 
-func runOnFail(ctx context.Context, action ExecuteFunc, description string) {
+func runOnFail(ctx context.Context, action ExecuteFunc, description string, log loggee.Logger) {
 	// don't pass cancel context into fail action.
 	fn := func(_ context.Context) error {
 		return action(context.Background())
 	}
 
 	// Invoke failure fallback
-	if err := loggee.Activity(ctx, fn); err != nil {
-		loggee.Errorf("fail action failed: %s", errors.Wrap(err, description))
+	if err := log.Activity(ctx, fn); err != nil {
+		log.Errorf("fail action failed: %s", errors.Wrap(err, description))
 	}
 }
 
-func runOp(ctx context.Context, op *operation) error {
-	loggee.Info(op.description)
+func runOp(ctx context.Context, op *operation, log loggee.Logger) error {
+	log.Info(op.description)
 
-	if err := loggee.Activity(ctx, op.makeItSo); err != nil {
+	if err := log.Activity(ctx, op.makeItSo); err != nil {
 		if op.try {
-			loggee.Warnf("try failed: %s", errors.Wrap(err, op.description))
+			log.Warnf("try failed: %s", errors.Wrap(err, op.description))
 		} else {
 			if op.onFail != nil {
-				runOnFail(ctx, op.onFail, op.description)
+				runOnFail(ctx, op.onFail, op.description, log)
 			}
 
 			// report original error
@@ -883,7 +999,68 @@ func swapDir(dir string) (func(), error) {
 	}, nil
 }
 
-func engage(_ context.Context, ops operations, dir string) ExecuteFunc {
+type concurrentErrors struct {
+	list []error
+	mu   sync.Mutex
+}
+
+func (ce *concurrentErrors) Add(err error) {
+	ce.mu.Lock()
+	defer ce.mu.Unlock()
+	ce.list = append(ce.list, err)
+}
+
+func (ce *concurrentErrors) Error() error {
+	if len(ce.list) == 0 {
+		return nil
+	}
+	return &multierror.Error{Errors: ce.list}
+}
+
+func warpEngine(ctx context.Context, ops operations, log loggee.Logger) error {
+	// run each in parallel
+	var wg sync.WaitGroup
+	cancelCtx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	errs := new(concurrentErrors)
+
+	for _, op := range ops {
+		wg.Add(1)
+		go func(op *operation) {
+			defer wg.Done()
+			if cancelCtx.Err() != nil {
+				return
+			}
+			if err := runOp(cancelCtx, op, log); err != nil {
+				cancel()
+
+				// capture error
+				errs.Add(err)
+			}
+		}(op)
+	}
+
+	wg.Wait()
+
+	return errs.Error()
+}
+
+func warpTen(ops operations, dir string, log loggee.Logger) ExecuteFunc {
+	return func(ctx context.Context) error {
+		pop, err := swapDir(dir)
+		if err != nil {
+			return err
+		}
+		defer pop()
+
+		return log.Activity(ctx, func(ctx context.Context) error {
+			return warpEngine(ctx, ops, log)
+		})
+	}
+}
+
+func engage(ops operations, dir string, log loggee.Logger) ExecuteFunc {
 	return func(ctx context.Context) error {
 		pop, err := swapDir(dir)
 		if err != nil {
@@ -896,8 +1073,8 @@ func engage(_ context.Context, ops operations, dir string) ExecuteFunc {
 				return nil
 			}
 
-			if err := loggee.Activity(ctx, func(ctx context.Context) error {
-				return runOp(ctx, op)
+			if err := log.Activity(ctx, func(ctx context.Context) error {
+				return runOp(ctx, op, log)
 			}); err != nil {
 				return err
 			}
@@ -910,6 +1087,8 @@ func engage(_ context.Context, ops operations, dir string) ExecuteFunc {
 // OperationHandler is a handler function that given a operations next function returns the function replacing it.
 type OperationHandler func(next ExecuteFunc) ExecuteFunc
 
-func (op *operation) AddHandler(handler OperationHandler) {
+func (op *operation) AddHandler(handler OperationHandler) *operation {
 	op.makeItSo = handler(op.makeItSo)
+
+	return op
 }

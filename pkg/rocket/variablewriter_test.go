@@ -62,7 +62,9 @@ func TestOpenWrite(t *testing.T) {
 		t.Error("mismatch", vw.data.String())
 	}
 
-	if capComm.exportTo["test"] != "" {
+	v, _ := capComm.exportTo.Get("test")
+
+	if v != "" {
 		t.Error("too soon")
 	}
 
