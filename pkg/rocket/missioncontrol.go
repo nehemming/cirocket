@@ -361,6 +361,14 @@ func mergeTasks(task *Task, ref string, taskMap TaskMap, circular map[string]boo
 		task.Params = src.Params.Copy()
 	}
 
+	if len(task.PreVars) == 0 {
+		task.PreVars = src.PreVars.Copy()
+	}
+
+	if len(task.PostVars) == 0 {
+		task.PostVars = src.PostVars.Copy()
+	}
+
 	if task.OnFail == nil && src.OnFail != nil {
 		c := *src.OnFail
 		task.OnFail = &c
@@ -593,41 +601,123 @@ func (mc *missionControl) prepareTask(ctx context.Context, parentCapComm *CapCom
 	}
 
 	if op != nil {
-		applyTaskHandlers(ctx, capComm, task, op, taskKind)
+		applyTaskHandlers(capComm, task, op)
 	}
 
 	return op, nil
 }
 
-func applyTaskHandlers(ctx context.Context, capComm *CapComm, task Task, op *operation, taskKind taskKind) {
-	if taskKind != taskKindType && len(task.Export) > 0 {
-		// add in the exports
-		op.AddHandler(func(next ExecuteFunc) ExecuteFunc {
-			return func(opCtx context.Context) error {
-				err := next(opCtx)
-				if err == nil {
-					capComm.ExportVariables(task.Export)
-				}
-				return err
-			}
-		})
+func evalPreVars(ctx context.Context, capComm *CapComm, task Task) error {
+	// Evaluate the local variables
+	for k, v := range task.PreVars {
+		exp, err := capComm.ExpandString(ctx, k, v)
+		if err != nil {
+			return err
+		}
+
+		capComm.SetLocalVariable(k, exp)
 	}
 
-	if task.Condition != "" {
-		op.AddHandler(func(next ExecuteFunc) ExecuteFunc {
-			return func(execCtx context.Context) error {
-				ok, err := capComm.ExpandBool(ctx, "condition", task.Condition)
-				if err != nil {
-					return err
-				}
+	return nil
+}
 
-				if !ok {
-					return nil
-				}
+func evalPostVars(ctx context.Context, capComm *CapComm, task Task) error {
+	// Evaluate the variables post execution
+	for k, v := range task.PostVars {
+		exp, err := capComm.ExpandString(ctx, k, v)
+		if err != nil {
+			return err
+		}
 
-				return next(execCtx)
+		capComm.ExportVariable(k, exp)
+	}
+
+	return nil
+}
+
+func applyPreVarsHandler(capComm *CapComm, task Task, op *operation) {
+	op.AddHandler(func(next ExecuteFunc) ExecuteFunc {
+		return func(opCtx context.Context) error {
+			err := evalPreVars(opCtx, capComm, task)
+			if err != nil {
+				return err
 			}
-		})
+			// recalculate any environment variables with templates prior to running the task
+			err = capComm.MergeTemplateEnvs(opCtx, task.Env)
+			if err != nil {
+				return err
+			}
+
+			return next(opCtx)
+		}
+	})
+}
+
+func applyConditionHandler(capComm *CapComm, task Task, op *operation) {
+	op.AddHandler(func(next ExecuteFunc) ExecuteFunc {
+		return func(execCtx context.Context) error {
+			ok, err := capComm.ExpandBool(execCtx, "condition", task.Condition)
+			if err != nil {
+				return err
+			}
+
+			if !ok {
+				return nil
+			}
+
+			return next(execCtx)
+		}
+	})
+}
+
+func applyPostVarsHandler(capComm *CapComm, task Task, op *operation) {
+	op.AddHandler(func(next ExecuteFunc) ExecuteFunc {
+		return func(opCtx context.Context) error {
+			err := next(opCtx)
+			if err == nil {
+				err = evalPostVars(opCtx, capComm, task)
+			}
+			return err
+		}
+	})
+}
+
+func applyExportHandler(capComm *CapComm, task Task, op *operation) {
+	op.AddHandler(func(next ExecuteFunc) ExecuteFunc {
+		return func(opCtx context.Context) error {
+			err := next(opCtx)
+			if err == nil {
+				capComm.ExportVariables(task.Export)
+			}
+			return err
+		}
+	})
+}
+
+func applyTaskHandlers(capComm *CapComm, task Task, op *operation) {
+	// Handlers are midleware chain, handlers registered later wrap earlier ones
+	// i.e. if a later handler fails it will not run the innder handlers above it in this list.
+
+	// export variables
+	if len(task.Export) > 0 {
+		applyExportHandler(capComm, task, op)
+	}
+
+	// evaluate any post run variables
+	if len(task.PostVars) > 0 {
+		applyPostVarsHandler(capComm, task, op)
+	}
+
+	// Run the condition check, skips steps above if condition os false
+	// pre variables are evaluated though.
+	if task.Condition != "" {
+		applyConditionHandler(capComm, task, op)
+	}
+
+	// Add handler for preVars if there are prevars or environment variables with tempates defined
+	// templates can include vars
+	if len(task.PreVars) > 0 || len(task.Env) > 0 {
+		applyPreVarsHandler(capComm, task, op)
 	}
 }
 

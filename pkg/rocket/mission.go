@@ -46,11 +46,11 @@ type (
 
 		// BasicEnv is a map of additional environment variables
 		// They are not template expanded
-		BasicEnv EnvMap `mapstructure:"basicEnv"`
+		BasicEnv VarMap `mapstructure:"basicEnv"`
 
 		// Env is a map of additional environment variables
 		// These are subject to template expansion after the params have been expanded
-		Env EnvMap `mapstructure:"env"`
+		Env VarMap `mapstructure:"env"`
 
 		// Must is a slice of params that must be defined prior to the mission starting
 		// Iif any are missing the mission will fail.
@@ -133,8 +133,8 @@ type (
 		Value string `mapstructure:"value"`
 	}
 
-	// EnvMap is a map of environment variables to their values.
-	EnvMap map[string]string
+	// VarMap is a map of variables to their values.
+	VarMap map[string]string
 
 	// Stage is a collection of tasks that can share a common set of parameters.
 	// All tasks within a stage are executed sequently.
@@ -151,7 +151,7 @@ type (
 
 		// BasicEnv is a map of additional environment variables
 		// They are not template expanded
-		BasicEnv EnvMap `mapstructure:"basicEnv"`
+		BasicEnv VarMap `mapstructure:"basicEnv"`
 
 		// Condition if present is evaluated prior to running a stage.  If the condition template expression evaluates to true/yes/1 the
 		// stage will be run.  If the template is blank or non true value the stage will not be run and the step will be skipped.
@@ -162,7 +162,7 @@ type (
 
 		// Env is a map of additional environment variables
 		// These are subject to template expansion after the params have been expanded.
-		Env EnvMap `mapstructure:"env"`
+		Env VarMap `mapstructure:"env"`
 
 		// Filter is an optional filter on the stage.
 		// If the filter criteria are not met the stage will not be executed.
@@ -201,7 +201,7 @@ type (
 
 		// BasicEnv is a map of additional environment variables.
 		// They are not template expanded.
-		BasicEnv EnvMap `mapstructure:"basicEnv"`
+		BasicEnv VarMap `mapstructure:"basicEnv"`
 
 		// Concurrent is a list of tasks to execute concurrently.
 		Concurrent Tasks `mapstructure:"concurrent"`
@@ -221,7 +221,7 @@ type (
 
 		// Env is a map of additional environment variables.
 		// These are subject to template expansion after the params have been expanded.
-		Env EnvMap `mapstructure:"env"`
+		Env VarMap `mapstructure:"env"`
 
 		// Export is a list of variables to export. This list can be used by try and group task types
 		// to export their variables (output from sub tasks) to their parent stage or task.
@@ -249,7 +249,18 @@ type (
 		// Params is a collection of parameters that can be used within
 		// the child stages.  Parameters are template expanded and can use
 		// Environment variables defined in Env.
+		// Params and Env variables are template expanded during the preparation phase of a mission.  That means their
+		// values are calculated prior to any task running in any stage.
+		// If values need to be calculated before or after a run use pre or post variaBLES
 		Params Params `mapstructure:"params"`
+
+		// PostVars are variable evaluated after a task has run
+		// Post variable are automatically exported to the parent task/stage.
+		PostVars VarMap `mapstructure:"postvars"`
+
+		// PreVars are variables calculated immediately prior to a run.  They are are not exported to the parent context.
+		// If the variable needs to be used by other tasks it should be explicitly exported (See Export above).
+		PreVars VarMap `mapstructure:"prevars"`
 
 		// Try is a list of tasks to try.
 		Try Tasks `mapstructure:"try"`
@@ -368,8 +379,8 @@ func (l *Include) Validate() error {
 }
 
 // Copy copies an environment map.
-func (em EnvMap) Copy() EnvMap {
-	c := make(EnvMap)
+func (em VarMap) Copy() VarMap {
+	c := make(VarMap)
 	for k, v := range em {
 		c[k] = v
 	}

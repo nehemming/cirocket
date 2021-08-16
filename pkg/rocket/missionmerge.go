@@ -51,7 +51,7 @@ func mergeMissions(mission, addition *Mission) {
 func missionMergeEnv(mission, addition *Mission) {
 	if len(addition.BasicEnv) > 0 {
 		if mission.BasicEnv == nil {
-			mission.BasicEnv = make(EnvMap)
+			mission.BasicEnv = make(VarMap)
 		}
 		for k, v := range addition.BasicEnv {
 			if _, ok := mission.BasicEnv[k]; !ok {
@@ -61,7 +61,7 @@ func missionMergeEnv(mission, addition *Mission) {
 	}
 	if len(addition.Env) > 0 {
 		if mission.Env == nil {
-			mission.Env = make(EnvMap)
+			mission.Env = make(VarMap)
 		}
 		for k, v := range addition.Env {
 			if _, ok := mission.Env[k]; !ok {

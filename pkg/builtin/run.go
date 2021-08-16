@@ -75,6 +75,8 @@ func (runType) Prepare(ctx context.Context, capComm *rocket.CapComm, task rocket
 
 		// Setup command
 		cmd := exec.Command(commandLine.ProgramPath, commandLine.Args...)
+
+		// get the environment variables in the correct for for the exec command.
 		cmd.Env = capComm.GetExecEnv()
 
 		// Check not cancelled

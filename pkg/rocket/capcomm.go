@@ -234,7 +234,16 @@ func (capComm *CapComm) Log() loggee.Logger {
 
 // ExportVariable exports the passed variable to all capComm's sharing the same parent as the receiver.
 func (capComm *CapComm) ExportVariable(key, value string) *CapComm {
+	// Save the value in the local and export lists
+	capComm.variables.Set(key, value)
 	capComm.exportTo.Set(key, value)
+	return capComm
+}
+
+// SetLocalVariable sets a local capComm's variable.
+func (capComm *CapComm) SetLocalVariable(key, value string) *CapComm {
+	// Save the value in the local and export lists
+	capComm.variables.Set(key, value)
 	return capComm
 }
 
@@ -251,8 +260,10 @@ func (capComm *CapComm) ExportVariables(exports Exports) {
 }
 
 func (capComm *CapComm) getTemplateVariables() map[string]string {
+	// use all exported variables
 	m := capComm.variables.All()
 
+	// include any local variables not already exported
 	for k, v := range capComm.exportTo.All() {
 		if _, ok := m[k]; !ok {
 			m[k] = v
@@ -283,7 +294,7 @@ func (capComm *CapComm) WithMission(mission *Mission) *CapComm {
 }
 
 // MergeBasicEnvMap adds environment variables into an unsealed CapComm.
-func (capComm *CapComm) MergeBasicEnvMap(env EnvMap) *CapComm {
+func (capComm *CapComm) MergeBasicEnvMap(env VarMap) *CapComm {
 	capComm.mustNotBeSealed()
 
 	if env == nil {
@@ -631,9 +642,7 @@ func (capComm *CapComm) MergeParams(ctx context.Context, params []Param) error {
 }
 
 // MergeTemplateEnvs adds params into an unsealed CapComm instance.
-func (capComm *CapComm) MergeTemplateEnvs(ctx context.Context, env EnvMap) error {
-	capComm.mustNotBeSealed()
-
+func (capComm *CapComm) MergeTemplateEnvs(ctx context.Context, env VarMap) error {
 	// Envs need to be expanded prior to merging
 	expanded := make(map[string]string)
 

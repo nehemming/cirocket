@@ -361,7 +361,7 @@ func TestWithMission(t *testing.T) {
 func TestMergeBasicEnvMap(t *testing.T) {
 	capComm := NewCapComm(testMissionFile, stdlog.New())
 
-	envMap := make(EnvMap)
+	envMap := make(VarMap)
 
 	capComm.MergeBasicEnvMap(nil)
 
@@ -453,7 +453,7 @@ func TestAddFileResource(t *testing.T) { //nolint -- keep as one test
 }
 
 func TestAddFileResourceExpansion(t *testing.T) {
-	envMap := make(EnvMap)
+	envMap := make(VarMap)
 	envMap["something"] = "io"
 	ctx := context.Background()
 	capComm := NewCapComm(testMissionFile, stdlog.New()).MergeBasicEnvMap(envMap)
@@ -730,7 +730,7 @@ func TestAttachRedirectOutputExpand(t *testing.T) {
 	os.Setenv("TEST_ENV_CAPCOMM", "99")
 	defer os.Unsetenv("TEST_ENV_CAPCOMM")
 
-	envMap := make(EnvMap)
+	envMap := make(VarMap)
 	envMap["something"] = "here"
 
 	ctx := context.Background()
@@ -765,7 +765,7 @@ func TestAttachRedirectErrorExpand(t *testing.T) {
 	os.Setenv("TEST_ENV_CAPCOMM", "99")
 	defer os.Unsetenv("TEST_ENV_CAPCOMM")
 
-	envMap := make(EnvMap)
+	envMap := make(VarMap)
 	envMap["something"] = "here"
 
 	ctx := context.Background()
@@ -837,7 +837,7 @@ func TestAttachRedirectInExpand(t *testing.T) {
 }
 
 func TestAttachRedirectInExpandNotSet(t *testing.T) {
-	envMap := make(EnvMap)
+	envMap := make(VarMap)
 	envMap["something"] = "here"
 
 	ctx := context.Background()
@@ -917,7 +917,7 @@ func TestMergeParams(t *testing.T) {
 }
 
 func TestMergeParamsWithFile(t *testing.T) {
-	envMap := make(EnvMap)
+	envMap := make(VarMap)
 	envMap["name"] = "io"
 
 	ctx := context.Background()
@@ -940,7 +940,7 @@ func TestMergeParamsWithFile(t *testing.T) {
 }
 
 func TestMergeParamsWithOptionalFile(t *testing.T) {
-	envMap := make(EnvMap)
+	envMap := make(VarMap)
 	envMap["name"] = "notaconfig"
 
 	ctx := context.Background()
@@ -964,7 +964,7 @@ func TestMergeParamsWithOptionalFile(t *testing.T) {
 }
 
 func TestMergeParamsWithSkipTemplate(t *testing.T) {
-	envMap := make(EnvMap)
+	envMap := make(VarMap)
 	envMap["name"] = "notaconfig"
 
 	ctx := context.Background()
@@ -988,7 +988,7 @@ func TestMergeParamsWithSkipTemplate(t *testing.T) {
 }
 
 func TestMergeParamsWithParam(t *testing.T) {
-	envMap := make(EnvMap)
+	envMap := make(VarMap)
 	envMap["name"] = "config"
 
 	ctx := context.Background()
@@ -1033,7 +1033,7 @@ func TestMergeTemplateEnvs(t *testing.T) {
 	ctx := context.Background()
 	capComm := NewCapComm(testMissionFile, stdlog.New())
 
-	envMap := make(EnvMap)
+	envMap := make(VarMap)
 
 	capComm.MergeBasicEnvMap(nil)
 
@@ -1073,7 +1073,7 @@ func TestGetExecEnvNoOSInherit(t *testing.T) {
 }
 
 func TestGetExecEnv(t *testing.T) {
-	envMap := make(EnvMap)
+	envMap := make(VarMap)
 	envMap["TEST_ENV_CAPCOMM"] = "99"
 
 	execEnv := newCapCommFromEnvironment(getTestMissionFile(), stdlog.New()).
