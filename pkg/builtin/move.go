@@ -101,7 +101,7 @@ func (moveType) Prepare(ctx context.Context, capComm *rocket.CapComm, task rocke
 	return fn, nil
 }
 
-func moveFiles(ctx context.Context, sources []AbsRel, dest DestSpec, allowOverwrite bool, log loggee.Logger) error {
+func moveFiles(ctx context.Context, sources []absRel, dest destSpec, allowOverwrite bool, log loggee.Logger) error {
 	for _, source := range sources {
 		if ctx.Err() != nil {
 			return ctx.Err()
@@ -114,7 +114,7 @@ func moveFiles(ctx context.Context, sources []AbsRel, dest DestSpec, allowOverwr
 	return nil
 }
 
-func moveFile(source AbsRel, dest DestSpec, allowOverwrite bool, log loggee.Logger) error {
+func moveFile(source absRel, dest destSpec, allowOverwrite bool, log loggee.Logger) error {
 	// Get the source files permission
 	stat, err := os.Stat(source.Abs)
 	if err != nil {

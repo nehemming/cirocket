@@ -30,12 +30,12 @@ import (
 )
 
 type (
-	AbsRel struct {
+	absRel struct {
 		Abs string
 		Rel string
 	}
 
-	DestSpec struct {
+	destSpec struct {
 		Path  string
 		IsDir bool
 	}
@@ -109,15 +109,15 @@ func (copyType) Prepare(ctx context.Context, capComm *rocket.CapComm, task rocke
 	return fn, nil
 }
 
-func getDestSpec(rawDest string) (destSpec DestSpec, err error) {
+func getDestSpec(rawDest string) (dSpec destSpec, err error) {
 	if rawDest == "" {
-		return destSpec, errors.New("destination cannot be blank")
+		return dSpec, errors.New("destination cannot be blank")
 	}
 
 	var isDir bool
 	clean, err := filepath.Abs(filepath.FromSlash(rawDest))
 	if err != nil {
-		return destSpec, err
+		return dSpec, err
 	}
 	stat, err := os.Stat(clean)
 
@@ -127,7 +127,7 @@ func getDestSpec(rawDest string) (destSpec DestSpec, err error) {
 		isDir = true
 	}
 
-	return DestSpec{Path: clean, IsDir: isDir}, nil
+	return destSpec{Path: clean, IsDir: isDir}, nil
 }
 
 func getBaseDir(dir string) (string, error) {
@@ -147,7 +147,7 @@ func getBaseDir(dir string) (string, error) {
 	return dir, nil
 }
 
-func appendAbsRelList(files []AbsRel, spec string, list ...string) ([]AbsRel, error) {
+func appendAbsRelList(files []absRel, spec string, list ...string) ([]absRel, error) {
 	dir, err := getBaseDir(spec)
 	if err != nil {
 		return nil, errors.Wrapf(err, "dir walk %s", spec)
@@ -174,13 +174,13 @@ func appendAbsRelList(files []AbsRel, spec string, list ...string) ([]AbsRel, er
 			return nil, errors.Wrapf(err, "rel dir of %s", l)
 		}
 
-		files = append(files, AbsRel{Abs: abs, Rel: rel})
+		files = append(files, absRel{Abs: abs, Rel: rel})
 	}
 
 	return files, nil
 }
 
-func globFileAbsRel(rawSpecs ...string) (files []AbsRel, err error) {
+func globFileAbsRel(rawSpecs ...string) (files []absRel, err error) {
 	for _, rawSpec := range rawSpecs {
 
 		clean := filepath.Clean(filepath.FromSlash(rawSpec))
@@ -198,10 +198,10 @@ func globFileAbsRel(rawSpecs ...string) (files []AbsRel, err error) {
 	return toDistinctAbsRelSlice(files...), nil
 }
 
-func toDistinctAbsRelSlice(files ...AbsRel) []AbsRel {
+func toDistinctAbsRelSlice(files ...absRel) []absRel {
 	// Make list distinct, as more than one ref may match
 	m := make(map[string]bool)
-	res := make([]AbsRel, 0, len(files))
+	res := make([]absRel, 0, len(files))
 	for _, v := range files {
 		if m[v.Rel] {
 			continue
@@ -212,7 +212,7 @@ func toDistinctAbsRelSlice(files ...AbsRel) []AbsRel {
 	return res
 }
 
-func copyFiles(ctx context.Context, sources []AbsRel, dest DestSpec, allowOverwrite bool, log loggee.Logger) error {
+func copyFiles(ctx context.Context, sources []absRel, dest destSpec, allowOverwrite bool, log loggee.Logger) error {
 	for _, source := range sources {
 		if ctx.Err() != nil {
 			return ctx.Err()
@@ -225,7 +225,7 @@ func copyFiles(ctx context.Context, sources []AbsRel, dest DestSpec, allowOverwr
 	return nil
 }
 
-func copyFile(source AbsRel, dest DestSpec, allowOverwrite bool, log loggee.Logger) error {
+func copyFile(source absRel, dest destSpec, allowOverwrite bool, log loggee.Logger) error {
 	// Get the source files permission
 	stat, err := os.Stat(source.Abs)
 	if err != nil {
@@ -272,7 +272,7 @@ func copyFile(source AbsRel, dest DestSpec, allowOverwrite bool, log loggee.Logg
 	return nil
 }
 
-func prepDestination(source AbsRel, dest DestSpec, allowOverwrite bool) (*AbsRel, error) {
+func prepDestination(source absRel, dest destSpec, allowOverwrite bool) (*absRel, error) {
 	var finalPath string
 	if dest.IsDir {
 		finalPath = filepath.Join(dest.Path, source.Rel)
@@ -300,7 +300,7 @@ func prepDestination(source AbsRel, dest DestSpec, allowOverwrite bool) (*AbsRel
 		return nil, errors.Wrapf(err, "dir %s:", dir)
 	}
 
-	return &AbsRel{Abs: finalPath, Rel: destRel}, nil
+	return &absRel{Abs: finalPath, Rel: destRel}, nil
 }
 
 func init() {
