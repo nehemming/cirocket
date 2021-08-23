@@ -6,7 +6,6 @@
 ---
 Rocket powered cross platform task runner delivering developer and ci build missions.
 
-
  * [Installation](#install)
  * [Features](#features)
  * [Basic usage](#basic)
@@ -33,6 +32,8 @@ Rocket powered cross platform task runner delivering developer and ci build miss
 >
 >If you find and problem or want to contribute please see the contribution section below.
 
+A project road map will be defined in due course covering steps towards a stable version 1.0.
+
 ## <a name="install"></a> Installation
 
 The application can be installed via:
@@ -54,9 +55,9 @@ brew install nehemming/tap/cirocket
 `cirocket` is distributed as a `deb` package and can be installed using the commands below.  If a different version or architecture is required edit the file name as required.
 
 ```sh
-curl -LO https://github.com/nehemming/cirocket/releases/download/v0.2.1/cirocket_0.2.1_linux_amd64.deb
+curl -LO https://github.com/nehemming/cirocket/releases/download/v0.3.0/cirocket_0.3.0_linux_amd64.deb
 
-dpkg -i cirocket_0.2.1_linux_amd64.deb
+dpkg -i cirocket_0.3.0_linux_amd64.deb
 ```
 
 ### Go tool chain
@@ -90,13 +91,14 @@ Examples used by the authors can be found at [cirocket-config](https://github.co
 
 The `launch` command features:
 
- * Simple Yaml based configuration splitting  missions into stages and tasks.
- * Supports [go template](https://pkg.go.dev/text/template) expansion of properties
- * Executes task applications with io redirection to logs, variable or just plain console output
- * Configuration support include scripts located either on a local filesystem or pulled from a url web resource.
- * Supports both environment variables and parameters that can load values inline, from file or be pulled from the web.
- * Stages can be run in the order defined in the file or a `sequence` can be specified to run specific stages only.
- * Restricting of tasks to only run on certain platforms.  I.e. if you run from Linux, ypou may want to execute a shell script but on windows use a power shell one instead.
+ * Simple Yaml based configuration splitting missions into a hierarchal tree of stages and tasks.
+ * Stages (made up of tasks) run either in the order defined in the configuration file or follow a `sequence` that specifies the specific stages and order iin which to run.
+ * Tasks operations can perform file operations, run external applications or evaluate [Go templates](https://pkg.go.dev/text/template).
+ * Tasks may be defined to run sequentially or concurrently.
+ * Templated configuration using environment variables, parameters with variable substitution using [Go template](https://pkg.go.dev/text/template).
+ * Supports nested include files, that can be located locally or downloaded from a web url.
+ * Fallback failure tasks can be specified to run in the case a stage or task fails.
+ * Restricting execution of tasks to only run on certain platforms.  I.e. if you run from Linux, you may want to execute a shell script but on windows use a power shell one instead.
 
 Launch features are delivered through two commands.
 
