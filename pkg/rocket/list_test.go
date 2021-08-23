@@ -18,6 +18,7 @@ package rocket
 
 import (
 	"context"
+	"path/filepath"
 	"testing"
 
 	"github.com/nehemming/cirocket/pkg/loggee"
@@ -38,5 +39,38 @@ func TestListTypes(t *testing.T) {
 
 	if len(l) != 1 {
 		t.Error("len", len(l))
+	}
+}
+
+func TestListBlueprintsNoSources(t *testing.T) {
+	loggee.SetLogger(stdlog.New())
+	mc := NewMissionControl()
+
+	l, err := mc.ListBlueprints(context.Background(), []string{})
+	if err != nil {
+		t.Error("unexpected error", err)
+	}
+
+	if len(l) != 0 {
+		t.Error("len", len(l))
+	}
+}
+
+func TestListBlueprintsTestData(t *testing.T) {
+	loggee.SetLogger(stdlog.New())
+	mc := NewMissionControl()
+
+	l, err := mc.ListBlueprints(context.Background(), []string{"testdata", filepath.FromSlash("testdata/more")})
+	if err != nil {
+		t.Error("unexpected error", err)
+	}
+
+	if len(l) != 2 {
+		t.Error("len", len(l))
+		return
+	}
+
+	if l[0].Name != "blue" {
+		t.Error("expected blue, got", l[0].Name)
 	}
 }

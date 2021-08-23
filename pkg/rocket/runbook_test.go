@@ -116,3 +116,19 @@ func TestGetRunbookSideFile(t *testing.T) {
 		t.Error("runbook", runbook)
 	}
 }
+
+func TestGetRunbookFromLocattionBlankLocation(t *testing.T) {
+	l, err := getRunbookFromLocattion(context.Background(), Location{}, "testdata")
+	if err == nil || l != "" {
+		t.Error("unexpected", err)
+		return
+	}
+}
+
+func TestGetRunbookFromLocattionBadResource(t *testing.T) {
+	l, err := getRunbookFromLocattion(context.Background(), Location{Path: "notafile"}, "testdata")
+	if err == nil || l != "" {
+		t.Error("unexpected", err)
+		return
+	}
+}

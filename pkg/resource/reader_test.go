@@ -24,6 +24,8 @@ import (
 	"testing"
 )
 
+const readmeOpeningLine = "<p"
+
 func TestReadResourceZero(t *testing.T) {
 	ctx := context.Background()
 	b, err := ReadResource(ctx)
@@ -71,7 +73,7 @@ func TestReadResourceLocalTestFile(t *testing.T) {
 func TestReadResourceRemoteWeb(t *testing.T) {
 	ctx := context.Background()
 	b, err := ReadResource(ctx, "https://raw.githubusercontent.com/nehemming/cirocket/master/README.md")
-	if err != nil || !strings.HasPrefix(string(b), "#") {
+	if err != nil || !strings.HasPrefix(string(b), readmeOpeningLine) {
 		t.Error("unexpected", err, string(b))
 	}
 }
@@ -94,7 +96,7 @@ func TestReadResourceRemoteFileSplit(t *testing.T) {
 	b, err := ReadResource(ctx,
 		"https://raw.githubusercontent.com/nehemming",
 		"cirocket/master/README.md")
-	if err != nil || !strings.HasPrefix(string(b), "#") {
+	if err != nil || !strings.HasPrefix(string(b), readmeOpeningLine) {
 		t.Error("unexpected", err, string(b))
 	}
 }
@@ -105,7 +107,7 @@ func TestReadResourceRemoteFileSplitMltioots(t *testing.T) {
 		"c:\\windows", "//www/data/me",
 		"https://raw.githubusercontent.com/nehemming",
 		"cirocket/master/README.md")
-	if err != nil || !strings.HasPrefix(string(b), "#") {
+	if err != nil || !strings.HasPrefix(string(b), readmeOpeningLine) {
 		t.Error("unexpected", err, string(b))
 	}
 }
@@ -164,7 +166,7 @@ func TestOpenReadURLErrors(t *testing.T) {
 	defer f.Close()
 
 	b, err := io.ReadAll(f)
-	if err != nil || !strings.HasPrefix(string(b), "#") {
+	if err != nil || !strings.HasPrefix(string(b), readmeOpeningLine) {
 		t.Error("unexpected", err, string(b))
 	}
 }

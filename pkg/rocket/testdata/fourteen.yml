@@ -1,0 +1,19 @@
+name: "fourteen"
+onfail: 
+  ref: copy
+stages:
+ - name: copy
+   ref: testing
+   condition: yes
+   onfail: 
+    ref: phil
+ - name: testing
+   tasks:
+      - name: peter
+        concurrent:
+          - type: testTask
+            name: paul
+          - ref: paul
+            name: mary
+      - name: phil
+        ref: peter

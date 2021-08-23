@@ -74,6 +74,12 @@ func TestBUltimateURL(t *testing.T) {
 	}
 }
 
+func TestBUltimateBadURL(t *testing.T) {
+	if d, e := ultimate("https://a:a/b:/c"); d != "" || e == nil {
+		t.Error("unexpected", d, e)
+	}
+}
+
 func TestUltimateFilePath(t *testing.T) {
 	if d, e := ultimate(filepath.Join("a", "b", "c.txt")); !strings.HasSuffix(d, "/a/b/c.txt") || e != nil {
 		t.Error("unexpected", d, e)

@@ -29,6 +29,7 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+	"sync"
 	"text/template"
 	"time"
 
@@ -102,6 +103,9 @@ type (
 	// CapComm handles all communication between mission control and the mission stages and tasks.
 	CapComm struct {
 		data                  TemplateData
+		dataVersiion          uint
+		version               uint
+		dataLock              sync.Mutex
 		env                   Getter
 		entrustedParentEnv    Getter
 		funcMap               template.FuncMap
@@ -188,7 +192,6 @@ func (capComm *CapComm) Copy(noTrust bool) *CapComm {
 	// Create the new capComm from the source
 	// Do not copy data and d not seal
 	newCapComm := &CapComm{
-		sealed:                false,
 		mission:               capComm.mission,
 		additionalMissionData: capComm.additionalMissionData, // no copy, but safe as set once
 		funcMap:               make(template.FuncMap),
@@ -227,6 +230,13 @@ func (capComm *CapComm) Seal() *CapComm {
 	return capComm
 }
 
+func (capComm *CapComm) setModified() *CapComm {
+	capComm.dataLock.Lock()
+	defer capComm.dataLock.Unlock()
+	capComm.version++
+	return capComm
+}
+
 // Log returns the cap com logger.
 func (capComm *CapComm) Log() loggee.Logger {
 	return capComm.log
@@ -236,15 +246,18 @@ func (capComm *CapComm) Log() loggee.Logger {
 func (capComm *CapComm) ExportVariable(key, value string) *CapComm {
 	// Save the value in the local and export lists
 	capComm.variables.Set(key, value)
-	capComm.exportTo.Set(key, value)
-	return capComm
+	if capComm.exportTo != nil {
+		capComm.exportTo.Set(key, value)
+	}
+	return capComm.setModified()
 }
 
 // SetLocalVariable sets a local capComm's variable.
 func (capComm *CapComm) SetLocalVariable(key, value string) *CapComm {
 	// Save the value in the local and export lists
 	capComm.variables.Set(key, value)
-	return capComm
+	capComm.data = nil
+	return capComm.setModified()
 }
 
 // ExportVariables exports a list of variables if set in the capComm to aa parent.  If the variable is not found
@@ -257,6 +270,7 @@ func (capComm *CapComm) ExportVariables(exports Exports) {
 			capComm.exportTo.Set(key, value)
 		}
 	}
+	capComm.setModified()
 }
 
 func (capComm *CapComm) getTemplateVariables() map[string]string {
@@ -278,8 +292,10 @@ func (capComm *CapComm) GetVariable(key string) (string, bool) {
 	if value, ok := capComm.variables.Get(key); ok {
 		return value, true
 	}
-	if value, ok := capComm.exportTo.Get(key); ok {
-		return value, true
+	if capComm.exportTo != nil {
+		if value, ok := capComm.exportTo.Get(key); ok {
+			return value, true
+		}
 	}
 	return "", false
 }
@@ -416,7 +432,7 @@ func (capComm *CapComm) createProviderFromInputSpec(ctx context.Context, inputSp
 		}
 		rp, err = providers.NewURLProvider(v, time.Second*time.Duration(inputSpec.URLTimeout), inputSpec.Optional)
 	} else {
-		panic("validation bad input runbook")
+		panic("validation bad input spec")
 	}
 
 	return rp, err
@@ -636,6 +652,9 @@ func (capComm *CapComm) MergeParams(ctx context.Context, params []Param) error {
 			return errors.Wrapf(err, "parameter %s", p.Name)
 		}
 		kvg.kv[p.Name] = v
+
+		// mark modified within look as expandParam can use data just added
+		capComm.setModified()
 	}
 
 	return nil
@@ -655,6 +674,11 @@ func (capComm *CapComm) MergeTemplateEnvs(ctx context.Context, env VarMap) error
 		expanded[k] = v
 	}
 
+	if len(expanded) == 0 {
+		return nil
+	}
+
+	defer capComm.setModified()
 	kvg := capComm.env.(*KeyValueGetter)
 	for k, v := range expanded {
 		kvg.kv[k] = v
@@ -736,12 +760,22 @@ func (capComm *CapComm) GetExecEnv() []string {
 
 // GetTemplateData gts the data collection supplied to a template.
 func (capComm *CapComm) GetTemplateData(ctx context.Context) TemplateData {
-	if capComm.data != nil {
+	// quick check
+	data := capComm.data
+	if data != nil && capComm.dataVersiion == capComm.version {
 		return capComm.data
 	}
 
-	data := make(TemplateData)
+	capComm.dataLock.Lock()
+	defer capComm.dataLock.Unlock()
 
+	// recheck
+	data = capComm.data
+	if data != nil && capComm.dataVersiion == capComm.version {
+		return capComm.data
+	}
+
+	data = make(TemplateData)
 	// Add mission data
 	if capComm.additionalMissionData != nil {
 		data[AdditionalMissionTag] = capComm.additionalMissionData
@@ -768,9 +802,8 @@ func (capComm *CapComm) GetTemplateData(ctx context.Context) TemplateData {
 	data[BuildTag] = buildinfo.GetBuildInfo(ctx)
 
 	// Save cached values
-	if capComm.sealed {
-		capComm.data = data
-	}
+	capComm.dataVersiion = capComm.version
+	capComm.data = data
 
 	return data
 }

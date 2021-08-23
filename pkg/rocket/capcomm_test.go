@@ -1557,3 +1557,177 @@ func TestParamsFilterDuplicated(t *testing.T) {
 		t.Error("unexpected v picked wrong one", v)
 	}
 }
+
+func TestSetLocalVariable(t *testing.T) {
+	capComm := NewCapComm(testMissionFile, stdlog.New())
+
+	c := capComm.SetLocalVariable("test", "10")
+
+	if c != capComm {
+		t.Error("no chaining")
+	}
+
+	if r, ok := capComm.variables.Get("test"); !ok || r != "10" {
+		t.Error("unexpected", r, ok)
+	}
+
+	if r, ok := capComm.variables.Get("not"); ok || r != "" {
+		t.Error("unexpected present", r, ok)
+	}
+}
+
+func TestExportVariables(t *testing.T) {
+	capComm := NewCapComm(testMissionFile, stdlog.New())
+	ctx := context.Background()
+
+	params := Params{
+		{
+			Name:  "winter",
+			Value: "cold",
+		},
+	}
+
+	if err := capComm.MergeParams(ctx, params); err != nil {
+		t.Error("mergeParams error", err)
+		return
+	}
+
+	capComm.SetLocalVariable("test", "10")
+
+	capComm.ExportVariables(Exports{"test", "winter"})
+
+	if r, ok := capComm.exportTo.Get("test"); !ok || r != "10" {
+		t.Error("unexpected", r, ok)
+	}
+	if r, ok := capComm.exportTo.Get("winter"); !ok || r != "cold" {
+		t.Error("unexpected", r, ok)
+	}
+
+	// check getTemplateVariables
+	m := capComm.getTemplateVariables()
+	if r, ok := m["test"]; !ok || r != "10" {
+		t.Error("unexpected", r, ok)
+	}
+	if r, ok := m["winter"]; !ok || r != "cold" {
+		t.Error("unexpected", r, ok)
+	}
+}
+
+func TestGetVariable(t *testing.T) {
+	capComm := NewCapComm(testMissionFile, stdlog.New())
+
+	if r, ok := capComm.GetVariable("not"); ok || r != "" {
+		t.Error("unexpected present", r, ok)
+	}
+
+	capComm.SetLocalVariable("test", "10")
+
+	if r, ok := capComm.GetVariable("test"); !ok || r != "10" {
+		t.Error("unexpected", r, ok)
+	}
+
+	capComm.ExportVariable("test", "20")
+
+	if r, ok := capComm.GetVariable("test"); !ok || r != "20" {
+		t.Error("unexpected", r, ok)
+	}
+
+	capComm.exportTo.Set("exp", "99")
+
+	if r, ok := capComm.GetVariable("exp"); !ok || r != "99" {
+		t.Error("unexpected", r, ok)
+	}
+}
+
+func TestCreateProviderFromInputSpecBadVarFails(t *testing.T) {
+	capComm := NewCapComm(testMissionFile, stdlog.New())
+	ctx := context.Background()
+
+	inputSpec := InputSpec{Variable: "missing"}
+
+	if _, err := capComm.createProviderFromInputSpec(ctx, inputSpec); err == nil {
+		t.Error("Expected Error")
+	}
+}
+
+func TestCreateProviderFromURLWithSkip(t *testing.T) {
+	capComm := NewCapComm(testMissionFile, stdlog.New())
+	ctx := context.Background()
+
+	inputSpec := InputSpec{URL: "file:/io.go", SkipExpand: true}
+
+	if _, err := capComm.createProviderFromInputSpec(ctx, inputSpec); err != nil {
+		t.Error("unexpected error", err)
+	}
+}
+
+func TestAttachOutputSpecMissingPSpecFails(t *testing.T) {
+	capComm := NewCapComm(testMissionFile, stdlog.New())
+	ctx := context.Background()
+
+	if err := capComm.AttachOutputSpec(ctx, "", OutputSpec{}); err == nil {
+		t.Error("Expected Error")
+	}
+}
+
+func TestGetTemplateDataWithNoTrust(t *testing.T) {
+	parentCapComm := NewCapComm(testMissionFile, stdlog.New())
+	parentCapComm.MergeBasicEnvMap(VarMap{"test": "10"})
+
+	capComm := parentCapComm.Copy(true)
+	ctx := context.Background()
+
+	data := capComm.GetTemplateData(ctx)
+
+	envData, ok := data[ParentEnvTag]
+	if !ok || envData == nil {
+		t.Error("parent env missing")
+		return
+	}
+
+	m := envData.(map[string]string)
+
+	if v, ok := m["test"]; !ok || v != "10" {
+		t.Error("missing test data", v)
+	}
+}
+
+func TestGetTemplateDataWithCache(t *testing.T) { //nolint:cyclop
+	capComm := NewCapComm(testMissionFile, stdlog.New())
+	capComm.MergeBasicEnvMap(VarMap{"test": "10"})
+	ctx := context.Background()
+
+	data := capComm.GetTemplateData(ctx)
+
+	envData, ok := data[EnvTag]
+	if !ok || envData == nil {
+		t.Error("env missing")
+		return
+	}
+
+	m := envData.(map[string]string)
+
+	if v, ok := m["test"]; !ok || v != "10" {
+		t.Error("missing test data", v)
+		return
+	}
+
+	// hack cached data only
+	hack := capComm.data[EnvTag].(map[string]string)
+	hack["hacked"] = "20"
+
+	data2 := capComm.GetTemplateData(ctx)
+	envData2, ok := data2[EnvTag]
+	if !ok || envData2 == nil {
+		t.Error("env missing")
+		return
+	}
+
+	m2 := envData2.(map[string]string)
+	if v, ok := m2["test"]; !ok || v != "10" {
+		t.Error("missing test data from cache", v)
+	}
+	if v, ok := m2["hacked"]; !ok || v != "20" {
+		t.Error("missing test hacked data from cache", v)
+	}
+}

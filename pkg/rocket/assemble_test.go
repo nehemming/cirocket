@@ -165,3 +165,26 @@ func TestAssembleOneSourcesPathMissionWithSpec(t *testing.T) {
 		t.Error("unexpected", err)
 	}
 }
+
+func TestAssembleRunbookErrors(t *testing.T) {
+	loggee.SetLogger(stdlog.New())
+	ctx := context.Background()
+	mc := NewMissionControl()
+	tt := &testTaskType{t: t}
+	mc.RegisterTaskTypes(tt)
+
+	sources := []string{"testdata"}
+
+	err := mc.Assemble(ctx, "blue_runbook", sources, "bad", nil)
+	if err == nil {
+		t.Error("error unexpected")
+	}
+}
+
+func TestLoadMapFromLocationDecodeFail(t *testing.T) {
+	ctx := context.Background()
+	m, n, err := loadMapFromLocation(ctx, Location{Inline: "bad"}, "")
+	if err == nil || n != "" || m != nil {
+		t.Error("error unexpected", err, n, m)
+	}
+}

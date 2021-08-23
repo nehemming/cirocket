@@ -289,6 +289,21 @@ func TestLaunchMissionThirteen(t *testing.T) {
 	}
 }
 
+func TestLaunchMissionFourteen(t *testing.T) {
+	loggee.SetLogger(stdlog.New())
+
+	mc := NewMissionControl()
+	tt := &testTaskType{t: t}
+
+	mc.RegisterTaskTypes(tt)
+
+	mission, missionLocation := loadMission("fourteen")
+
+	if err := mc.LaunchMission(context.Background(), missionLocation, mission); err != nil {
+		t.Error("Mission error for a ref group task", err)
+	}
+}
+
 func TestLaunchMissionWithSequencesNoneSpecified(t *testing.T) {
 	loggee.SetLogger(stdlog.New())
 
@@ -433,84 +448,308 @@ func TestCheckMustHaveParamsMatchParams(t *testing.T) {
 	}
 }
 
-func TestSwapDirNoOp(t *testing.T) {
-	wd, err := os.Getwd()
-	if err != nil {
-		panic(err)
-	}
+func TestPrepareTaskKindTypeDirExpandIssue(t *testing.T) {
+	ctx := context.Background()
+	capComm := newCapCommFromEnvironment(getTestMissionFile(), stdlog.New())
+	mc := NewMissionControl().(*missionControl)
+	tt := &testTaskType{t: t}
+	mc.RegisterTaskTypes(tt)
 
-	f, e := swapDir("")
-	if e != nil {
-		t.Error("unexpected", e)
-		return
-	}
+	task := Task{Type: tt.Type(), Dir: "{{testdata }}", Name: "exp"}
 
-	cwd, _ := os.Getwd()
+	op, err := mc.prepareTaskKindType(ctx, capComm, task)
 
-	if cwd != wd {
-		t.Error("dir moved", wd, cwd)
-	}
-
-	if f == nil {
-		t.Error("restore nil", wd, cwd)
-	}
-
-	f()
-
-	cwd, _ = os.Getwd()
-	if cwd != wd {
-		t.Error("dir restroe", wd, cwd)
+	if err == nil || op != nil || err.Error() != "exp dir expand: parsing template: template: dir:1: function \"testdata\" not defined" {
+		t.Error("unexpected", err, op)
 	}
 }
 
-func TestSwapDirChange(t *testing.T) {
-	wd, err := os.Getwd()
-	if err != nil {
-		panic(err)
-	}
-	td := filepath.Join(wd, "testdata")
+func TestPrepareTaskKindTypeUnknownTaskType(t *testing.T) {
+	ctx := context.Background()
+	capComm := newCapCommFromEnvironment(getTestMissionFile(), stdlog.New())
+	mc := NewMissionControl().(*missionControl)
+	tt := &testTaskType{t: t}
+	mc.RegisterTaskTypes(tt)
 
-	f, e := swapDir("testdata")
-	if e != nil {
-		t.Error("unexpected", e)
-		return
-	}
+	task := Task{Type: "fred"}
 
-	cwd, _ := os.Getwd()
+	op, err := mc.prepareTaskKindType(ctx, capComm, task)
 
-	if cwd != td {
-		t.Error("dir not moved", wd, cwd, td)
-	}
-
-	if f == nil {
-		t.Error("restore nil", wd, cwd)
-	}
-
-	f()
-
-	cwd, _ = os.Getwd()
-	if cwd != wd {
-		t.Error("dir restroe", wd, cwd)
+	if err == nil || op != nil || err.Error() != "unknown task type fred" {
+		t.Error("unexpected", err, op)
 	}
 }
 
-func TestSwapDirFails(t *testing.T) {
-	wd, err := os.Getwd()
+func TestPrepareTaskKindType(t *testing.T) {
+	ctx := context.Background()
+	capComm := newCapCommFromEnvironment(getTestMissionFile(), stdlog.New())
+	mc := NewMissionControl().(*missionControl)
+	tt := &testTaskType{t: t}
+	mc.RegisterTaskTypes(tt)
+
+	task := Task{Type: tt.Type(), Dir: "testdata", OnFail: &Task{Type: tt.Type()}}
+
+	op, err := mc.prepareTaskKindType(ctx, capComm, task)
+
+	if err != nil || op == nil {
+		t.Error("unexpected", err, op)
+	}
+}
+
+func TestPrepareConcurrentTaskListExpandIssue(t *testing.T) {
+	ctx := context.Background()
+	capComm := newCapCommFromEnvironment(getTestMissionFile(), stdlog.New())
+	mc := NewMissionControl().(*missionControl)
+	tt := &testTaskType{t: t}
+	mc.RegisterTaskTypes(tt)
+
+	task := Tasks{Task{Type: tt.Type()}}
+	fail := &Task{Type: tt.Type()}
+
+	ops, err := mc.prepareConcurrentTaskList(ctx, capComm, "desc", task, fail, "{{testdata }}")
+
+	if err == nil || ops != nil || err.Error() != "desc dir expand: parsing template: template: dir:1: function \"testdata\" not defined" {
+		t.Error("unexpected", err, ops)
+	}
+}
+
+func TestPrepareConcurrentTaskListNoTypeError(t *testing.T) {
+	ctx := context.Background()
+	capComm := newCapCommFromEnvironment(getTestMissionFile(), stdlog.New())
+	mc := NewMissionControl().(*missionControl)
+	tt := &testTaskType{t: t}
+	mc.RegisterTaskTypes(tt)
+
+	task := Tasks{Task{Type: "bad"}}
+	fail := &Task{Type: tt.Type()}
+
+	ops, err := mc.prepareConcurrentTaskList(ctx, capComm, "desc", task, fail, "testdata")
+
+	if err == nil || ops != nil || err.Error() != "prepare: task[0]: unknown task type bad" {
+		t.Error("unexpected", err, ops)
+	}
+}
+
+func TestPrepareConcurrentTaskList(t *testing.T) {
+	ctx := context.Background()
+	capComm := newCapCommFromEnvironment(getTestMissionFile(), stdlog.New())
+	mc := NewMissionControl().(*missionControl)
+	tt := &testTaskType{t: t}
+	mc.RegisterTaskTypes(tt)
+
+	task := Tasks{Task{Type: tt.Type()}}
+	fail := &Task{Type: tt.Type()}
+
+	op, err := mc.prepareConcurrentTaskList(ctx, capComm, "desc", task, fail, "testdata")
+
+	if err != nil || op == nil {
+		t.Error("unexpected", err, op)
+	}
+}
+
+func TestPrepareConcurrentTaskListEmpty(t *testing.T) {
+	ctx := context.Background()
+	capComm := newCapCommFromEnvironment(getTestMissionFile(), stdlog.New())
+	mc := NewMissionControl().(*missionControl)
+	tt := &testTaskType{t: t}
+	mc.RegisterTaskTypes(tt)
+
+	task := Tasks{}
+	fail := &Task{Type: tt.Type()}
+
+	op, err := mc.prepareConcurrentTaskList(ctx, capComm, "desc", task, fail, "testdata")
+
+	if err != nil || op != nil {
+		t.Error("unexpected", err, op)
+	}
+}
+
+func TestPrepareSequentialTaskListExpandIssue(t *testing.T) {
+	ctx := context.Background()
+	capComm := newCapCommFromEnvironment(getTestMissionFile(), stdlog.New())
+	mc := NewMissionControl().(*missionControl)
+	tt := &testTaskType{t: t}
+	mc.RegisterTaskTypes(tt)
+
+	task := Tasks{Task{Type: tt.Type()}}
+	fail := &Task{Type: tt.Type()}
+
+	ops, err := mc.prepareSequentialTaskList(ctx, capComm, "desc", task, fail, false, "{{testdata }}")
+
+	if err == nil || ops != nil || err.Error() != "desc dir expand: parsing template: template: dir:1: function \"testdata\" not defined" {
+		t.Error("unexpected", err, ops)
+	}
+}
+
+func TestPrepareSequentialTaskListNoTypeError(t *testing.T) {
+	ctx := context.Background()
+	capComm := newCapCommFromEnvironment(getTestMissionFile(), stdlog.New())
+	mc := NewMissionControl().(*missionControl)
+	tt := &testTaskType{t: t}
+	mc.RegisterTaskTypes(tt)
+
+	task := Tasks{Task{Type: "bad"}}
+	fail := &Task{Type: tt.Type()}
+
+	ops, err := mc.prepareSequentialTaskList(ctx, capComm, "desc", task, fail, false, "testdata")
+
+	if err == nil || ops != nil || err.Error() != "prepare: task[0]: unknown task type bad" {
+		t.Error("unexpected", err, ops)
+	}
+}
+
+func TestPrepareSequentialTaskList(t *testing.T) {
+	ctx := context.Background()
+	capComm := newCapCommFromEnvironment(getTestMissionFile(), stdlog.New())
+	mc := NewMissionControl().(*missionControl)
+	tt := &testTaskType{t: t}
+	mc.RegisterTaskTypes(tt)
+
+	task := Tasks{Task{Type: tt.Type()}}
+	fail := &Task{Type: tt.Type()}
+
+	op, err := mc.prepareSequentialTaskList(ctx, capComm, "desc", task, fail, false, "testdata")
+
+	if err != nil || op == nil {
+		t.Error("unexpected", err, op)
+	}
+}
+
+func TestPrepareSequentialTaskListEmpty(t *testing.T) {
+	ctx := context.Background()
+	capComm := newCapCommFromEnvironment(getTestMissionFile(), stdlog.New())
+	mc := NewMissionControl().(*missionControl)
+	tt := &testTaskType{t: t}
+	mc.RegisterTaskTypes(tt)
+
+	task := Tasks{}
+	fail := &Task{Type: tt.Type()}
+
+	op, err := mc.prepareSequentialTaskList(ctx, capComm, "desc", task, fail, false, "testdata")
+
+	if err != nil || op != nil {
+		t.Error("unexpected", err, op)
+	}
+}
+
+func TestGetTaskKindNone(t *testing.T) {
+	task := Task{}
+
+	kind, err := getTaskKind(task)
+	if err == nil || kind != taskKindNone {
+		t.Error("unexpected", err, kind)
+	}
+}
+
+func TestGetTaskKindType(t *testing.T) {
+	tt := &testTaskType{t: t}
+	task := Task{Type: tt.Type()}
+
+	kind, err := getTaskKind(task)
+	if err != nil || kind != taskKindType {
+		t.Error("unexpected", err, kind)
+	}
+}
+
+func TestGetTaskKindTry(t *testing.T) {
+	task := Task{Try: Tasks{Task{}}}
+
+	kind, err := getTaskKind(task)
+	if err != nil || kind != taskKindTry {
+		t.Error("unexpected", err, kind)
+	}
+}
+
+func TestGetTaskKindGroup(t *testing.T) {
+	task := Task{Group: Tasks{Task{}}}
+
+	kind, err := getTaskKind(task)
+	if err != nil || kind != taskKindGroup {
+		t.Error("unexpected", err, kind)
+	}
+}
+
+func TestGetTaskKindConcurrent(t *testing.T) {
+	task := Task{Concurrent: Tasks{Task{}}}
+
+	kind, err := getTaskKind(task)
+	if err != nil || kind != taskKindConcurrent {
+		t.Error("unexpected", err, kind)
+	}
+}
+
+func TestGetTaskKindMultipleError(t *testing.T) {
+	task := Task{Type: "bad", Concurrent: Tasks{Task{}}}
+
+	kind, err := getTaskKind(task)
+	if err == nil || kind != taskKindNone {
+		t.Error("unexpected", err, kind)
+	}
+}
+
+func TestApplyTaskHandlers(t *testing.T) {
+	capComm := newCapCommFromEnvironment(getTestMissionFile(), stdlog.New())
+	task := Task{
+		Export:    Exports{""},
+		PostVars:  VarMap{"key": "val"},
+		Condition: "true",
+		PreVars:   VarMap{"key": "val"},
+	}
+	op := &operation{makeItSo: func(_ context.Context) error { return nil }}
+
+	applyTaskHandlers(capComm, task, op)
+
+	err := op.makeItSo(context.Background())
 	if err != nil {
-		panic(err)
+		t.Error("unexpected", err)
+	}
+}
+
+func TestConvertStagesToMapDup(t *testing.T) {
+	sm, err := convertStagesToMap(Stages{Stage{Name: "dup"}, Stage{Name: "dup"}})
+	if err == nil || len(sm) > 0 {
+		t.Error("unexpected", err, sm)
+	}
+}
+
+func TestConvertStagesToMapIgnoreNoName(t *testing.T) {
+	sm, err := convertStagesToMap(Stages{Stage{Name: ""}, Stage{Name: "one"}})
+	if err != nil || len(sm) != 1 {
+		t.Error("unexpected", err, sm)
+	}
+	if _, ok := sm[""]; ok {
+		t.Error("unexpected empotty name", sm)
+	}
+}
+
+func TestGetStagesTooRunNoSequences(t *testing.T) {
+	stages, err := getStagesTooRun(&Mission{}, StageMap{}, []string{"one"})
+	if err == nil || len(stages) > 0 {
+		t.Error("unexpected", err, stages)
+	}
+}
+
+func TestGetStagesTooRunNoStage(t *testing.T) {
+	stages, err := getStagesTooRun(&Mission{Sequences: map[string][]string{"one": {"notthere"}}}, StageMap{}, []string{"one"})
+	if err == nil || len(stages) > 0 {
+		t.Error("unexpected", err, stages)
+	}
+}
+
+func TestApplyConditionHandler(t *testing.T) {
+	capComm := newCapCommFromEnvironment(getTestMissionFile(), stdlog.New())
+
+	op := &operation{makeItSo: func(_ context.Context) error { return nil }}
+
+	task := Task{
+		Condition: "{{ bad",
 	}
 
-	f, e := swapDir("notpresent")
-	if e == nil {
-		t.Error("expected an error")
-	}
+	applyConditionHandler(capComm, task, op)
 
-	cwd, _ := os.Getwd()
-	if cwd != wd {
-		t.Error("dir moved", wd, cwd)
-	}
+	err := op.makeItSo(context.Background())
 
-	if f != nil {
-		t.Error("f nil")
+	if err == nil || err.Error() != "parsing template: template: condition:1: function \"bad\" not defined" {
+		t.Error("unexpected", err)
 	}
 }

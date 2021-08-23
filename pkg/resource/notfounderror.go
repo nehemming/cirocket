@@ -18,6 +18,7 @@ package resource
 
 import (
 	"fmt"
+	"strings"
 )
 
 // NotFoundError indicates a resource cannot be found.
@@ -47,6 +48,10 @@ func (nfe *NotFoundError) Resource() string {
 
 // Error converts the errorinto a string.
 func (nfe *NotFoundError) Error() string {
+	ce := nfe.cause.Error()
+	if strings.Contains(ce, nfe.resource) {
+		return ce
+	}
 	return fmt.Sprintf("%s %s", nfe.resource, nfe.cause)
 }
 
