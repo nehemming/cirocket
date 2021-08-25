@@ -491,10 +491,10 @@ func (mc *missionControl) prepareStage(ctx context.Context, missionCapComm *CapC
 		return nil, err
 	}
 
-	if stage.Condition != "" {
+	if stage.If != "" {
 		return op.AddHandler(func(next ExecuteFunc) ExecuteFunc {
 			return func(execCtx context.Context) error {
-				ok, err := capComm.ExpandBool(ctx, "condition", stage.Condition)
+				ok, err := capComm.ExpandBool(ctx, "if", stage.If)
 				if err != nil {
 					return err
 				}
@@ -645,7 +645,7 @@ func applyPreVarsHandler(capComm *CapComm, task Task, op *operation) {
 func applyConditionHandler(capComm *CapComm, task Task, op *operation) {
 	op.AddHandler(func(next ExecuteFunc) ExecuteFunc {
 		return func(execCtx context.Context) error {
-			ok, err := capComm.ExpandBool(execCtx, "condition", task.Condition)
+			ok, err := capComm.ExpandBool(execCtx, "if", task.If)
 			if err != nil {
 				return err
 			}
@@ -697,9 +697,9 @@ func applyTaskHandlers(capComm *CapComm, task Task, op *operation) {
 		applyPostVarsHandler(capComm, task, op)
 	}
 
-	// Run the condition check, skips steps above if condition os false
+	// Run the condition check, skips running handlers above if condition is false
 	// pre variables are evaluated though.
-	if task.Condition != "" {
+	if task.If != "" {
 		applyConditionHandler(capComm, task, op)
 	}
 

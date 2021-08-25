@@ -690,10 +690,10 @@ func TestGetTaskKindMultipleError(t *testing.T) {
 func TestApplyTaskHandlers(t *testing.T) {
 	capComm := newCapCommFromEnvironment(getTestMissionFile(), stdlog.New())
 	task := Task{
-		Export:    Exports{""},
-		PostVars:  VarMap{"key": "val"},
-		Condition: "true",
-		PreVars:   VarMap{"key": "val"},
+		Export:   Exports{""},
+		PostVars: VarMap{"key": "val"},
+		If:       "true",
+		PreVars:  VarMap{"key": "val"},
 	}
 	op := &operation{makeItSo: func(_ context.Context) error { return nil }}
 
@@ -742,14 +742,14 @@ func TestApplyConditionHandler(t *testing.T) {
 	op := &operation{makeItSo: func(_ context.Context) error { return nil }}
 
 	task := Task{
-		Condition: "{{ bad",
+		If: "{{ bad",
 	}
 
 	applyConditionHandler(capComm, task, op)
 
 	err := op.makeItSo(context.Background())
 
-	if err == nil || err.Error() != "parsing template: template: condition:1: function \"bad\" not defined" {
+	if err == nil || err.Error() != "parsing template: template: if:1: function \"bad\" not defined" {
 		t.Error("unexpected", err)
 	}
 }

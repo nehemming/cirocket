@@ -4,7 +4,7 @@ onfail:
 stages:
  - name: copy
    ref: testing
-   condition: yes
+   if: yes
    onfail: 
     ref: phil
  - name: testing

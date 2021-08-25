@@ -153,9 +153,9 @@ type (
 		// They are not template expanded
 		BasicEnv VarMap `mapstructure:"basicEnv"`
 
-		// Condition if present is evaluated prior to running a stage.  If the condition template expression evaluates to true/yes/1 the
+		// If is evaluated prior to running a stage.  If the condition template expression evaluates to true/yes/1 the
 		// stage will be run.  If the template is blank or non true value the stage will not be run and the step will be skipped.
-		Condition string `mapstructure:"condition"`
+		If string `mapstructure:"if"`
 
 		// Dir is the directory to execute the stage in.
 		Dir string `mapstructure:"dir"`
@@ -206,9 +206,9 @@ type (
 		// Concurrent is a list of tasks to execute concurrently.
 		Concurrent Tasks `mapstructure:"concurrent"`
 
-		// Condition if present is evaluated prior to running a task.  If the condition template expression evaluates to true/yes/1 the
+		// If is evaluated prior to running a task.  If the condition template expression evaluates to true/yes/1 the
 		// task will be run.  If the template is blank or non true value the task will not be run and the step will be skipped.
-		Condition string `mapstructure:"condition"`
+		If string `mapstructure:"if"`
 
 		// Description is a free text description of the task.
 		Description string `mapstructure:"description"`
