@@ -24,7 +24,7 @@ import (
 func (cli *cli) newLaunchCommand() *cobra.Command {
 	launchCmd := &cobra.Command{
 		Use:           "launch [{flightSequence}]",
-		Short:         "launch the CI rocket \U0001F680 ",
+		Short:         "launch the cirocket \U0001F680 ",
 		Long:          "runs the CI config, if the config uses sequences, one or more can be specified as additional args",
 		Args:          cobra.ArbitraryArgs,
 		SilenceErrors: true,

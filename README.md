@@ -11,7 +11,8 @@ Rocket powered cross platform task runner delivering developer and ci build miss
  * [Basic usage](#basic)
  * [Contributing](#contrib)
 
-## <a name="status"></a>Status
+<a name="status"></a>
+## Status
 
 ![Status](https://img.shields.io/badge/Status-ALPHA-red?style=for-the-badge)
 [![Build Status](https://img.shields.io/circleci/build/gh/nehemming/cirocket/master?style=for-the-badge)](https://github.com/nehemming/cirocket) 
@@ -34,7 +35,8 @@ Rocket powered cross platform task runner delivering developer and ci build miss
 
 A project road map will be defined in due course covering steps towards a stable version 1.0.
 
-## <a name="install"></a> Installation
+<a name="install"></a> 
+## Installation
 
 The application can be installed via:
 
@@ -74,7 +76,10 @@ cd cirocket
 go install
 
 ```
-## <a name="features"></a> Features
+
+
+<a name="features"></a>
+## Features
 
 `cirocket` is a task runner that is designed to support developers' local and ci build processes in a platform agnostic way. 
 
@@ -154,7 +159,8 @@ Launch features are delivered through two commands.
 cirocket list blueprints
 ```
 
-## <a name="basic"></a>Basic usage
+<a name="basic"></a>
+## Basic usage
 
 `cirocket` is a simple task runner application that uses a configuration file to specify the tasks.  
 
@@ -177,9 +183,10 @@ cirocket launch
 ```
 Different mission files can be specified by adding to either command the `--mission <filename>` flag.
 
-### <a name="docker"></a>Docker 
+<a name="docker"></a>
+### Docker 
 
-CI Rocket a basic docker image available in [packages](https://github.com/nehemming/cirocket/pkgs/container/cirocket).
+`cirocket` has a basic docker image available in [packages](https://github.com/nehemming/cirocket/pkgs/container/cirocket).
 
 
 To use the image, either pull it or include it in Dockerfile FROM statement.
@@ -195,11 +202,14 @@ docker run --rm -ti -v /host/project:/project cirocket --dir /project init
 ```
 
 >TIP:  The `--dir` flag switches to the supplied directory before running the tool.
-## <a name="contrib"></a>Contributing
+
+<a name="contrib"></a>
+## Contributing
 
 We would welcome contributions to this project.  Please read our [CONTRIBUTION](https://github.com/nehemming/cirocket/blob/master/CONTRIBUTING.md) file for further details on how you can participate or report any issues.
 
-## <a name="license"></a>License
+<a name="license"></a>
+## License
 
 [![FOSSA Status](https://app.fossa.com/api/projects/custom%2B26823%2Fgit%40github.com%3Anehemming%2Fcirocket.git.svg?type=small)](https://app.fossa.com/projects/custom%2B26823%2Fgit%40github.com%3Anehemming%2Fcirocket.git?ref=badge_small)
 

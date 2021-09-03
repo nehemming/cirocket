@@ -33,7 +33,7 @@ type (
 
 	// Mission is activity to complete.
 	Mission struct {
-		// Mission name, defsaults to the config file name
+		// Mission name, defaults to the config file name
 		Name string `mapstructure:"name"`
 
 		// Description is a free text description of the mission.
