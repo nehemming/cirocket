@@ -172,7 +172,7 @@ type (
 		// Iif any are missing the mission will fail.
 		Must MustHaveParams `mapstructure:"must"`
 
-		// NoTrust indicates the stage should not inherit environment.
+		// NoTrust indicates the stage should not inherit environment
 		// variables or parameters from its parent.  This can be used with a run stage
 		// where you do not want the process to receive API tokens etc.
 		NoTrust bool `mapstructure:"noTrust"`
@@ -185,8 +185,8 @@ type (
 		// Environment variables defined in Env
 		Params Params `mapstructure:"params"`
 
-		// Tasks is a collection of one or more tasks to complete
-		// Tasks are executed sequentally
+		// Tasks is a collection of one or more tasks to execute
+		// Tasks are executed sequentially
 		Tasks Tasks `mapstructure:"tasks"`
 	}
 
