@@ -40,6 +40,8 @@ workflows:
           context:
             - 'CI Shared'
           filters:
+            branches:
+              ignore: /docs/
             tags:
               ignore: 
                 - /^v\d+\.\d+\.\d+.*$/
