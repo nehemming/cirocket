@@ -448,22 +448,6 @@ func TestCheckMustHaveParamsMatchParams(t *testing.T) {
 	}
 }
 
-func TestPrepareTaskKindTypeDirExpandIssue(t *testing.T) {
-	ctx := context.Background()
-	capComm := newCapCommFromEnvironment(getTestMissionFile(), stdlog.New())
-	mc := NewMissionControl().(*missionControl)
-	tt := &testTaskType{t: t}
-	mc.RegisterTaskTypes(tt)
-
-	task := Task{Type: tt.Type(), Dir: "{{testdata }}", Name: "exp"}
-
-	op, err := mc.prepareTaskKindType(ctx, capComm, task)
-
-	if err == nil || op != nil || err.Error() != "exp dir expand: parsing template: template: dir:1: function \"testdata\" not defined" {
-		t.Error("unexpected", err, op)
-	}
-}
-
 func TestPrepareTaskKindTypeUnknownTaskType(t *testing.T) {
 	ctx := context.Background()
 	capComm := newCapCommFromEnvironment(getTestMissionFile(), stdlog.New())
@@ -487,29 +471,12 @@ func TestPrepareTaskKindType(t *testing.T) {
 	tt := &testTaskType{t: t}
 	mc.RegisterTaskTypes(tt)
 
-	task := Task{Type: tt.Type(), Dir: "testdata", OnFail: &Task{Type: tt.Type()}}
+	task := Task{Type: tt.Type(), OnFail: &Task{Type: tt.Type()}}
 
 	op, err := mc.prepareTaskKindType(ctx, capComm, task)
 
 	if err != nil || op == nil {
 		t.Error("unexpected", err, op)
-	}
-}
-
-func TestPrepareConcurrentTaskListExpandIssue(t *testing.T) {
-	ctx := context.Background()
-	capComm := newCapCommFromEnvironment(getTestMissionFile(), stdlog.New())
-	mc := NewMissionControl().(*missionControl)
-	tt := &testTaskType{t: t}
-	mc.RegisterTaskTypes(tt)
-
-	task := Tasks{Task{Type: tt.Type()}}
-	fail := &Task{Type: tt.Type()}
-
-	ops, err := mc.prepareConcurrentTaskList(ctx, capComm, "desc", task, fail, "{{testdata }}")
-
-	if err == nil || ops != nil || err.Error() != "desc dir expand: parsing template: template: dir:1: function \"testdata\" not defined" {
-		t.Error("unexpected", err, ops)
 	}
 }
 
@@ -523,7 +490,7 @@ func TestPrepareConcurrentTaskListNoTypeError(t *testing.T) {
 	task := Tasks{Task{Type: "bad"}}
 	fail := &Task{Type: tt.Type()}
 
-	ops, err := mc.prepareConcurrentTaskList(ctx, capComm, "desc", task, fail, "testdata")
+	ops, err := mc.prepareConcurrentTaskList(ctx, capComm, "desc", task, fail)
 
 	if err == nil || ops != nil || err.Error() != "prepare: task[0]: unknown task type bad" {
 		t.Error("unexpected", err, ops)
@@ -540,7 +507,7 @@ func TestPrepareConcurrentTaskList(t *testing.T) {
 	task := Tasks{Task{Type: tt.Type()}}
 	fail := &Task{Type: tt.Type()}
 
-	op, err := mc.prepareConcurrentTaskList(ctx, capComm, "desc", task, fail, "testdata")
+	op, err := mc.prepareConcurrentTaskList(ctx, capComm, "desc", task, fail)
 
 	if err != nil || op == nil {
 		t.Error("unexpected", err, op)
@@ -557,7 +524,7 @@ func TestPrepareConcurrentTaskListEmpty(t *testing.T) {
 	task := Tasks{}
 	fail := &Task{Type: tt.Type()}
 
-	op, err := mc.prepareConcurrentTaskList(ctx, capComm, "desc", task, fail, "testdata")
+	op, err := mc.prepareConcurrentTaskList(ctx, capComm, "desc", task, fail)
 
 	if err != nil || op != nil {
 		t.Error("unexpected", err, op)

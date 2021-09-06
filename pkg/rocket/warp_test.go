@@ -76,7 +76,7 @@ func TestOperationAddHandler(t *testing.T) {
 func TestEngageWarpDrive(t *testing.T) {
 	var ops operations
 
-	fn := engageWarpDrive(ops, "", stdlog.New())
+	fn := engageWarpDrive(ops, stdlog.New())
 
 	if fn == nil {
 		t.Error("no function")
@@ -107,7 +107,7 @@ func TestWarpEnginesGood(t *testing.T) {
 		&operation{description: "3", makeItSo: warpCrystal},
 	}
 
-	fn := engageWarpDrive(ops, "", stdlog.New())
+	fn := engageWarpDrive(ops, stdlog.New())
 
 	err := fn(context.Background())
 	if err != nil {
@@ -146,7 +146,7 @@ func TestWarpEnginesErrors(t *testing.T) {
 		ops[i] = &operation{description: fmt.Sprintf("%d", i+1), makeItSo: warpCrystal}
 	}
 
-	fn := engageWarpDrive(ops, "", stdlog.New())
+	fn := engageWarpDrive(ops, stdlog.New())
 
 	err := fn(context.Background())
 	if err == nil {
@@ -257,40 +257,6 @@ func TestEngageCancel(t *testing.T) {
 
 	if *pc != 0 {
 		t.Error("counter", *pc)
-	}
-}
-
-func TestAddDirHandler(t *testing.T) {
-	var c int
-	pc := &c
-
-	warpCrystal := func(ctx context.Context) error {
-		*pc++
-		return nil
-	}
-
-	fn := addDirHandler("testdata", warpCrystal)
-
-	err := fn(context.Background())
-	if err != nil || *pc != 1 {
-		t.Error("unexpected error", err, *pc)
-	}
-}
-
-func TestAddDirHandlerErrors(t *testing.T) {
-	var c int
-	pc := &c
-
-	warpCrystal := func(ctx context.Context) error {
-		*pc++
-		return nil
-	}
-
-	fn := addDirHandler("notestdata", warpCrystal)
-
-	err := fn(context.Background())
-	if err == nil || *pc != 0 {
-		t.Error("expected error", err, *pc)
 	}
 }
 

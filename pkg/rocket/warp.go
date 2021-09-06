@@ -113,14 +113,8 @@ func warpEngines(ctx context.Context, ops operations, log loggee.Logger) error {
 	return errs.Error()
 }
 
-func engageWarpDrive(ops operations, dir string, log loggee.Logger) ExecuteFunc {
+func engageWarpDrive(ops operations, log loggee.Logger) ExecuteFunc {
 	return func(ctx context.Context) error {
-		pop, err := swapDir(dir)
-		if err != nil {
-			return err
-		}
-		defer pop()
-
 		return log.Activity(ctx, func(ctx context.Context) error {
 			return warpEngines(ctx, ops, log)
 		})
@@ -214,19 +208,4 @@ func swapDir(dir string) (func(), error) {
 			panic(e)
 		}
 	}, nil
-}
-
-func addDirHandler(dir string, fn ExecuteFunc) ExecuteFunc {
-	if dir == "" {
-		return fn
-	}
-	return func(ctx context.Context) error {
-		pop, err := swapDir(dir)
-		if err != nil {
-			return err
-		}
-		defer pop()
-
-		return fn(ctx)
-	}
 }

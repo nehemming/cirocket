@@ -323,10 +323,6 @@ func mergeTasks(task *Task, ref string, taskMap TaskMap, circular map[string]boo
 		task.Export = src.Export.Copy()
 	}
 
-	if task.Dir == "" {
-		task.Dir = src.Dir
-	}
-
 	if len(task.Try) == 0 {
 		task.Try = src.Try.Copy()
 	}
@@ -554,11 +550,11 @@ func (mc *missionControl) switchTaskType(ctx context.Context, capComm *CapComm, 
 	case taskKindType:
 		return mc.prepareTaskKindType(ctx, capComm, task)
 	case taskKindTry:
-		return mc.prepareSequentialTaskList(ctx, capComm, "try: "+task.Name, task.Try, task.OnFail, true, task.Dir)
+		return mc.prepareSequentialTaskList(ctx, capComm, "try: "+task.Name, task.Try, task.OnFail, true, "")
 	case taskKindGroup:
-		return mc.prepareSequentialTaskList(ctx, capComm, "group: "+task.Name, task.Group, task.OnFail, false, task.Dir)
+		return mc.prepareSequentialTaskList(ctx, capComm, "group: "+task.Name, task.Group, task.OnFail, false, "")
 	case taskKindConcurrent:
-		return mc.prepareConcurrentTaskList(ctx, capComm, "concurrent: "+task.Name, task.Concurrent, task.OnFail, task.Dir)
+		return mc.prepareConcurrentTaskList(ctx, capComm, "concurrent: "+task.Name, task.Concurrent, task.OnFail)
 	}
 
 	return nil, nil
@@ -781,25 +777,16 @@ func combineSequentialTaskListOperations(ctx context.Context, capComm *CapComm, 
 	}, nil
 }
 
-func combineConcurrentTaskListOperations(ctx context.Context, capComm *CapComm, operations operations, onFail ExecuteFunc,
-	groupDesc string, tryOp bool, taskDir string) (*operation, error) {
+func combineConcurrentTaskListOperations(capComm *CapComm, operations operations, onFail ExecuteFunc,
+	groupDesc string, tryOp bool) (*operation, error) {
 	if len(operations) == 0 {
 		return nil, nil
 	}
 
 	// handle any dir change
-	var dir string
-	var err error
-	if taskDir != "" {
-		dir, err = capComm.ExpandString(ctx, "dir", taskDir)
-		if err != nil {
-			return nil, errors.Wrapf(err, "%s dir expand", groupDesc)
-		}
-	}
-
 	return &operation{
 		description: groupDesc,
-		makeItSo:    engageWarpDrive(operations, dir, capComm.Log()),
+		makeItSo:    engageWarpDrive(operations, capComm.Log()),
 		try:         tryOp,
 		onFail:      onFail,
 	}, nil
@@ -849,14 +836,13 @@ func (mc *missionControl) prepareOperationsFromTaskList(ctx context.Context, cap
 }
 
 func (mc *missionControl) prepareConcurrentTaskList(ctx context.Context, capComm *CapComm,
-	groupDesc string, tasks Tasks, onFailTask *Task,
-	taskDir string) (*operation, error) {
+	groupDesc string, tasks Tasks, onFailTask *Task) (*operation, error) {
 	operations, onFail, err := mc.prepareOperationsFromTaskList(ctx, capComm, tasks, onFailTask)
 	if err != nil {
 		return nil, err
 	}
 
-	return combineConcurrentTaskListOperations(ctx, capComm, operations, onFail, groupDesc, false, taskDir)
+	return combineConcurrentTaskListOperations(capComm, operations, onFail, groupDesc, false)
 }
 
 func (mc *missionControl) prepareSequentialTaskList(ctx context.Context, capComm *CapComm,
@@ -898,17 +884,9 @@ func (mc *missionControl) prepareTaskKindType(ctx context.Context, capComm *CapC
 		onFail = onFailOp.makeItSo
 	}
 
-	var dir string
-	if task.Dir != "" {
-		dir, err = capComm.ExpandString(ctx, "dir", task.Dir)
-		if err != nil {
-			return nil, errors.Wrapf(err, "%s dir expand", task.Name)
-		}
-	}
-
 	return &operation{
 		description: fmt.Sprintf("task: %s", task.Name),
-		makeItSo:    addDirHandler(dir, taskFunc),
+		makeItSo:    taskFunc,
 		try:         false,
 		onFail:      onFail,
 	}, nil

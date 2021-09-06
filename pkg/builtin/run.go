@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/nehemming/cirocket/pkg/cliparse"
@@ -31,14 +32,16 @@ import (
 type (
 	// Run task is used to execute a specific command line program.
 	Run struct {
+		// List of arguments, subject to string expansion.
+		Args []string `mapstructure:"args"`
 
 		// Command to execute.  This is a raw executed command and is not
 		// wrapped ina shell, as such globing etc may not work as expected.
 		// Command is subject to string expansion.
 		Command string `mapstructure:"command"`
 
-		// List of arguments, subject to string expansion.
-		Args []string `mapstructure:"args"`
+		// Dir is the directory to execute the task within.
+		Dir string `mapstructure:"dir"`
 
 		// GlobArgs specifies if arguments should be glob expanded prior
 		// to passing the program.  If true *.go would ne expanded as a arg per matching file.
@@ -73,8 +76,18 @@ func (runType) Prepare(ctx context.Context, capComm *rocket.CapComm, task rocket
 			return err
 		}
 
-		// Setup command
-		cmd := exec.Command(commandLine.ProgramPath, commandLine.Args...)
+		var dir string
+		if runCfg.Dir != "" {
+			dir, err = capComm.ExpandString(ctx, "dir", runCfg.Dir)
+			if err != nil {
+				return errors.Wrapf(err, "%s dir expand", runCfg.Dir)
+			}
+		}
+
+		cmd, err := prepareCommand(commandLine, dir)
+		if err != nil {
+			return errors.Wrap(err, "prepare command line")
+		}
 
 		// get the environment variables in the correct for for the exec command.
 		cmd.Env = capComm.GetExecEnv()
@@ -105,6 +118,24 @@ func (runType) Prepare(ctx context.Context, capComm *rocket.CapComm, task rocket
 	}
 
 	return fn, nil
+}
+
+func prepareCommand(commandLine *cliparse.Commandline, dir string) (*exec.Cmd, error) {
+	// replacement for the standard exec.Command to include the dir.
+	cmd := &exec.Cmd{
+		Path: commandLine.ProgramPath,
+		Args: append([]string{commandLine.ProgramPath}, commandLine.Args...),
+		Dir:  dir,
+	}
+
+	if filepath.Base(commandLine.ProgramPath) == commandLine.ProgramPath {
+		if lp, err := exec.LookPath(commandLine.ProgramPath); err != nil {
+			return nil, err
+		} else {
+			cmd.Path = lp
+		}
+	}
+	return cmd, nil
 }
 
 func getCommandLine(ctx context.Context, capComm *rocket.CapComm, runCfg *Run) (*cliparse.Commandline, error) {

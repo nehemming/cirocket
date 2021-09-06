@@ -216,9 +216,6 @@ type (
 		// Definition contains the additional data required to process the task type
 		Definition map[string]interface{} `mapstructure:",remain"`
 
-		// Dir is the directory to execute the task within.
-		Dir string `mapstructure:"dir"`
-
 		// Env is a map of additional environment variables.
 		// These are subject to template expansion after the params have been expanded.
 		Env VarMap `mapstructure:"env"`
@@ -265,7 +262,7 @@ type (
 		// Try is a list of tasks to try.
 		Try Tasks `mapstructure:"try"`
 
-		// Type is the type of the task.  The task type must have been rejiggered
+		// Type is the type of the task.  The task type must have been registered
 		// with the mission control.  Tasks not registered will fail the mission.
 		Type string `mapstructure:"type"`
 	}
