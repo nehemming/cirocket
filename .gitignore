@@ -1,0 +1,7 @@
+cirocket
+cirocket.exe
+.dist
+.artifacts
+.secrets
+*.tmp
+tmp/
