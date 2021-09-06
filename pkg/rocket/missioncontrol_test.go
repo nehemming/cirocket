@@ -720,3 +720,16 @@ func TestApplyConditionHandler(t *testing.T) {
 		t.Error("unexpected", err)
 	}
 }
+
+func TestMergeTasksWithNiiSrcDef(t *testing.T) {
+	taskMap := TaskMap{
+		"testNil": Task{
+			Definition: map[string]interface{}{"test": 10},
+		},
+	}
+
+	err := mergeTaskRef(&Task{Ref: "testNil"}, taskMap)
+	if err != nil {
+		t.Error("unexpected", err)
+	}
+}

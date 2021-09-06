@@ -372,6 +372,10 @@ func mergeTasks(task *Task, ref string, taskMap TaskMap, circular map[string]boo
 		task.OnFail = &c
 	}
 
+	if task.Definition == nil {
+		task.Definition = make(map[string]interface{})
+	}
+
 	mergeDefinition(task.Definition, src.Definition)
 
 	if src.Ref != "" {
