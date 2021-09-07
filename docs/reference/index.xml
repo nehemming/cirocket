@@ -50,7 +50,50 @@
       <description>
         
         
-        &lt;p&gt;Coming soon &amp;hellip;&lt;/p&gt;
+        &lt;h3 id=&#34;supported-task-types&#34;&gt;Supported task types&lt;/h3&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Type&lt;/th&gt;
+&lt;th&gt;Description&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;cleaner&lt;/td&gt;
+&lt;td&gt;cleans up files matching on of the file glob specs.&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;copy&lt;/td&gt;
+&lt;td&gt;copies files matching a source glob pattern into the destination folder.&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;fetch&lt;/td&gt;
+&lt;td&gt;fetches url bases resources and makes a local copy.&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;mkdir&lt;/td&gt;
+&lt;td&gt;creates directories as needed from the dirs list.&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;move&lt;/td&gt;
+&lt;td&gt;moves files matching the source glob specs to the destination folder.&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;remove&lt;/td&gt;
+&lt;td&gt;deletes files matching on of the file glob specs.&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;run&lt;/td&gt;
+&lt;td&gt;executes a program and awaits its response.&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;template&lt;/td&gt;
+&lt;td&gt;processes an input template to generate output.&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;Coming soon more info &amp;hellip;&lt;/p&gt;
 
       </description>
     </item>
