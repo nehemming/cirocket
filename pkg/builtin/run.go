@@ -71,14 +71,14 @@ func (runType) Prepare(ctx context.Context, capComm *rocket.CapComm, task rocket
 
 	fn := func(execCtx context.Context) error {
 		// Get the command line
-		commandLine, err := getCommandLine(ctx, capComm, runCfg)
+		commandLine, err := getCommandLine(execCtx, capComm, runCfg)
 		if err != nil {
 			return err
 		}
 
 		var dir string
 		if runCfg.Dir != "" {
-			dir, err = capComm.ExpandString(ctx, "dir", runCfg.Dir)
+			dir, err = capComm.ExpandString(execCtx, "dir", runCfg.Dir)
 			if err != nil {
 				return errors.Wrapf(err, "%s dir expand", runCfg.Dir)
 			}

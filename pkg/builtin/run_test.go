@@ -86,3 +86,16 @@ func TestRunEchoFilter(t *testing.T) {
 		t.Error("Run go mission failure", err)
 	}
 }
+
+func TestRunGoWithVars(t *testing.T) {
+	loggee.SetLogger(stdlog.New())
+
+	mc := rocket.NewMissionControl()
+	RegisterAll(mc)
+
+	mission, cfgFile := loadMission("rungovars")
+
+	if err := mc.LaunchMission(context.Background(), cfgFile, mission); err != nil {
+		t.Error("Run go mission failure", err)
+	}
+}

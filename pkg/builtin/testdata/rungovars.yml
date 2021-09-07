@@ -1,0 +1,19 @@
+name: "vars"
+
+stages:
+ -  name: testing
+    tasks:
+      - type: run
+        prevars:
+          ver: version
+        export:
+          - ver
+        name: run go version
+        command: go "{{.Var.ver}}"
+        logStdOut: true
+      - type: run
+        name: run go version
+        command: go
+        args:
+          - '{{.Var.ver}}'
+        logStdOut: true
