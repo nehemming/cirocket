@@ -1,12 +1,12 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>cirocket – Reference</title>
-    <link>https://neehemming.github.io/cirocket/docs/reference/</link>
+    <link>https://nehemming.github.io/cirocket/docs/reference/</link>
     <description>Recent content in Reference on cirocket</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     
-	  <atom:link href="https://neehemming.github.io/cirocket/docs/reference/index.xml" rel="self" type="application/rss+xml" />
+	  <atom:link href="https://nehemming.github.io/cirocket/docs/reference/index.xml" rel="self" type="application/rss+xml" />
     
     
       
@@ -16,10 +16,10 @@
     
     <item>
       <title>Docs: Blueprints</title>
-      <link>https://neehemming.github.io/cirocket/docs/reference/blueprint/</link>
+      <link>https://nehemming.github.io/cirocket/docs/reference/blueprint/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
-      <guid>https://neehemming.github.io/cirocket/docs/reference/blueprint/</guid>
+      <guid>https://nehemming.github.io/cirocket/docs/reference/blueprint/</guid>
       <description>
         
         
@@ -30,10 +30,10 @@
     
     <item>
       <title>Docs: Missions</title>
-      <link>https://neehemming.github.io/cirocket/docs/reference/missions/</link>
+      <link>https://nehemming.github.io/cirocket/docs/reference/missions/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
-      <guid>https://neehemming.github.io/cirocket/docs/reference/missions/</guid>
+      <guid>https://nehemming.github.io/cirocket/docs/reference/missions/</guid>
       <description>
         
         
@@ -43,10 +43,10 @@
     
     <item>
       <title>Docs: Task Types</title>
-      <link>https://neehemming.github.io/cirocket/docs/reference/tasktypes/</link>
+      <link>https://nehemming.github.io/cirocket/docs/reference/tasktypes/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
-      <guid>https://neehemming.github.io/cirocket/docs/reference/tasktypes/</guid>
+      <guid>https://nehemming.github.io/cirocket/docs/reference/tasktypes/</guid>
       <description>
         
         
@@ -100,10 +100,10 @@
     
     <item>
       <title>Docs: Templates</title>
-      <link>https://neehemming.github.io/cirocket/docs/reference/templates/</link>
+      <link>https://nehemming.github.io/cirocket/docs/reference/templates/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
-      <guid>https://neehemming.github.io/cirocket/docs/reference/templates/</guid>
+      <guid>https://nehemming.github.io/cirocket/docs/reference/templates/</guid>
       <description>
         
         

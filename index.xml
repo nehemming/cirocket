@@ -1,12 +1,12 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>cirocket – cirocket</title>
-    <link>https://neehemming.github.io/cirocket/</link>
+    <link>https://nehemming.github.io/cirocket/</link>
     <description>Recent content on cirocket</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     
-	  <atom:link href="https://neehemming.github.io/cirocket/index.xml" rel="self" type="application/rss+xml" />
+	  <atom:link href="https://nehemming.github.io/cirocket/index.xml" rel="self" type="application/rss+xml" />
     
     
       

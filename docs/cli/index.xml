@@ -1,12 +1,12 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>cirocket – Command line interface</title>
-    <link>https://neehemming.github.io/cirocket/docs/cli/</link>
+    <link>https://nehemming.github.io/cirocket/docs/cli/</link>
     <description>Recent content in Command line interface on cirocket</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     
-	  <atom:link href="https://neehemming.github.io/cirocket/docs/cli/index.xml" rel="self" type="application/rss+xml" />
+	  <atom:link href="https://nehemming.github.io/cirocket/docs/cli/index.xml" rel="self" type="application/rss+xml" />
     
     
       
