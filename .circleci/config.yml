@@ -1,0 +1,57 @@
+# circleci build
+version: 2.1
+
+jobs:
+  commit:
+    working_directory: ~/src
+    docker:
+      - image: ghcr.io/nehemming/gobuilder:latest
+    steps:
+      - checkout
+      - run:
+          name: "CI Rocket snapshot test on commit"
+          command: cirocket launch cicommit
+      - run:
+          name: "Report card"
+          command: |
+            curl -d "repo=github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME" https://goreportcard.com/checks > /dev/null 2>&1
+
+  release:
+    working_directory: ~/src
+    docker:
+      - image: ghcr.io/nehemming/gobuilder:latest
+    steps:
+      - checkout
+      - setup_remote_docker:
+          version: 20.10.6
+          docker_layer_caching: true
+      - run:
+          name: "CI Rocket release on new tag"
+          command: |
+            echo $DOCKER_TOKEN | docker login -u $CIRCLE_PROJECT_USERNAME --password-stdin
+            echo $GITHUB_TOKEN | docker login ghcr.io -u $CIRCLE_PROJECT_USERNAME --password-stdin
+            cirocket launch cirelease --param release=yes
+
+workflows:
+  version: 2
+  testing:
+    jobs:
+      - commit:
+          context:
+            - 'CI Shared'
+          filters:
+            branches:
+              ignore: gh-pages
+            tags:
+              ignore: 
+                - /^v\d+\.\d+\.\d+.*$/
+  release:
+    jobs:
+      - release:
+          context:
+            - 'CI Shared'
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v\d+\.\d+\.\d+.*$/
