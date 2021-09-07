@@ -96,7 +96,7 @@ func TestGlobFileAbsRelDeep(t *testing.T) {
 		return
 	}
 
-	if len(files) != 12 {
+	if len(files) != 13 {
 		t.Error("unexpected len", len(files), files)
 		return
 	}
