@@ -1,0 +1,53 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>cirocket – Task Types</title>
+    <link>https://neehemming.github.io/cirocket/docs/reference/tasktypes/</link>
+    <description>Recent content in Task Types on cirocket</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    
+	  <atom:link href="https://neehemming.github.io/cirocket/docs/reference/tasktypes/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+      
+        
+      
+    
+    
+    <item>
+      <title>Docs: Run Task Type</title>
+      <link>https://neehemming.github.io/cirocket/docs/reference/tasktypes/run/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://neehemming.github.io/cirocket/docs/reference/tasktypes/run/</guid>
+      <description>
+        
+        
+        &lt;h3 id=&#34;dir&#34;&gt;dir&lt;/h3&gt;
+&lt;p&gt;The &lt;code&gt;dir&lt;/code&gt; property optionally specifies the directory in which the task should be rum.&lt;/p&gt;
+&lt;p&gt;if the directory does not exist an error will be raised.&lt;/p&gt;
+&lt;p&gt;Once the task has completed the parent directory will be restored.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Feature&lt;/th&gt;
+&lt;th&gt;Used&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Mandatory&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Template Expanded&lt;/td&gt;
+&lt;td&gt;Yes&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+      </description>
+    </item>
+    
+  </channel>
+</rss>

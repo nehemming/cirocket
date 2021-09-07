@@ -1,0 +1,163 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>cirocket – Reference</title>
+    <link>https://neehemming.github.io/cirocket/docs/reference/</link>
+    <description>Recent content in Reference on cirocket</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    
+	  <atom:link href="https://neehemming.github.io/cirocket/docs/reference/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+      
+        
+      
+    
+    
+    <item>
+      <title>Docs: Blueprints</title>
+      <link>https://neehemming.github.io/cirocket/docs/reference/blueprint/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://neehemming.github.io/cirocket/docs/reference/blueprint/</guid>
+      <description>
+        
+        
+        &lt;p&gt;Coming soon &amp;hellip;&lt;/p&gt;
+
+      </description>
+    </item>
+    
+    <item>
+      <title>Docs: Missions</title>
+      <link>https://neehemming.github.io/cirocket/docs/reference/missions/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://neehemming.github.io/cirocket/docs/reference/missions/</guid>
+      <description>
+        
+        
+        &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;	&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;// Filter restricts running an activity
+&lt;/span&gt;&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;&lt;/span&gt;	&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;// The filter applis to the OS and Architecture of the machine running
+&lt;/span&gt;&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;&lt;/span&gt;	&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;// rocket.   This allows OS specific scripts to be used.
+&lt;/span&gt;&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;&lt;/span&gt;	&lt;span style=&#34;color:#000&#34;&gt;Filter&lt;/span&gt; &lt;span style=&#34;color:#204a87;font-weight:bold&#34;&gt;struct&lt;/span&gt; &lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;{&lt;/span&gt;
+		&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;// IncludeOS is a list of operating systems to include.
+&lt;/span&gt;&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;&lt;/span&gt;		&lt;span style=&#34;color:#000&#34;&gt;IncludeOS&lt;/span&gt; &lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;[]&lt;/span&gt;&lt;span style=&#34;color:#204a87;font-weight:bold&#34;&gt;string&lt;/span&gt; &lt;span style=&#34;color:#4e9a06&#34;&gt;`mapstructure:&amp;#34;includeOS&amp;#34;`&lt;/span&gt;
+
+		&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;// IncludeArch is a list of architectures to permit.
+&lt;/span&gt;&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;&lt;/span&gt;		&lt;span style=&#34;color:#000&#34;&gt;IncludeArch&lt;/span&gt; &lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;[]&lt;/span&gt;&lt;span style=&#34;color:#204a87;font-weight:bold&#34;&gt;string&lt;/span&gt; &lt;span style=&#34;color:#4e9a06&#34;&gt;`mapstructure:&amp;#34;includeArch&amp;#34;`&lt;/span&gt;
+
+		&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;// ExcludeOS restricts an operating system from running.
+&lt;/span&gt;&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;&lt;/span&gt;		&lt;span style=&#34;color:#000&#34;&gt;ExcludeOS&lt;/span&gt; &lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;[]&lt;/span&gt;&lt;span style=&#34;color:#204a87;font-weight:bold&#34;&gt;string&lt;/span&gt; &lt;span style=&#34;color:#4e9a06&#34;&gt;`mapstructure:&amp;#34;excludeOS&amp;#34;`&lt;/span&gt;
+
+		&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;// ExcludeArch restricts specific architectures from running.
+&lt;/span&gt;&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;&lt;/span&gt;		&lt;span style=&#34;color:#000&#34;&gt;ExcludeArch&lt;/span&gt; &lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;[]&lt;/span&gt;&lt;span style=&#34;color:#204a87;font-weight:bold&#34;&gt;string&lt;/span&gt; &lt;span style=&#34;color:#4e9a06&#34;&gt;`mapstructure:&amp;#34;excludeArch&amp;#34;`&lt;/span&gt;
+
+		&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;// Skip prevents theactivity from running if true.
+&lt;/span&gt;&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;&lt;/span&gt;		&lt;span style=&#34;color:#000&#34;&gt;Skip&lt;/span&gt; &lt;span style=&#34;color:#204a87;font-weight:bold&#34;&gt;bool&lt;/span&gt; &lt;span style=&#34;color:#4e9a06&#34;&gt;`mapstructure:&amp;#34;skip&amp;#34;`&lt;/span&gt;
+	&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;}&lt;/span&gt;
+
+	&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;// OutputSpec defines the method of outputtting for a given resource.  The choice is
+&lt;/span&gt;&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;&lt;/span&gt;	&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;// either variables or files.
+&lt;/span&gt;&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;&lt;/span&gt;	&lt;span style=&#34;color:#000&#34;&gt;OutputSpec&lt;/span&gt; &lt;span style=&#34;color:#204a87;font-weight:bold&#34;&gt;struct&lt;/span&gt; &lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;{&lt;/span&gt;
+		&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;// Variable is an exported variable available to later tasks in the same stage.
+&lt;/span&gt;&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;&lt;/span&gt;		&lt;span style=&#34;color:#000&#34;&gt;Variable&lt;/span&gt; &lt;span style=&#34;color:#204a87;font-weight:bold&#34;&gt;string&lt;/span&gt; &lt;span style=&#34;color:#4e9a06&#34;&gt;`mapstructure:&amp;#34;variable&amp;#34;`&lt;/span&gt;
+
+		&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;// Output is a path to a file replacing STDOUT.
+&lt;/span&gt;&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;&lt;/span&gt;		&lt;span style=&#34;color:#000&#34;&gt;Path&lt;/span&gt; &lt;span style=&#34;color:#204a87;font-weight:bold&#34;&gt;string&lt;/span&gt; &lt;span style=&#34;color:#4e9a06&#34;&gt;`mapstructure:&amp;#34;path&amp;#34;`&lt;/span&gt;
+
+		&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;// AppendOutput specifies if output should append.
+&lt;/span&gt;&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;&lt;/span&gt;		&lt;span style=&#34;color:#000&#34;&gt;Append&lt;/span&gt; &lt;span style=&#34;color:#204a87;font-weight:bold&#34;&gt;bool&lt;/span&gt; &lt;span style=&#34;color:#4e9a06&#34;&gt;`mapstructure:&amp;#34;append&amp;#34;`&lt;/span&gt;
+
+		&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;// SkipExpand when true skips template expansion of the runbook.
+&lt;/span&gt;&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;&lt;/span&gt;		&lt;span style=&#34;color:#000&#34;&gt;SkipExpand&lt;/span&gt; &lt;span style=&#34;color:#204a87;font-weight:bold&#34;&gt;bool&lt;/span&gt; &lt;span style=&#34;color:#4e9a06&#34;&gt;`mapstructure:&amp;#34;skipExpand&amp;#34;`&lt;/span&gt;
+
+		&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;// OS File permissions
+&lt;/span&gt;&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;&lt;/span&gt;		&lt;span style=&#34;color:#000&#34;&gt;FileMode&lt;/span&gt; &lt;span style=&#34;color:#204a87;font-weight:bold&#34;&gt;uint&lt;/span&gt; &lt;span style=&#34;color:#4e9a06&#34;&gt;`mapstructure:&amp;#34;fileMode&amp;#34;`&lt;/span&gt;
+	&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;}&lt;/span&gt;
+
+	&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;// InputSpec is a resource input specificsation.  Input data can be provided from
+&lt;/span&gt;&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;&lt;/span&gt;	&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;// inline valuses, exported stage variables, local files or a web url.
+&lt;/span&gt;&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;&lt;/span&gt;	&lt;span style=&#34;color:#000&#34;&gt;InputSpec&lt;/span&gt; &lt;span style=&#34;color:#204a87;font-weight:bold&#34;&gt;struct&lt;/span&gt; &lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;{&lt;/span&gt;
+		&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;// Variable name to import from.
+&lt;/span&gt;&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;&lt;/span&gt;		&lt;span style=&#34;color:#000&#34;&gt;Variable&lt;/span&gt; &lt;span style=&#34;color:#204a87;font-weight:bold&#34;&gt;string&lt;/span&gt; &lt;span style=&#34;color:#4e9a06&#34;&gt;`mapstructure:&amp;#34;variable&amp;#34;`&lt;/span&gt;
+
+		&lt;span style=&#34;color:#000&#34;&gt;Inline&lt;/span&gt; &lt;span style=&#34;color:#204a87;font-weight:bold&#34;&gt;string&lt;/span&gt; &lt;span style=&#34;color:#4e9a06&#34;&gt;`mapstructure:&amp;#34;inline&amp;#34;`&lt;/span&gt;
+
+		&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;// Path provides the path to the input file.
+&lt;/span&gt;&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;&lt;/span&gt;		&lt;span style=&#34;color:#000&#34;&gt;Path&lt;/span&gt; &lt;span style=&#34;color:#204a87;font-weight:bold&#34;&gt;string&lt;/span&gt; &lt;span style=&#34;color:#4e9a06&#34;&gt;`mapstructure:&amp;#34;path&amp;#34;`&lt;/span&gt;
+
+		&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;// URl provides a url to th input data.
+&lt;/span&gt;&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;&lt;/span&gt;		&lt;span style=&#34;color:#000&#34;&gt;URL&lt;/span&gt; &lt;span style=&#34;color:#204a87;font-weight:bold&#34;&gt;string&lt;/span&gt; &lt;span style=&#34;color:#4e9a06&#34;&gt;`mapstructure:&amp;#34;url&amp;#34;`&lt;/span&gt;
+
+		&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;// Optional is true if resource can be missing.
+&lt;/span&gt;&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;&lt;/span&gt;		&lt;span style=&#34;color:#000&#34;&gt;Optional&lt;/span&gt; &lt;span style=&#34;color:#204a87;font-weight:bold&#34;&gt;bool&lt;/span&gt; &lt;span style=&#34;color:#4e9a06&#34;&gt;`mapstructure:&amp;#34;optional&amp;#34;`&lt;/span&gt;
+
+		&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;// URLTimeout request timeout, default is 30 seconds.
+&lt;/span&gt;&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;&lt;/span&gt;		&lt;span style=&#34;color:#000&#34;&gt;URLTimeout&lt;/span&gt; &lt;span style=&#34;color:#204a87;font-weight:bold&#34;&gt;uint&lt;/span&gt; &lt;span style=&#34;color:#4e9a06&#34;&gt;`mapstructure:&amp;#34;timeout&amp;#34;`&lt;/span&gt;
+
+		&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;// SkipExpand when true skips template expansion of the runbook.
+&lt;/span&gt;&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;&lt;/span&gt;		&lt;span style=&#34;color:#000&#34;&gt;SkipExpand&lt;/span&gt; &lt;span style=&#34;color:#204a87;font-weight:bold&#34;&gt;bool&lt;/span&gt; &lt;span style=&#34;color:#4e9a06&#34;&gt;`mapstructure:&amp;#34;skipExpand&amp;#34;`&lt;/span&gt;
+	&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;}&lt;/span&gt;
+
+	&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;// Redirection is provided to a task to interpret
+&lt;/span&gt;&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;&lt;/span&gt;	&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;// Redirection strings need to be expanded by the task.
+&lt;/span&gt;&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;&lt;/span&gt;	&lt;span style=&#34;color:#000&#34;&gt;Redirection&lt;/span&gt; &lt;span style=&#34;color:#204a87;font-weight:bold&#34;&gt;struct&lt;/span&gt; &lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;{&lt;/span&gt;
+		&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;// Input runbook
+&lt;/span&gt;&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;&lt;/span&gt;		&lt;span style=&#34;color:#000&#34;&gt;Input&lt;/span&gt; &lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color:#000&#34;&gt;InputSpec&lt;/span&gt; &lt;span style=&#34;color:#4e9a06&#34;&gt;`mapstructure:&amp;#34;input&amp;#34;`&lt;/span&gt;
+
+		&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;// Output runbook
+&lt;/span&gt;&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;&lt;/span&gt;		&lt;span style=&#34;color:#000&#34;&gt;Output&lt;/span&gt; &lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color:#000&#34;&gt;OutputSpec&lt;/span&gt; &lt;span style=&#34;color:#4e9a06&#34;&gt;`mapstructure:&amp;#34;output&amp;#34;`&lt;/span&gt;
+
+		&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;// Error runbook
+&lt;/span&gt;&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;&lt;/span&gt;		&lt;span style=&#34;color:#000&#34;&gt;Error&lt;/span&gt; &lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color:#000&#34;&gt;OutputSpec&lt;/span&gt; &lt;span style=&#34;color:#4e9a06&#34;&gt;`mapstructure:&amp;#34;error&amp;#34;`&lt;/span&gt;
+
+		&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;// MergeErrorWithOutput specifies if error output should go to outputt
+&lt;/span&gt;&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;&lt;/span&gt;		&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;// if specified Error and AppendError are ignored
+&lt;/span&gt;&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;&lt;/span&gt;		&lt;span style=&#34;color:#000&#34;&gt;MergeErrorWithOutput&lt;/span&gt; &lt;span style=&#34;color:#204a87;font-weight:bold&#34;&gt;bool&lt;/span&gt; &lt;span style=&#34;color:#4e9a06&#34;&gt;`mapstructure:&amp;#34;merge&amp;#34;`&lt;/span&gt;
+
+		&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;// LogOutput if true will cause output to be logged rather than going to go to std output.
+&lt;/span&gt;&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;&lt;/span&gt;		&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;// If an output file is specified it will be used instead.
+&lt;/span&gt;&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;&lt;/span&gt;		&lt;span style=&#34;color:#000&#34;&gt;LogOutput&lt;/span&gt; &lt;span style=&#34;color:#204a87;font-weight:bold&#34;&gt;bool&lt;/span&gt; &lt;span style=&#34;color:#4e9a06&#34;&gt;`mapstructure:&amp;#34;logStdOut&amp;#34;`&lt;/span&gt;
+
+		&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;// DirectError when true causes the commands std error output to go direct to running processes std error
+&lt;/span&gt;&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;&lt;/span&gt;		&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;// When DirectError is false std error output is logged.
+&lt;/span&gt;&lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;&lt;/span&gt;		&lt;span style=&#34;color:#000&#34;&gt;DirectError&lt;/span&gt; &lt;span style=&#34;color:#204a87;font-weight:bold&#34;&gt;bool&lt;/span&gt; &lt;span style=&#34;color:#4e9a06&#34;&gt;`mapstructure:&amp;#34;directStdErr&amp;#34;`&lt;/span&gt;
+	&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;}&lt;/span&gt;
+&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;)&lt;/span&gt;
+
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+      </description>
+    </item>
+    
+    <item>
+      <title>Docs: Task Types</title>
+      <link>https://neehemming.github.io/cirocket/docs/reference/tasktypes/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://neehemming.github.io/cirocket/docs/reference/tasktypes/</guid>
+      <description>
+        
+        
+        &lt;p&gt;Coming soon &amp;hellip;&lt;/p&gt;
+
+      </description>
+    </item>
+    
+    <item>
+      <title>Docs: Templates</title>
+      <link>https://neehemming.github.io/cirocket/docs/reference/templates/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://neehemming.github.io/cirocket/docs/reference/templates/</guid>
+      <description>
+        
+        
+        &lt;p&gt;Coming soon &amp;hellip;&lt;/p&gt;
+
+      </description>
+    </item>
+    
+  </channel>
+</rss>

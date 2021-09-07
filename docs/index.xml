@@ -1,0 +1,1471 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>cirocket – Welcome to cirocket</title>
+    <link>https://neehemming.github.io/cirocket/docs/</link>
+    <description>Recent content in Welcome to cirocket on cirocket</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    
+	  <atom:link href="https://neehemming.github.io/cirocket/docs/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+      
+        
+      
+    
+    
+    <item>
+      <title>Docs: Blueprints</title>
+      <link>https://neehemming.github.io/cirocket/docs/reference/blueprint/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://neehemming.github.io/cirocket/docs/reference/blueprint/</guid>
+      <description>
+        
+        
+        &lt;p&gt;Coming soon &amp;hellip;&lt;/p&gt;
+
+      </description>
+    </item>
+    
+    <item>
+      <title>Docs: Run Task Type</title>
+      <link>https://neehemming.github.io/cirocket/docs/reference/tasktypes/run/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://neehemming.github.io/cirocket/docs/reference/tasktypes/run/</guid>
+      <description>
+        
+        
+        &lt;h3 id=&#34;dir&#34;&gt;dir&lt;/h3&gt;
+&lt;p&gt;The &lt;code&gt;dir&lt;/code&gt; property optionally specifies the directory in which the task should be rum.&lt;/p&gt;
+&lt;p&gt;if the directory does not exist an error will be raised.&lt;/p&gt;
+&lt;p&gt;Once the task has completed the parent directory will be restored.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Feature&lt;/th&gt;
+&lt;th&gt;Used&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Mandatory&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Template Expanded&lt;/td&gt;
+&lt;td&gt;Yes&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+      </description>
+    </item>
+    
+    <item>
+      <title>Docs: Include</title>
+      <link>https://neehemming.github.io/cirocket/docs/reference/missions/include/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://neehemming.github.io/cirocket/docs/reference/missions/include/</guid>
+      <description>
+        
+        
+        &lt;h2 id=&#34;path&#34;&gt;path&lt;/h2&gt;
+&lt;p&gt;The &lt;code&gt;path&lt;/code&gt; is used to locate the file to include in the configuration.&lt;/p&gt;
+&lt;p&gt;The path may be:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;local file with a path relative to the configuration file where the include definition&lt;/li&gt;
+&lt;li&gt;absolute operating system file path&lt;/li&gt;
+&lt;li&gt;File url using the &lt;code&gt;file:/path&lt;/code&gt; or &lt;code&gt;file:///path&lt;/code&gt; notation.&lt;/li&gt;
+&lt;li&gt;Http(s) Url to locate a resource remotely on the web.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Include files can be nested.  When nested the relative path will be appended too the parents path.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Include paths are not template expanded.  This behavior differs from most other path properties that do support expansion.  However as includes are expanded prior to any processing taking place they cannot support expansion.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Feature&lt;/th&gt;
+&lt;th&gt;Used&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Mandatory&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Template Expanded&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2 id=&#34;url&#34;&gt;url&lt;/h2&gt;
+&lt;p&gt;This property is deprecated.  Future versions will remove.&lt;/p&gt;
+&lt;p&gt;It behaves identically to the &lt;code&gt;path&lt;/code&gt; property.&lt;/p&gt;
+
+      </description>
+    </item>
+    
+    <item>
+      <title>Docs: Installation</title>
+      <link>https://neehemming.github.io/cirocket/docs/start/install/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://neehemming.github.io/cirocket/docs/start/install/</guid>
+      <description>
+        
+        
+        &lt;p&gt;&lt;code&gt;cirocket&lt;/code&gt; can be installed on many different platforms using either:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;prebuilt &lt;a href=&#34;#release_binaries&#34;&gt;release binaries&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#docker_image&#34;&gt;docker image&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;directly from &lt;a href=&#34;#source_code&#34;&gt;source code&lt;/a&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;a name=&#34;release_binaries&#34;&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;h2 id=&#34;release-binaries&#34;&gt;Release Binaries&lt;/h2&gt;
+&lt;p&gt;All prebuilt binaries can be found in our &lt;a href=&#34;https://github.com/nehemming/cirocket/releases&#34;&gt;Github releases&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Detailed instructions for installing on:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#linux_install&#34;&gt;Linux&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#macos_install&#34;&gt;Macos&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#windows_install&#34;&gt;Windows (64 bit)&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Linux and Macos binaries will need to be extracted using &lt;code&gt;tar&lt;/code&gt; whilst windows are stored in &lt;code&gt;zip&lt;/code&gt; files.&lt;/p&gt;
+&lt;p&gt;&lt;a name=&#34;linux_install&#34;&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;h2 id=&#34;linux&#34;&gt;Linux&lt;/h2&gt;
+&lt;p&gt;Linux installation packages exist for both AMD and ARM architectures covering&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#linux_alpine_install&#34;&gt;Alpine&lt;/a&gt; &lt;code&gt;.apk&lt;/code&gt; format&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#linux_deb_install&#34;&gt;Debian/Umbuntu/Mint&lt;/a&gt; in &lt;code&gt;.deb&lt;/code&gt; format&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#linux_rpm_install&#34;&gt;CentOS/RHEL/Fedora&lt;/a&gt; in &lt;code&gt;.rpm&lt;/code&gt; format&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#linux_generic_install&#34;&gt;Generic&lt;/a&gt; &lt;code&gt;.tar&lt;/code&gt; files&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;a name=&#34;linux_alpine_install&#34;&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;h3 id=&#34;alpine&#34;&gt;Alpine&lt;/h3&gt;
+&lt;p&gt;Goto the &lt;a href=&#34;https://github.com/nehemming/cirocket/releases&#34;&gt;Github releases&lt;/a&gt; page and find the latest release &lt;code&gt;.apk&lt;/code&gt; file cirocket_v.v.v_linux_aaa64.apk (where v.v.v is the version number and aaa the architecture).&lt;/p&gt;
+&lt;p&gt;Download the file.&lt;/p&gt;
+&lt;p&gt;To install run&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;apk add --allow-untrusted /path/to/file.apk
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;a name=&#34;linux_deb_install&#34;&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;h3 id=&#34;debianumbuntumint&#34;&gt;Debian/Umbuntu/Mint&lt;/h3&gt;
+&lt;p&gt;Goto the &lt;a href=&#34;https://github.com/nehemming/cirocket/releases&#34;&gt;Github releases&lt;/a&gt; page and find the latest release &lt;code&gt;.deb&lt;/code&gt; file cirocket_v.v.v_linux_aaa64.deb (where v.v.v is the version number and aaa the architecture).&lt;/p&gt;
+&lt;p&gt;Download the file or copy the file name to modify the script below to use &lt;code&gt;curl&lt;/code&gt;.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;curl -LO https://github.com/nehemming/cirocket/releases/download/v0.3.0/cirocket_0.3.0_linux_amd64.deb
+
+dpkg -i cirocket_0.3.0_linux_amd64.deb
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Depending on your system&amp;rsquo;s settings you may ne required run &lt;code&gt;dpkg&lt;/code&gt; with &lt;code&gt;sudo&lt;/code&gt; permissions.&lt;/p&gt;
+&lt;p&gt;&lt;a name=&#34;linux_rpm_install&#34;&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;h3 id=&#34;centosrhelfedora&#34;&gt;CentOS/RHEL/Fedora&lt;/h3&gt;
+&lt;p&gt;Goto the &lt;a href=&#34;https://github.com/nehemming/cirocket/releases&#34;&gt;Github releases&lt;/a&gt; page and find the latest release &lt;code&gt;.rpm&lt;/code&gt; file cirocket_v.v.v_linux_aaa64.rpm (where v.v.v is the version number and aaa the architecture).&lt;/p&gt;
+&lt;p&gt;Download the file.&lt;/p&gt;
+&lt;p&gt;To install run&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;sudo rpm -i cirocket_0.3.0_linux_amd64.rpm
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;a name=&#34;linux_generic_install&#34;&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;h3 id=&#34;generic&#34;&gt;Generic&lt;/h3&gt;
+&lt;p&gt;As well as the &lt;code&gt;.deb&lt;/code&gt;, &lt;code&gt;.rpm&lt;/code&gt; and &lt;code&gt;.apk&lt;/code&gt; package files the &lt;a href=&#34;https://github.com/nehemming/cirocket/releases&#34;&gt;Github releases&lt;/a&gt; page included generic &lt;code&gt;tar.gz&lt;/code&gt; release archives.&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;Select the correct file to download cirocket_v.v.v_linux_aaa64.rpm (where v.v.v is the version number and aaa the architecture).&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Run the script below, modifying the file nam approximately.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;color:#204a87&#34;&gt;cd&lt;/span&gt; /tmp
+
+curl -LO https://github.com/nehemming/cirocket/releases/download/v0.3.0/cirocket_0.3.0_Linux_x86_64.tar.gz
+
+tar -xvzf cirocket_0.3.0_Linux_x86_64.tar.gz
+
+cp cirocket /usr/local/bin
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;blockquote&gt;
+&lt;p&gt;Note the generic install capitalize th &amp;lsquo;L&amp;rsquo; in Linux.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;a name=&#34;macos_install&#34;&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;h2 id=&#34;macos&#34;&gt;Macos&lt;/h2&gt;
+&lt;p&gt;The easiest way to install &lt;code&gt;cirocket&lt;/code&gt; on a Mac is by using &lt;code&gt;Homebrew&lt;/code&gt;.  If you are new to &lt;code&gt;Homebrew&lt;/code&gt; we would recommend you visiting
+their official website &lt;a href=&#34;https://brew.sh/&#34;&gt;brew.sh&lt;/a&gt;.  If you are still keen not to use &lt;code&gt;Homebrew&lt;/code&gt; we have included alternative options below.&lt;/p&gt;
+&lt;h3 id=&#34;install-using-homebrew&#34;&gt;Install using Homebrew&lt;/h3&gt;
+&lt;p&gt;Open a terminal command prompt and simply run:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;brew install nehemming/tap/cirocket 
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;This will handle all aspects of loading the latest version of &lt;code&gt;cirocket&lt;/code&gt;.&lt;/p&gt;
+&lt;h3 id=&#34;upgrade-an-existing-homebrew-install&#34;&gt;Upgrade an existing Homebrew install&lt;/h3&gt;
+&lt;p&gt;Open a terminal command prompt and simply run:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;brew update cirocket 
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;manual-installation-options&#34;&gt;Manual installation options&lt;/h3&gt;
+&lt;p&gt;Pre-build macos binaries are available for both AMD and ARM architectures on the &lt;a href=&#34;https://github.com/nehemming/cirocket/releases&#34;&gt;Github releases&lt;/a&gt; page.&lt;/p&gt;
+&lt;p&gt;The app is contained in a compressed tar file.  It can be downloaded and extracted to a suitable folder on the search path.&lt;/p&gt;
+&lt;p&gt;&lt;a name=&#34;windows_install&#34;&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;h2 id=&#34;windows-64-bit&#34;&gt;Windows (64 bit)&lt;/h2&gt;
+&lt;p&gt;Windows installation involves a couple of manual steps.&lt;/p&gt;
+&lt;h3 id=&#34;first-time-preparation&#34;&gt;First Time Preparation&lt;/h3&gt;
+&lt;p&gt;Before you can install &lt;code&gt;cirocket&lt;/code&gt; for the first time there are a couple of optional preparation steps that need to be completed.  These steps create a folder to store the &lt;code&gt;cirocket.exe&lt;/code&gt; application and add it to the Windows search PATH environment variable.   Both steps require administrator permissions.   If you don&amp;rsquo;t have admin access &lt;code&gt;cirocket&lt;/code&gt; can still bee used by in a local directory.&lt;/p&gt;
+&lt;p&gt;For subsequent releases these steps will already have been done and can be ignored.&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Create a Program files folder to store the executable.
+Open a command window as administrator and run the following command.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-cmd&#34; data-lang=&#34;cmd&#34;&gt;&lt;span style=&#34;color:#204a87;font-weight:bold&#34;&gt;mkdir&lt;/span&gt; &lt;span style=&#34;color:#4e9a06&#34;&gt;&amp;#34;C:\Program Files\cirocket&amp;#34;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;ol start=&#34;2&#34;&gt;
+&lt;li&gt;Add the &lt;code&gt;C:\Program Files\cirocket&lt;/code&gt; folder to the Windows system (or user) search PATH.
+On Windows Vista or newer, open &lt;code&gt;Systems and Maintenance&lt;/code&gt; in the Control Panel, then select &lt;code&gt;System&lt;/code&gt;. In the System dialog, pick &lt;code&gt;Advanced system settings&lt;/code&gt; from the Tasks list on the left to bring up the System Properties dialog box. (On pre-Vista systems, select the System application in the Control Panel to bring up the System Properties dialog box.)
+On the Advanced tab of the System Properties dialog box, click the Environment Variables button to display user and system variables. In the System variables section, select the Path variable and click Edit.   Insert &lt;code&gt;C:\Program Files\cirocket;&lt;/code&gt; at the front/top of the list.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h4 id=&#34;add-or-upgrade-windows-installation&#34;&gt;Add or Upgrade Windows Installation&lt;/h4&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;Download the latest &lt;code&gt;cirocket&lt;/code&gt; windows release.&lt;br&gt;
+Goto the &lt;a href=&#34;https://github.com/nehemming/cirocket/releases&#34;&gt;Github releases&lt;/a&gt; page and find the latest release zip file cirocket_v.v.v_Windows_x86_64.zip (where v.v.v is the version number.)   Download the file.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Using File Explorer open the downloaded ZIP file and copy the &lt;code&gt;cirocket.exe&lt;/code&gt; into the &lt;code&gt;C:\Program Files\cirocket&lt;/code&gt; folder.  If you are updating an existing installation toy can overwrite the previous file.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;blockquote&gt;
+&lt;p&gt;We hope to add a Windows packaged installation option (such as &lt;code&gt;msi&lt;/code&gt;) in the future. However currently Windows packages need a Windows machine to build them and this falls outside our cross platform build process.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;a name=&#34;docker_image&#34;&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;h2 id=&#34;docker-image&#34;&gt;Docker Image&lt;/h2&gt;
+&lt;p&gt;&lt;code&gt;cirocket&lt;/code&gt; has a basic docker image available in &lt;a href=&#34;https://github.com/nehemming/cirocket/pkgs/container/cirocket&#34;&gt;Github packages&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;To use the image, either pull it or include it in Dockerfile FROM statement.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;docker pull ghcr.io/nehemming/cirocket:latest
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The tool is best used with a mounted volume pointing at your project.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;docker run --rm -ti -v /host/project:/project cirocket --dir /project init
+&lt;/code&gt;&lt;/pre&gt;&lt;blockquote&gt;
+&lt;p&gt;TIP:  The &lt;code&gt;--dir&lt;/code&gt; flag switches to the supplied directory before running the tool.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;a name=&#34;source_code&#34;&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;h2 id=&#34;source-code&#34;&gt;Source Code&lt;/h2&gt;
+&lt;p&gt;&lt;code&gt;cirocket&lt;/code&gt; is written in &lt;a href=&#34;https://golang.org/&#34;&gt;Go&lt;/a&gt; and can easily be built from source.  to build from source you will require Go version 1.16 installed.  there are however two distinct methods of installing the software.&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;By &lt;a href=&#34;#clone&#34;&gt;cloning&lt;/a&gt; the &lt;a href=&#34;https://github.com/nehemming/cirocket&#34;&gt;repository&lt;/a&gt; and building locally&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;By &lt;a href=&#34;#build&#34;&gt;Building&lt;/a&gt; and installing the software from source using the Go tool chain.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;&lt;a name=&#34;clone&#34;&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;h3 id=&#34;cloning-the-repository&#34;&gt;Cloning the repository&lt;/h3&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;git clone https://github.com/nehemming/cirocket.git
+&lt;span style=&#34;color:#204a87&#34;&gt;cd&lt;/span&gt; cirocket
+go install
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;a name=&#34;build&#34;&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;h3 id=&#34;build-and-install&#34;&gt;Build and install&lt;/h3&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;go install github.com/nehemming/cirocket@latest
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+      </description>
+    </item>
+    
+    <item>
+      <title>Docs: Mission</title>
+      <link>https://neehemming.github.io/cirocket/docs/reference/missions/mission/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://neehemming.github.io/cirocket/docs/reference/missions/mission/</guid>
+      <description>
+        
+        
+        &lt;p&gt;Missions are run in two phases.  Firstly all the configuration is prepared then once complete the mission stage and task operations are executed.&lt;/p&gt;
+&lt;h3 id=&#34;basicenv&#34;&gt;basicEnv&lt;/h3&gt;
+&lt;p&gt;Map of environment variables where the values are not template expanded.&lt;/p&gt;
+&lt;p&gt;The &lt;code&gt;basicEnv&lt;/code&gt; variables are loaded prior to the &lt;code&gt;env&lt;/code&gt; variables.  The &lt;code&gt;env&lt;/code&gt; value takes prescience`&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Feature&lt;/th&gt;
+&lt;th&gt;Used&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Mandatory&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Template Expanded&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-yaml&#34; data-lang=&#34;yaml&#34;&gt;&lt;span style=&#34;color:#204a87;font-weight:bold&#34;&gt;basicEnv&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;:&lt;/span&gt;&lt;span style=&#34;color:#f8f8f8;text-decoration:underline&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#f8f8f8;text-decoration:underline&#34;&gt;  &lt;/span&gt;&lt;span style=&#34;color:#204a87;font-weight:bold&#34;&gt;THRUSTERS&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;:&lt;/span&gt;&lt;span style=&#34;color:#f8f8f8;text-decoration:underline&#34;&gt; &lt;/span&gt;&lt;span style=&#34;color:#000&#34;&gt;GO{{Not expanded}}&lt;/span&gt;&lt;span style=&#34;color:#f8f8f8;text-decoration:underline&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#f8f8f8;text-decoration:underline&#34;&gt;  &lt;/span&gt;&lt;span style=&#34;color:#204a87;font-weight:bold&#34;&gt;TELEMETRY&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;:&lt;/span&gt;&lt;span style=&#34;color:#f8f8f8;text-decoration:underline&#34;&gt; &lt;/span&gt;&lt;span style=&#34;color:#000&#34;&gt;GO&lt;/span&gt;&lt;span style=&#34;color:#f8f8f8;text-decoration:underline&#34;&gt;
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;description&#34;&gt;description&lt;/h3&gt;
+&lt;p&gt;Free text description of the mission.&lt;/p&gt;
+&lt;p&gt;This property, along with comments can be used to document the mission.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Feature&lt;/th&gt;
+&lt;th&gt;Used&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Mandatory&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Template Expanded&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h3 id=&#34;env&#34;&gt;env&lt;/h3&gt;
+&lt;p&gt;Map of environment variables where the values are template expanded.&lt;/p&gt;
+&lt;p&gt;The &lt;code&gt;basicEnv&lt;/code&gt; variables are loaded prior to the &lt;code&gt;env&lt;/code&gt; variables.  The &lt;code&gt;env&lt;/code&gt; value takes prescience`&lt;/p&gt;
+&lt;p&gt;All Environment variables are loaded prior to params.&lt;/p&gt;
+&lt;p&gt;The mission inherits the environment variables passed into the &lt;code&gt;circoket&lt;/code&gt; application.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Feature&lt;/th&gt;
+&lt;th&gt;Used&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Mandatory&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Template Expanded&lt;/td&gt;
+&lt;td&gt;Yes&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-yaml&#34; data-lang=&#34;yaml&#34;&gt;&lt;span style=&#34;color:#204a87;font-weight:bold&#34;&gt;basicEnv&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;:&lt;/span&gt;&lt;span style=&#34;color:#f8f8f8;text-decoration:underline&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#f8f8f8;text-decoration:underline&#34;&gt;  &lt;/span&gt;&lt;span style=&#34;color:#204a87;font-weight:bold&#34;&gt;THRUSTERS&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;:&lt;/span&gt;&lt;span style=&#34;color:#f8f8f8;text-decoration:underline&#34;&gt; &lt;/span&gt;&lt;span style=&#34;color:#000&#34;&gt;GO {{ .Env.PATH }} // GO + expanded PATH environment variable&lt;/span&gt;&lt;span style=&#34;color:#f8f8f8;text-decoration:underline&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#f8f8f8;text-decoration:underline&#34;&gt;  &lt;/span&gt;&lt;span style=&#34;color:#204a87;font-weight:bold&#34;&gt;TELEMETRY&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;:&lt;/span&gt;&lt;span style=&#34;color:#f8f8f8;text-decoration:underline&#34;&gt; &lt;/span&gt;&lt;span style=&#34;color:#000&#34;&gt;GO&lt;/span&gt;&lt;span style=&#34;color:#f8f8f8;text-decoration:underline&#34;&gt;
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;includes&#34;&gt;includes&lt;/h3&gt;
+&lt;p&gt;The &lt;code&gt;includes&lt;/code&gt; property is a list of include file definitions. The mission can load and merge include files from either local paths or from web urls.  Include files are merged into the parent file such tat parent definitions take prescience.&lt;/p&gt;
+&lt;p&gt;Include files can be nested.  The path to the include file is assumed to be relative to their parent&amp;rsquo;s include location.  When a included configuration references a relative resource, such as a param value file, its location is assumed relative to the &lt;code&gt;cirocket&lt;/code&gt; working directory.&lt;/p&gt;
+&lt;p&gt;See &lt;a href=&#34;https://neehemming.github.io/cirocket/cirocket/docs/reference/missions/include/&#34;&gt;Include definition&lt;/a&gt; for more info.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Feature&lt;/th&gt;
+&lt;th&gt;Used&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Mandatory&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Template Expanded&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-yaml&#34; data-lang=&#34;yaml&#34;&gt;&lt;span style=&#34;color:#204a87;font-weight:bold&#34;&gt;includes&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;:&lt;/span&gt;&lt;span style=&#34;color:#f8f8f8;text-decoration:underline&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#f8f8f8;text-decoration:underline&#34;&gt;  &lt;/span&gt;- &lt;span style=&#34;color:#204a87;font-weight:bold&#34;&gt;path&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;:&lt;/span&gt;&lt;span style=&#34;color:#f8f8f8;text-decoration:underline&#34;&gt; &lt;/span&gt;&lt;span style=&#34;color:#000&#34;&gt;https://raw.githubusercontent.com/nehemming/cirocket-config/master/build/stdbuild.yml&lt;/span&gt;&lt;span style=&#34;color:#f8f8f8;text-decoration:underline&#34;&gt;
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;must&#34;&gt;must&lt;/h3&gt;
+&lt;p&gt;List of parameters that must be passed into the mission.  If any of the parameters are missing the mission will fail preparation and no stage or &lt;code&gt;onFail&lt;/code&gt; stage will be run.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Feature&lt;/th&gt;
+&lt;th&gt;Used&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Mandatory&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Template Expanded&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-yaml&#34; data-lang=&#34;yaml&#34;&gt;&lt;span style=&#34;color:#204a87;font-weight:bold&#34;&gt;must&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;:&lt;/span&gt;&lt;span style=&#34;color:#f8f8f8;text-decoration:underline&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#f8f8f8;text-decoration:underline&#34;&gt;  &lt;/span&gt;- &lt;span style=&#34;color:#000&#34;&gt;secret_token&lt;/span&gt;&lt;span style=&#34;color:#f8f8f8;text-decoration:underline&#34;&gt;
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;name&#34;&gt;name&lt;/h3&gt;
+&lt;p&gt;Name of the mission.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Feature&lt;/th&gt;
+&lt;th&gt;Used&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Mandatory&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Template Expanded&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h3 id=&#34;onfail&#34;&gt;onFail&lt;/h3&gt;
+&lt;p&gt;The &lt;code&gt;onFail&lt;/code&gt; property defines a stage to run if during the mission execution phase an error occurs.   The stage can be used to perhaps clean up resources etc.   The onFail stage is not run if the mission fails during the preparation phase.  This is because all preparation completes prior to the first stage executing.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Feature&lt;/th&gt;
+&lt;th&gt;Used&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Mandatory&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Template Expanded&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h3 id=&#34;params&#34;&gt;params&lt;/h3&gt;
+&lt;p&gt;The &lt;code&gt;params&lt;/code&gt; property is a map of param definitions.  Params are readonly values that are template expanded during the preparation phase of a mission.&lt;/p&gt;
+&lt;p&gt;When params are expanded they have access to:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;environment variables passed in from the &lt;code&gt;cirocket&lt;/code&gt; environment not overwritten by &lt;code&gt;basicEnv&lt;/code&gt; or &lt;code&gt;env&lt;/code&gt; entries&lt;/li&gt;
+&lt;li&gt;environment variables defined in &lt;code&gt;basicEnv&lt;/code&gt; or &lt;code&gt;env&lt;/code&gt; entries.&lt;/li&gt;
+&lt;li&gt;params passed into the application and any defined in the mission definition prior to the one being expanded.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;See &lt;a href=&#34;https://neehemming.github.io/cirocket/cirocket/docs/reference/missions/param/&#34;&gt;Param definition&lt;/a&gt; for more info.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Feature&lt;/th&gt;
+&lt;th&gt;Used&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Mandatory&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Template Expanded&lt;/td&gt;
+&lt;td&gt;Yes&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h3 id=&#34;sequences&#34;&gt;sequences&lt;/h3&gt;
+&lt;p&gt;The &lt;code&gt;Sequences&lt;/code&gt; property is a list of sequence definitions.  A sequence is a key named order list of stages to run.   Many different sequences can be defined.  Each must have a unique key name and one or more stages to execute.  If a sequence is defined for a mission the application caller must provide at least one sequence key name on the command line.  If they do not an error will be raised and the mission will fail during the prepare stage.   If no sequence definition is present, stages in the mission will all be executed iin the order they are defined.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Feature&lt;/th&gt;
+&lt;th&gt;Used&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Mandatory&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Template Expanded&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-yaml&#34; data-lang=&#34;yaml&#34;&gt;&lt;span style=&#34;color:#204a87;font-weight:bold&#34;&gt;sequences&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;:&lt;/span&gt;&lt;span style=&#34;color:#f8f8f8;text-decoration:underline&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#f8f8f8;text-decoration:underline&#34;&gt;  &lt;/span&gt;- &lt;span style=&#34;color:#204a87;font-weight:bold&#34;&gt;release&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;:&lt;/span&gt;&lt;span style=&#34;color:#f8f8f8;text-decoration:underline&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#f8f8f8;text-decoration:underline&#34;&gt;    &lt;/span&gt;- &lt;span style=&#34;color:#000&#34;&gt;initialise&lt;/span&gt;&lt;span style=&#34;color:#f8f8f8;text-decoration:underline&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#f8f8f8;text-decoration:underline&#34;&gt;    &lt;/span&gt;- &lt;span style=&#34;color:#000&#34;&gt;validate&lt;/span&gt;&lt;span style=&#34;color:#f8f8f8;text-decoration:underline&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#f8f8f8;text-decoration:underline&#34;&gt;    &lt;/span&gt;- &lt;span style=&#34;color:#000&#34;&gt;credits&lt;/span&gt;&lt;span style=&#34;color:#f8f8f8;text-decoration:underline&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#f8f8f8;text-decoration:underline&#34;&gt;    &lt;/span&gt;- &lt;span style=&#34;color:#000&#34;&gt;goreleaser&lt;/span&gt;&lt;span style=&#34;color:#f8f8f8;text-decoration:underline&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#f8f8f8;text-decoration:underline&#34;&gt;    &lt;/span&gt;- &lt;span style=&#34;color:#000&#34;&gt;tag_display&lt;/span&gt;&lt;span style=&#34;color:#f8f8f8;text-decoration:underline&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#f8f8f8;text-decoration:underline&#34;&gt;    &lt;/span&gt;- &lt;span style=&#34;color:#000&#34;&gt;cleanup&lt;/span&gt;&lt;span style=&#34;color:#f8f8f8;text-decoration:underline&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#f8f8f8;text-decoration:underline&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#f8f8f8;text-decoration:underline&#34;&gt;  &lt;/span&gt;- &lt;span style=&#34;color:#204a87;font-weight:bold&#34;&gt;coverage&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;:&lt;/span&gt;&lt;span style=&#34;color:#f8f8f8;text-decoration:underline&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#f8f8f8;text-decoration:underline&#34;&gt;    &lt;/span&gt;- &lt;span style=&#34;color:#000&#34;&gt;initialise&lt;/span&gt;&lt;span style=&#34;color:#f8f8f8;text-decoration:underline&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#f8f8f8;text-decoration:underline&#34;&gt;    &lt;/span&gt;- &lt;span style=&#34;color:#000&#34;&gt;validate&lt;/span&gt;&lt;span style=&#34;color:#f8f8f8;text-decoration:underline&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#f8f8f8;text-decoration:underline&#34;&gt;    &lt;/span&gt;- &lt;span style=&#34;color:#000&#34;&gt;coverage&lt;/span&gt;&lt;span style=&#34;color:#f8f8f8;text-decoration:underline&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#f8f8f8;text-decoration:underline&#34;&gt;    &lt;/span&gt;- &lt;span style=&#34;color:#000&#34;&gt;cleanup&lt;/span&gt;&lt;span style=&#34;color:#f8f8f8;text-decoration:underline&#34;&gt;
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;stages&#34;&gt;stages&lt;/h3&gt;
+&lt;p&gt;The &lt;code&gt;stages&lt;/code&gt; property is a list of mission stage definitions.  All missions are required to have one or more stages.&lt;/p&gt;
+&lt;p&gt;If no &lt;code&gt;sequence&lt;/code&gt; property is defined thn stages are executed in the order they are specified in the file.   otherwise the order stages are executed is determined by the command line sequence arguments.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Feature&lt;/th&gt;
+&lt;th&gt;Used&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Mandatory&lt;/td&gt;
+&lt;td&gt;Yes&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Template Expanded&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h3 id=&#34;version&#34;&gt;version&lt;/h3&gt;
+&lt;p&gt;The &lt;code&gt;version&lt;/code&gt; property indicates the version of the mission file being used.  Currently this value is ignored.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Feature&lt;/th&gt;
+&lt;th&gt;Used&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Mandatory&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Template Expanded&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+      </description>
+    </item>
+    
+    <item>
+      <title>Docs: Param</title>
+      <link>https://neehemming.github.io/cirocket/docs/reference/missions/param/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://neehemming.github.io/cirocket/docs/reference/missions/param/</guid>
+      <description>
+        
+        
+        &lt;p&gt;A param definition defines a read only variable used by:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://neehemming.github.io/cirocket/cirocket/docs/reference/missions/mission/&#34;&gt;Missions&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://neehemming.github.io/cirocket/cirocket/docs/reference/missions/stage/&#34;&gt;Stages&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://neehemming.github.io/cirocket/cirocket/docs/reference/missions/task/&#34;&gt;Tasks&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;description&#34;&gt;description&lt;/h3&gt;
+&lt;p&gt;The &lt;code&gt;description&lt;/code&gt; property is a free text description of a parameter.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Feature&lt;/th&gt;
+&lt;th&gt;Used&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Mandatory&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Template Expanded&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h3 id=&#34;name&#34;&gt;name&lt;/h3&gt;
+&lt;p&gt;The &lt;code&gt;name&lt;/code&gt; parameter is the unique key name of the parameter.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Feature&lt;/th&gt;
+&lt;th&gt;Used&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Mandatory&lt;/td&gt;
+&lt;td&gt;Yes&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Template Expanded&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h3 id=&#34;filter&#34;&gt;filter&lt;/h3&gt;
+&lt;p&gt;The &lt;code&gt;filter&lt;/code&gt; property is an optional filter on the param.
+If the filter criteria are not met the param value will not be set.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Feature&lt;/th&gt;
+&lt;th&gt;Used&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Mandatory&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Template Expanded&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h3 id=&#34;optional&#34;&gt;optional&lt;/h3&gt;
+&lt;p&gt;If &lt;code&gt;optional&lt;/code&gt; is true (yes|1) no error will be produced if no file can be loaded from the &lt;code&gt;path&lt;/code&gt;.  The default is &lt;code&gt;false&lt;/code&gt;.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Feature&lt;/th&gt;
+&lt;th&gt;Used&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Mandatory&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Template Expanded&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h3 id=&#34;path&#34;&gt;path&lt;/h3&gt;
+&lt;p&gt;The &lt;code&gt;path&lt;/code&gt;is the location of a resource that can provide the parameter&amp;rsquo;s value.
+Paths may be either a local file system path or a url to file or http(s) resource.
+If both Path and Value are supplied the resource value will be appended to the Value.
+Template expressions can be used in the path.  The template is expanded to get the
+location of the resource.&lt;/p&gt;
+&lt;p&gt;If the resource is successfully located it is appended to the Value property.
+If SkipExpand is false the combined value will be processed as a template to
+obtain the final value.   If SkipExpand is true the combined value will be used without
+any additional expansion.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Feature&lt;/th&gt;
+&lt;th&gt;Used&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Mandatory&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Template Expanded&lt;/td&gt;
+&lt;td&gt;Yes&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h3 id=&#34;print&#34;&gt;print&lt;/h3&gt;
+&lt;p&gt;If &lt;code&gt;print&lt;/code&gt; is true (yes|1) the param name and value will be logged.  The default is &lt;code&gt;false&lt;/code&gt;.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Feature&lt;/th&gt;
+&lt;th&gt;Used&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Mandatory&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Template Expanded&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h3 id=&#34;skipexpand&#34;&gt;skipExpand&lt;/h3&gt;
+&lt;p&gt;If &lt;code&gt;skipExpand&lt;/code&gt; is true (yes|1) the value and any file read from &lt;code&gt;path&lt;/code&gt; will not be template expanded.  The default is &lt;code&gt;false&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Note, The path value will always be expanded.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Feature&lt;/th&gt;
+&lt;th&gt;Used&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Mandatory&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Template Expanded&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h3 id=&#34;value&#34;&gt;value&lt;/h3&gt;
+&lt;p&gt;The &lt;code&gt;value&lt;/code&gt; property contain the value of the parameter. Unless &lt;code&gt;skipExpand&lt;/code&gt; is true the value will be template expanded.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Feature&lt;/th&gt;
+&lt;th&gt;Used&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Mandatory&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Template Expanded&lt;/td&gt;
+&lt;td&gt;Yes (subject to &lt;code&gt;skipExpand&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+      </description>
+    </item>
+    
+    <item>
+      <title>Docs: Stage</title>
+      <link>https://neehemming.github.io/cirocket/docs/reference/missions/stage/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://neehemming.github.io/cirocket/docs/reference/missions/stage/</guid>
+      <description>
+        
+        
+        &lt;h3 id=&#34;basicenv&#34;&gt;basicEnv&lt;/h3&gt;
+&lt;p&gt;Map of environment variables where the values are not template expanded.&lt;/p&gt;
+&lt;p&gt;The &lt;code&gt;basicEnv&lt;/code&gt; variables are loaded prior to the &lt;code&gt;env&lt;/code&gt; variables.  The &lt;code&gt;env&lt;/code&gt; value takes prescience`&lt;/p&gt;
+&lt;p&gt;The variables are scoped to the specific stage, but inherited by all its tasks.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Feature&lt;/th&gt;
+&lt;th&gt;Used&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Mandatory&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Template Expanded&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-yaml&#34; data-lang=&#34;yaml&#34;&gt;&lt;span style=&#34;color:#204a87;font-weight:bold&#34;&gt;basicEnv&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;:&lt;/span&gt;&lt;span style=&#34;color:#f8f8f8;text-decoration:underline&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#f8f8f8;text-decoration:underline&#34;&gt;  &lt;/span&gt;&lt;span style=&#34;color:#204a87;font-weight:bold&#34;&gt;THRUSTERS&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;:&lt;/span&gt;&lt;span style=&#34;color:#f8f8f8;text-decoration:underline&#34;&gt; &lt;/span&gt;&lt;span style=&#34;color:#000&#34;&gt;GO{{Not expanded}}&lt;/span&gt;&lt;span style=&#34;color:#f8f8f8;text-decoration:underline&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#f8f8f8;text-decoration:underline&#34;&gt;  &lt;/span&gt;&lt;span style=&#34;color:#204a87;font-weight:bold&#34;&gt;TELEMETRY&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;:&lt;/span&gt;&lt;span style=&#34;color:#f8f8f8;text-decoration:underline&#34;&gt; &lt;/span&gt;&lt;span style=&#34;color:#000&#34;&gt;GO&lt;/span&gt;&lt;span style=&#34;color:#f8f8f8;text-decoration:underline&#34;&gt;
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;description&#34;&gt;description&lt;/h3&gt;
+&lt;p&gt;Free text description of the stage.&lt;/p&gt;
+&lt;p&gt;This property, along with comments can be used to document the stage.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Feature&lt;/th&gt;
+&lt;th&gt;Used&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Mandatory&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Template Expanded&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h3 id=&#34;dir&#34;&gt;dir&lt;/h3&gt;
+&lt;p&gt;The &lt;code&gt;dir&lt;/code&gt; property optionally specifies the directory in which the stage should be rum.&lt;/p&gt;
+&lt;p&gt;if the directory does not exist an error will be raised.&lt;/p&gt;
+&lt;p&gt;Once the stage has completed the parent directory will be restored.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Feature&lt;/th&gt;
+&lt;th&gt;Used&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Mandatory&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Template Expanded&lt;/td&gt;
+&lt;td&gt;Yes&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h3 id=&#34;env&#34;&gt;env&lt;/h3&gt;
+&lt;p&gt;Map of environment variables where the values are template expanded.&lt;/p&gt;
+&lt;p&gt;The &lt;code&gt;basicEnv&lt;/code&gt; variables are loaded prior to the &lt;code&gt;env&lt;/code&gt; variables.  The &lt;code&gt;env&lt;/code&gt; value takes prescience`&lt;/p&gt;
+&lt;p&gt;All Environment variables are loaded prior to params.&lt;/p&gt;
+&lt;p&gt;The stage inherits the mission&amp;rsquo;s environment variables.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Feature&lt;/th&gt;
+&lt;th&gt;Used&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Mandatory&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Template Expanded&lt;/td&gt;
+&lt;td&gt;Yes&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h3 id=&#34;filter&#34;&gt;filter&lt;/h3&gt;
+&lt;p&gt;The &lt;code&gt;filter&lt;/code&gt; property is an optional filter on the stage.
+If the filter criteria are not met the stage will be skipped.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Feature&lt;/th&gt;
+&lt;th&gt;Used&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Mandatory&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Template Expanded&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h3 id=&#34;if&#34;&gt;if&lt;/h3&gt;
+&lt;p&gt;The &lt;code&gt;if&lt;/code&gt; condition is evaluated immediately prior to starting execution of the stage&amp;rsquo;s operations.   If the supplied expression does not evaluate to a boolean &lt;code&gt;true&lt;/code&gt; expression the stage will be skipped.&lt;/p&gt;
+&lt;p&gt;When no &lt;code&gt;if&lt;/code&gt; property is supplied the stage will default the &lt;code&gt;if&lt;/code&gt; condition to true.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Feature&lt;/th&gt;
+&lt;th&gt;Used&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Mandatory&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Template Expanded&lt;/td&gt;
+&lt;td&gt;Yes&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h3 id=&#34;must&#34;&gt;must&lt;/h3&gt;
+&lt;p&gt;List of parameters that must be passed into the stage from the mission.  If any of the parameters are missing the stage will fail preparation no stage or &lt;code&gt;onFail&lt;/code&gt; stage will be run.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Feature&lt;/th&gt;
+&lt;th&gt;Used&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Mandatory&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Template Expanded&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h3 id=&#34;name&#34;&gt;name&lt;/h3&gt;
+&lt;p&gt;Name of the stage.  If supplied the name must be unique across all stages.  Stages that are not named are refereed to by their ordinal position in the list of stages.  If unnamed stages cannot be used with sequences.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Feature&lt;/th&gt;
+&lt;th&gt;Used&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Mandatory&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Template Expanded&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h3 id=&#34;notrust&#34;&gt;noTrust&lt;/h3&gt;
+&lt;p&gt;The &lt;code&gt;noTrust&lt;/code&gt; property indicates the stage should not inherit environment variables or parameters from its parent.&lt;br&gt;
+This can be used with a  stage where you do not want the subtasks to receive API tokens etc. that are stored in the parents environment.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Feature&lt;/th&gt;
+&lt;th&gt;Used&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Mandatory&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Template Expanded&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h3 id=&#34;onfail&#34;&gt;onFail&lt;/h3&gt;
+&lt;p&gt;The &lt;code&gt;onFail&lt;/code&gt; property defines a task to run if during the stage&amp;rsquo;s execution phase an error occurs.   The task can be used to perhaps clean up resources etc.   The onFail task is not run if the stage fails during the preparation phase.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Feature&lt;/th&gt;
+&lt;th&gt;Used&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Mandatory&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Template Expanded&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h3 id=&#34;params&#34;&gt;params&lt;/h3&gt;
+&lt;p&gt;The &lt;code&gt;params&lt;/code&gt; property is a map of param definitions.  Params are readonly values that are template expanded during the preparation phase of a mission.&lt;/p&gt;
+&lt;p&gt;When params are expanded they have access to:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;environment variables passed from the mission and not overwritten by &lt;code&gt;basicEnv&lt;/code&gt; or &lt;code&gt;env&lt;/code&gt; entries&lt;/li&gt;
+&lt;li&gt;environment variables defined in &lt;code&gt;basicEnv&lt;/code&gt; or &lt;code&gt;env&lt;/code&gt; entries.&lt;/li&gt;
+&lt;li&gt;params passed from the mission.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;See &lt;a href=&#34;https://neehemming.github.io/cirocket/cirocket/docs/reference/missions/param/&#34;&gt;Param definition&lt;/a&gt; for more info.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Feature&lt;/th&gt;
+&lt;th&gt;Used&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Mandatory&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Template Expanded&lt;/td&gt;
+&lt;td&gt;Yes&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h3 id=&#34;ref&#34;&gt;ref&lt;/h3&gt;
+&lt;p&gt;The &lt;code&gt;ref&lt;/code&gt; property allows a stage to reference another stage&amp;rsquo;s definition.  If a &lt;code&gt;ref&lt;/code&gt; property is provided it mast identity another named stage.  If the stage referenced does not exist the mission wll fail at the prepare phase.&lt;/p&gt;
+&lt;p&gt;When a target stage ref&amp;rsquo;s another stage the properties of the referenced stage are copied  and merged into the target stage&amp;rsquo;s properties.  Any properties defined in the target stage take precedence over the referenced stage.  Stages references are transitive so a referenced stage may reference other stages.   The mission fails if a circular reference is detected however.&lt;/p&gt;
+&lt;p&gt;The &lt;code&gt;ref&lt;/code&gt; property is useful to avoid needing to repeat definitions for the onFail stage etc.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Feature&lt;/th&gt;
+&lt;th&gt;Used&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Mandatory&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Template Expanded&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h3 id=&#34;tasks&#34;&gt;tasks&lt;/h3&gt;
+&lt;p&gt;The &lt;code&gt;tasks&lt;/code&gt; property iis a list of one or more tasks to execute.
+Tasks are executed sequentially&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Feature&lt;/th&gt;
+&lt;th&gt;Used&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Mandatory&lt;/td&gt;
+&lt;td&gt;Yes&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Template Expanded&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+      </description>
+    </item>
+    
+    <item>
+      <title>Docs: Task</title>
+      <link>https://neehemming.github.io/cirocket/docs/reference/missions/task/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://neehemming.github.io/cirocket/docs/reference/missions/task/</guid>
+      <description>
+        
+        
+        &lt;h3 id=&#34;task-varieties&#34;&gt;Task varieties&lt;/h3&gt;
+&lt;p&gt;Tasks are run by stages.   There are four varieties of task.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Type tasks&lt;/li&gt;
+&lt;li&gt;Collection tasks
+&lt;ul&gt;
+&lt;li&gt;Group&lt;/li&gt;
+&lt;li&gt;Try&lt;/li&gt;
+&lt;li&gt;Concurrent&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;The Type tasks use a &lt;code&gt;type&lt;/code&gt; property to identify the specific type of task being executed. The collection tasks all contain one or more task definitions.   Tope level stage tasks inherit parameters and  environment variables from the stage.  Sub tasks of a collection task inherit the parameters and environment variables the collection.   In this way parameters and environment definitions are hierarchical where child nodes in the tree can replace values provided by their parents.&lt;/p&gt;
+&lt;p&gt;All tasks, regardless of variety or type share a set of common properties.   Additional properties can be defined for each variety and type task implementations can add their own additional configuration properties.&lt;/p&gt;
+&lt;h3 id=&#34;variable-types&#34;&gt;Variable types&lt;/h3&gt;
+&lt;p&gt;There are three different types of variable storage in &lt;code&gt;ciirocket&lt;/code&gt;:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Environment variables.  Inherited from the shell process Environment variables and passed into child processes.  Environment variables are evaluated at prepare time.  (The &lt;code&gt;run&lt;/code&gt; task type reevaluates variables immediately prior to executing ht sub process.)   The variables are readonly once defined.  The &lt;code&gt;env&lt;/code&gt; definitions are template expanded, but only have access to parent params.&lt;/li&gt;
+&lt;li&gt;Parameters are read only values either passed into the program as command line arguments or defined in configuration.   Parameters are evaluated during the preparation phase.   Values are scoped to the specific item defining them and their child definitions. Iif a child sets a new value for a parameter it does not effect their parent or sibling&amp;rsquo;s values.&lt;/li&gt;
+&lt;li&gt;Variables are dynamic values evaluated before, during or after a task&amp;rsquo;s execution phase.  Variables can be used to share output from a task with its parent&amp;rsquo;s and sibling tasks.  Th &lt;code&gt;prevars&lt;/code&gt; are evaluated after the prepare phase but prior to executing a task.  The values are local to the task.  The &lt;code&gt;postvars&lt;/code&gt; are evaluated after the task has executed and are shared with the parent and sibling tasks.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Variables are not defined during the prepare phase so should not be used as part of a &lt;code&gt;env&lt;/code&gt; or &lt;code&gt;param&lt;/code&gt; template value.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id=&#34;common-task-properties&#34;&gt;Common Task Properties&lt;/h2&gt;
+&lt;h3 id=&#34;basicenv&#34;&gt;basicEnv&lt;/h3&gt;
+&lt;p&gt;Map of environment variables where the values are not template expanded.&lt;/p&gt;
+&lt;p&gt;The &lt;code&gt;basicEnv&lt;/code&gt; variables are loaded prior to the &lt;code&gt;env&lt;/code&gt; variables.  The &lt;code&gt;env&lt;/code&gt; value takes prescience`&lt;/p&gt;
+&lt;p&gt;The variables are scoped to the specific task.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Feature&lt;/th&gt;
+&lt;th&gt;Used&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Mandatory&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Template Expanded&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-yaml&#34; data-lang=&#34;yaml&#34;&gt;&lt;span style=&#34;color:#204a87;font-weight:bold&#34;&gt;basicEnv&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;:&lt;/span&gt;&lt;span style=&#34;color:#f8f8f8;text-decoration:underline&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#f8f8f8;text-decoration:underline&#34;&gt;  &lt;/span&gt;&lt;span style=&#34;color:#204a87;font-weight:bold&#34;&gt;THRUSTERS&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;:&lt;/span&gt;&lt;span style=&#34;color:#f8f8f8;text-decoration:underline&#34;&gt; &lt;/span&gt;&lt;span style=&#34;color:#000&#34;&gt;GO{{Not expanded}}&lt;/span&gt;&lt;span style=&#34;color:#f8f8f8;text-decoration:underline&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#f8f8f8;text-decoration:underline&#34;&gt;  &lt;/span&gt;&lt;span style=&#34;color:#204a87;font-weight:bold&#34;&gt;TELEMETRY&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;:&lt;/span&gt;&lt;span style=&#34;color:#f8f8f8;text-decoration:underline&#34;&gt; &lt;/span&gt;&lt;span style=&#34;color:#000&#34;&gt;GO&lt;/span&gt;&lt;span style=&#34;color:#f8f8f8;text-decoration:underline&#34;&gt;
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;description&#34;&gt;description&lt;/h3&gt;
+&lt;p&gt;Free text description of the task.&lt;/p&gt;
+&lt;p&gt;This property, along with comments can be used to document the task.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Feature&lt;/th&gt;
+&lt;th&gt;Used&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Mandatory&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Template Expanded&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h3 id=&#34;env&#34;&gt;env&lt;/h3&gt;
+&lt;p&gt;Map of environment variables where the values are template expanded.&lt;/p&gt;
+&lt;p&gt;The &lt;code&gt;basicEnv&lt;/code&gt; variables are loaded prior to the &lt;code&gt;env&lt;/code&gt; variables.  The &lt;code&gt;env&lt;/code&gt; value takes prescience`&lt;/p&gt;
+&lt;p&gt;All Environment variables are loaded prior to params.&lt;/p&gt;
+&lt;p&gt;The task inherits the stage&amp;rsquo;s environment variables.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Feature&lt;/th&gt;
+&lt;th&gt;Used&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Mandatory&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Template Expanded&lt;/td&gt;
+&lt;td&gt;Yes&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h3 id=&#34;exports&#34;&gt;exports&lt;/h3&gt;
+&lt;p&gt;The &lt;code&gt;exports&lt;/code&gt; definition is a list of variables that should be shared with as variables with their parent and sibling tasks.   All &lt;code&gt;postvars&lt;/code&gt; are exported automatically, but the &lt;code&gt;prevars&lt;/code&gt; need to be listed in the &lt;code&gt;exports&lt;/code&gt; section to be shared with parents/siblings.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Feature&lt;/th&gt;
+&lt;th&gt;Used&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Mandatory&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Template Expanded&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h3 id=&#34;filter&#34;&gt;filter&lt;/h3&gt;
+&lt;p&gt;The &lt;code&gt;filter&lt;/code&gt; property is an optional filter on the stage.
+If the filter criteria are not met the task will be skipped.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Feature&lt;/th&gt;
+&lt;th&gt;Used&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Mandatory&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Template Expanded&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h3 id=&#34;if&#34;&gt;if&lt;/h3&gt;
+&lt;p&gt;The &lt;code&gt;if&lt;/code&gt; condition is evaluated immediately prior to starting execution of the task&amp;rsquo;s operations.   If the supplied expression does not evaluate to a boolean &lt;code&gt;true&lt;/code&gt; expression the task will be skipped.&lt;/p&gt;
+&lt;p&gt;When no &lt;code&gt;if&lt;/code&gt; property is supplied the task will default the &lt;code&gt;if&lt;/code&gt; condition to true.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Feature&lt;/th&gt;
+&lt;th&gt;Used&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Mandatory&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Template Expanded&lt;/td&gt;
+&lt;td&gt;Yes&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h3 id=&#34;must&#34;&gt;must&lt;/h3&gt;
+&lt;p&gt;List of parameters that must be passed into the task from the stage or task parent.  If any of the parameters are missing the task will fail preparation and no stage, task or &lt;code&gt;onFail&lt;/code&gt; will be run.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Feature&lt;/th&gt;
+&lt;th&gt;Used&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Mandatory&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Template Expanded&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h3 id=&#34;name&#34;&gt;name&lt;/h3&gt;
+&lt;p&gt;Name of the task.  If supplied the name must be unique across all tasks sharing the same parent task or stage.&lt;br&gt;
+Tasks that are not named are refereed to by their ordinal position in the list of tasks.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Feature&lt;/th&gt;
+&lt;th&gt;Used&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Mandatory&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Template Expanded&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h3 id=&#34;notrust&#34;&gt;noTrust&lt;/h3&gt;
+&lt;p&gt;The &lt;code&gt;noTrust&lt;/code&gt; property indicates the task should not inherit environment variables or parameters from its parent.&lt;br&gt;
+This can be used with a &lt;code&gt;run&lt;/code&gt; task where you do not want the child process to receive API tokens etc. that are stored in the parent environment.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Feature&lt;/th&gt;
+&lt;th&gt;Used&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Mandatory&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Template Expanded&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h3 id=&#34;params&#34;&gt;params&lt;/h3&gt;
+&lt;p&gt;The &lt;code&gt;params&lt;/code&gt; property is a map of param definitions.  Params are readonly values that are template expanded during the preparation phase of a mission.&lt;/p&gt;
+&lt;p&gt;When params are expanded they have access to:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;environment variables passed from the stage or task parent and not overwritten by &lt;code&gt;basicEnv&lt;/code&gt; or &lt;code&gt;env&lt;/code&gt; entries&lt;/li&gt;
+&lt;li&gt;environment variables defined in &lt;code&gt;basicEnv&lt;/code&gt; or &lt;code&gt;env&lt;/code&gt; entries.&lt;/li&gt;
+&lt;li&gt;params passed from the task&amp;rsquo;s parent stage or task.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;See &lt;a href=&#34;https://neehemming.github.io/cirocket/cirocket/docs/reference/missions/param/&#34;&gt;Param definition&lt;/a&gt; for more info.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Feature&lt;/th&gt;
+&lt;th&gt;Used&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Mandatory&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Template Expanded&lt;/td&gt;
+&lt;td&gt;Yes&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h3 id=&#34;prevars&#34;&gt;prevars&lt;/h3&gt;
+&lt;p&gt;The &lt;code&gt;prevars&lt;/code&gt; property is map of variable key names and temp;ate expanded values that are evaluated after the prepare phase has completed but before the defining task has started execution.   The variables are local to the defining task and any child tasks that it may have.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Feature&lt;/th&gt;
+&lt;th&gt;Used&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Mandatory&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Template Expanded&lt;/td&gt;
+&lt;td&gt;Yes&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h3 id=&#34;postvars&#34;&gt;postvars&lt;/h3&gt;
+&lt;p&gt;The &lt;code&gt;postvars&lt;/code&gt; property is map of variable key names and temp;ate expanded values that are evaluated after the task has successfully completed.   The variables are exported and shared with their parent and sibling tasks.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Feature&lt;/th&gt;
+&lt;th&gt;Used&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Mandatory&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Template Expanded&lt;/td&gt;
+&lt;td&gt;Yes&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h3 id=&#34;ref&#34;&gt;ref&lt;/h3&gt;
+&lt;p&gt;The &lt;code&gt;ref&lt;/code&gt; property allows a task to reference another task&amp;rsquo;s definition.  If a &lt;code&gt;ref&lt;/code&gt; property is provided it mast identity another named task. The target and referenced task must share the same immediate parent.  If the task referenced does not exist the mission wll fail at the prepare phase.&lt;/p&gt;
+&lt;p&gt;When a target task references another task the properties of the referenced task are copied and merged into the target task&amp;rsquo;s properties.  Any properties defined in the target task take precedence over the referenced task.  Tasks references are transitive so a referenced task may reference other tasks.   The mission fails if a circular reference is detected however.&lt;/p&gt;
+&lt;p&gt;The &lt;code&gt;ref&lt;/code&gt; property is useful to avoid needing to repeat definitions for the onFail task etc.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Feature&lt;/th&gt;
+&lt;th&gt;Used&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Mandatory&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Template Expanded&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2 id=&#34;type-tasks&#34;&gt;Type Tasks&lt;/h2&gt;
+&lt;h3 id=&#34;type&#34;&gt;type&lt;/h3&gt;
+&lt;p&gt;The &lt;code&gt;type&lt;/code&gt; property identifies a task as the Type variety.  The &lt;code&gt;type&lt;/code&gt; value is the identifying name of the task type running this task.&lt;/p&gt;
+&lt;p&gt;The type identifier must be registered with &lt;code&gt;cirocket&lt;/code&gt;.  Unknown task types will cause the mission to fail.&lt;/p&gt;
+&lt;p&gt;Task types may define their own additional properties that can be included in the task configuration.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Feature&lt;/th&gt;
+&lt;th&gt;Used&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Mandatory&lt;/td&gt;
+&lt;td&gt;Type determinant&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Template Expanded&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2 id=&#34;collection-tasks&#34;&gt;Collection Tasks&lt;/h2&gt;
+&lt;h3 id=&#34;concurrent&#34;&gt;concurrent&lt;/h3&gt;
+&lt;p&gt;A &lt;code&gt;concurrent&lt;/code&gt; property identifies the task as being of the Concurrent variety,  A concurrent task is itself just a list of tasks to execute concurrent.   Each of the tasks will run concurrently, if a task fails &lt;code&gt;cirocket&lt;/code&gt; will attempt to cancel the other running tasks. A &lt;code&gt;concurrent&lt;/code&gt; task completes when all the child tasks have completed.&lt;/p&gt;
+&lt;p&gt;All the tasks will inherit any environment or parameter settings defined in the concurrent definition.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Feature&lt;/th&gt;
+&lt;th&gt;Used&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Mandatory&lt;/td&gt;
+&lt;td&gt;Type determinant&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Template Expanded&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h3 id=&#34;group&#34;&gt;group&lt;/h3&gt;
+&lt;p&gt;A &lt;code&gt;group&lt;/code&gt; property identifies the task as being of the Group variety,  A group task is itself just a list of tasks to execute sequentially.&lt;/p&gt;
+&lt;p&gt;The task group is similar to the stage &lt;code&gt;tasks&lt;/code&gt; property in that tasks will be sequentially executed in the order they are defined.  All the tasks will inherit any environment or parameter settings defined in the group definition.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Feature&lt;/th&gt;
+&lt;th&gt;Used&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Mandatory&lt;/td&gt;
+&lt;td&gt;Type determinant&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Template Expanded&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h3 id=&#34;onfail&#34;&gt;onFail&lt;/h3&gt;
+&lt;p&gt;The &lt;code&gt;onFail&lt;/code&gt; property defines a task to run if during a group task&amp;rsquo;s execution phase an error occurs.   The task can be used to perhaps clean up resources etc.   The onFail task is not run if the stage fails during the preparation phase.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;code&gt;onFail&lt;/code&gt; only applies to group and concurrent tasks, other task types will ignore this property.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Feature&lt;/th&gt;
+&lt;th&gt;Used&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Mandatory&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Template Expanded&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h3 id=&#34;try&#34;&gt;try&lt;/h3&gt;
+&lt;p&gt;A &lt;code&gt;try&lt;/code&gt; property identifies the task as being of the Try variety,  A try task is itself just a list of tasks to execute sequentially.&lt;/p&gt;
+&lt;p&gt;The &lt;code&gt;try&lt;/code&gt; list is similar to the &lt;code&gt;group&lt;/code&gt; list where tasks are sequentially executed in the order they are defined.  the tyy list differs that should any sub task fail the remaining tasks in the list will not be run, but no failure error will be raised and tasks proceeding the try block will continue to be run.&lt;/p&gt;
+&lt;p&gt;All the tasks will inherit any environment or parameter settings defined in the group definition.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Feature&lt;/th&gt;
+&lt;th&gt;Used&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Mandatory&lt;/td&gt;
+&lt;td&gt;Type determinant&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Template Expanded&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+      </description>
+    </item>
+    
+    <item>
+      <title>Docs: Templates</title>
+      <link>https://neehemming.github.io/cirocket/docs/reference/templates/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://neehemming.github.io/cirocket/docs/reference/templates/</guid>
+      <description>
+        
+        
+        &lt;p&gt;Coming soon &amp;hellip;&lt;/p&gt;
+
+      </description>
+    </item>
+    
+  </channel>
+</rss>
