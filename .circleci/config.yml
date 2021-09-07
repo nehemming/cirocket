@@ -41,7 +41,7 @@ workflows:
             - 'CI Shared'
           filters:
             branches:
-              ignore: /docs/
+              ignore: gh-pages
             tags:
               ignore: 
                 - /^v\d+\.\d+\.\d+.*$/
