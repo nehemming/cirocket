@@ -22,9 +22,7 @@
 
 
   
-  <meta name="description" content="	// Filter restricts running an activity
-	// The filter applis to the OS and Architecture of the machine running
-	// rocket.   This allows OS specific …">
+  <meta name="description" content="">
 <meta property="og:title" content="Missions" />
 <meta property="og:description" content="cirocket docs" />
 <meta property="og:type" content="website" />
@@ -275,97 +273,7 @@
 		
 		
 	</header>
-	<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go">	<span style="color:#8f5902;font-style:italic">// Filter restricts running an activity
-</span><span style="color:#8f5902;font-style:italic"></span>	<span style="color:#8f5902;font-style:italic">// The filter applis to the OS and Architecture of the machine running
-</span><span style="color:#8f5902;font-style:italic"></span>	<span style="color:#8f5902;font-style:italic">// rocket.   This allows OS specific scripts to be used.
-</span><span style="color:#8f5902;font-style:italic"></span>	<span style="color:#000">Filter</span> <span style="color:#204a87;font-weight:bold">struct</span> <span style="color:#000;font-weight:bold">{</span>
-		<span style="color:#8f5902;font-style:italic">// IncludeOS is a list of operating systems to include.
-</span><span style="color:#8f5902;font-style:italic"></span>		<span style="color:#000">IncludeOS</span> <span style="color:#000;font-weight:bold">[]</span><span style="color:#204a87;font-weight:bold">string</span> <span style="color:#4e9a06">`mapstructure:&#34;includeOS&#34;`</span>
-
-		<span style="color:#8f5902;font-style:italic">// IncludeArch is a list of architectures to permit.
-</span><span style="color:#8f5902;font-style:italic"></span>		<span style="color:#000">IncludeArch</span> <span style="color:#000;font-weight:bold">[]</span><span style="color:#204a87;font-weight:bold">string</span> <span style="color:#4e9a06">`mapstructure:&#34;includeArch&#34;`</span>
-
-		<span style="color:#8f5902;font-style:italic">// ExcludeOS restricts an operating system from running.
-</span><span style="color:#8f5902;font-style:italic"></span>		<span style="color:#000">ExcludeOS</span> <span style="color:#000;font-weight:bold">[]</span><span style="color:#204a87;font-weight:bold">string</span> <span style="color:#4e9a06">`mapstructure:&#34;excludeOS&#34;`</span>
-
-		<span style="color:#8f5902;font-style:italic">// ExcludeArch restricts specific architectures from running.
-</span><span style="color:#8f5902;font-style:italic"></span>		<span style="color:#000">ExcludeArch</span> <span style="color:#000;font-weight:bold">[]</span><span style="color:#204a87;font-weight:bold">string</span> <span style="color:#4e9a06">`mapstructure:&#34;excludeArch&#34;`</span>
-
-		<span style="color:#8f5902;font-style:italic">// Skip prevents theactivity from running if true.
-</span><span style="color:#8f5902;font-style:italic"></span>		<span style="color:#000">Skip</span> <span style="color:#204a87;font-weight:bold">bool</span> <span style="color:#4e9a06">`mapstructure:&#34;skip&#34;`</span>
-	<span style="color:#000;font-weight:bold">}</span>
-
-	<span style="color:#8f5902;font-style:italic">// OutputSpec defines the method of outputtting for a given resource.  The choice is
-</span><span style="color:#8f5902;font-style:italic"></span>	<span style="color:#8f5902;font-style:italic">// either variables or files.
-</span><span style="color:#8f5902;font-style:italic"></span>	<span style="color:#000">OutputSpec</span> <span style="color:#204a87;font-weight:bold">struct</span> <span style="color:#000;font-weight:bold">{</span>
-		<span style="color:#8f5902;font-style:italic">// Variable is an exported variable available to later tasks in the same stage.
-</span><span style="color:#8f5902;font-style:italic"></span>		<span style="color:#000">Variable</span> <span style="color:#204a87;font-weight:bold">string</span> <span style="color:#4e9a06">`mapstructure:&#34;variable&#34;`</span>
-
-		<span style="color:#8f5902;font-style:italic">// Output is a path to a file replacing STDOUT.
-</span><span style="color:#8f5902;font-style:italic"></span>		<span style="color:#000">Path</span> <span style="color:#204a87;font-weight:bold">string</span> <span style="color:#4e9a06">`mapstructure:&#34;path&#34;`</span>
-
-		<span style="color:#8f5902;font-style:italic">// AppendOutput specifies if output should append.
-</span><span style="color:#8f5902;font-style:italic"></span>		<span style="color:#000">Append</span> <span style="color:#204a87;font-weight:bold">bool</span> <span style="color:#4e9a06">`mapstructure:&#34;append&#34;`</span>
-
-		<span style="color:#8f5902;font-style:italic">// SkipExpand when true skips template expansion of the runbook.
-</span><span style="color:#8f5902;font-style:italic"></span>		<span style="color:#000">SkipExpand</span> <span style="color:#204a87;font-weight:bold">bool</span> <span style="color:#4e9a06">`mapstructure:&#34;skipExpand&#34;`</span>
-
-		<span style="color:#8f5902;font-style:italic">// OS File permissions
-</span><span style="color:#8f5902;font-style:italic"></span>		<span style="color:#000">FileMode</span> <span style="color:#204a87;font-weight:bold">uint</span> <span style="color:#4e9a06">`mapstructure:&#34;fileMode&#34;`</span>
-	<span style="color:#000;font-weight:bold">}</span>
-
-	<span style="color:#8f5902;font-style:italic">// InputSpec is a resource input specificsation.  Input data can be provided from
-</span><span style="color:#8f5902;font-style:italic"></span>	<span style="color:#8f5902;font-style:italic">// inline valuses, exported stage variables, local files or a web url.
-</span><span style="color:#8f5902;font-style:italic"></span>	<span style="color:#000">InputSpec</span> <span style="color:#204a87;font-weight:bold">struct</span> <span style="color:#000;font-weight:bold">{</span>
-		<span style="color:#8f5902;font-style:italic">// Variable name to import from.
-</span><span style="color:#8f5902;font-style:italic"></span>		<span style="color:#000">Variable</span> <span style="color:#204a87;font-weight:bold">string</span> <span style="color:#4e9a06">`mapstructure:&#34;variable&#34;`</span>
-
-		<span style="color:#000">Inline</span> <span style="color:#204a87;font-weight:bold">string</span> <span style="color:#4e9a06">`mapstructure:&#34;inline&#34;`</span>
-
-		<span style="color:#8f5902;font-style:italic">// Path provides the path to the input file.
-</span><span style="color:#8f5902;font-style:italic"></span>		<span style="color:#000">Path</span> <span style="color:#204a87;font-weight:bold">string</span> <span style="color:#4e9a06">`mapstructure:&#34;path&#34;`</span>
-
-		<span style="color:#8f5902;font-style:italic">// URl provides a url to th input data.
-</span><span style="color:#8f5902;font-style:italic"></span>		<span style="color:#000">URL</span> <span style="color:#204a87;font-weight:bold">string</span> <span style="color:#4e9a06">`mapstructure:&#34;url&#34;`</span>
-
-		<span style="color:#8f5902;font-style:italic">// Optional is true if resource can be missing.
-</span><span style="color:#8f5902;font-style:italic"></span>		<span style="color:#000">Optional</span> <span style="color:#204a87;font-weight:bold">bool</span> <span style="color:#4e9a06">`mapstructure:&#34;optional&#34;`</span>
-
-		<span style="color:#8f5902;font-style:italic">// URLTimeout request timeout, default is 30 seconds.
-</span><span style="color:#8f5902;font-style:italic"></span>		<span style="color:#000">URLTimeout</span> <span style="color:#204a87;font-weight:bold">uint</span> <span style="color:#4e9a06">`mapstructure:&#34;timeout&#34;`</span>
-
-		<span style="color:#8f5902;font-style:italic">// SkipExpand when true skips template expansion of the runbook.
-</span><span style="color:#8f5902;font-style:italic"></span>		<span style="color:#000">SkipExpand</span> <span style="color:#204a87;font-weight:bold">bool</span> <span style="color:#4e9a06">`mapstructure:&#34;skipExpand&#34;`</span>
-	<span style="color:#000;font-weight:bold">}</span>
-
-	<span style="color:#8f5902;font-style:italic">// Redirection is provided to a task to interpret
-</span><span style="color:#8f5902;font-style:italic"></span>	<span style="color:#8f5902;font-style:italic">// Redirection strings need to be expanded by the task.
-</span><span style="color:#8f5902;font-style:italic"></span>	<span style="color:#000">Redirection</span> <span style="color:#204a87;font-weight:bold">struct</span> <span style="color:#000;font-weight:bold">{</span>
-		<span style="color:#8f5902;font-style:italic">// Input runbook
-</span><span style="color:#8f5902;font-style:italic"></span>		<span style="color:#000">Input</span> <span style="color:#ce5c00;font-weight:bold">*</span><span style="color:#000">InputSpec</span> <span style="color:#4e9a06">`mapstructure:&#34;input&#34;`</span>
-
-		<span style="color:#8f5902;font-style:italic">// Output runbook
-</span><span style="color:#8f5902;font-style:italic"></span>		<span style="color:#000">Output</span> <span style="color:#ce5c00;font-weight:bold">*</span><span style="color:#000">OutputSpec</span> <span style="color:#4e9a06">`mapstructure:&#34;output&#34;`</span>
-
-		<span style="color:#8f5902;font-style:italic">// Error runbook
-</span><span style="color:#8f5902;font-style:italic"></span>		<span style="color:#000">Error</span> <span style="color:#ce5c00;font-weight:bold">*</span><span style="color:#000">OutputSpec</span> <span style="color:#4e9a06">`mapstructure:&#34;error&#34;`</span>
-
-		<span style="color:#8f5902;font-style:italic">// MergeErrorWithOutput specifies if error output should go to outputt
-</span><span style="color:#8f5902;font-style:italic"></span>		<span style="color:#8f5902;font-style:italic">// if specified Error and AppendError are ignored
-</span><span style="color:#8f5902;font-style:italic"></span>		<span style="color:#000">MergeErrorWithOutput</span> <span style="color:#204a87;font-weight:bold">bool</span> <span style="color:#4e9a06">`mapstructure:&#34;merge&#34;`</span>
-
-		<span style="color:#8f5902;font-style:italic">// LogOutput if true will cause output to be logged rather than going to go to std output.
-</span><span style="color:#8f5902;font-style:italic"></span>		<span style="color:#8f5902;font-style:italic">// If an output file is specified it will be used instead.
-</span><span style="color:#8f5902;font-style:italic"></span>		<span style="color:#000">LogOutput</span> <span style="color:#204a87;font-weight:bold">bool</span> <span style="color:#4e9a06">`mapstructure:&#34;logStdOut&#34;`</span>
-
-		<span style="color:#8f5902;font-style:italic">// DirectError when true causes the commands std error output to go direct to running processes std error
-</span><span style="color:#8f5902;font-style:italic"></span>		<span style="color:#8f5902;font-style:italic">// When DirectError is false std error output is logged.
-</span><span style="color:#8f5902;font-style:italic"></span>		<span style="color:#000">DirectError</span> <span style="color:#204a87;font-weight:bold">bool</span> <span style="color:#4e9a06">`mapstructure:&#34;directStdErr&#34;`</span>
-	<span style="color:#000;font-weight:bold">}</span>
-<span style="color:#000;font-weight:bold">)</span>
-
-
-</code></pre></div>
+	
         <div class="section-index">
     
     
