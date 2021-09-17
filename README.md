@@ -41,7 +41,7 @@ A project road map will be defined in due course covering steps towards a stable
 
 The application can be installed via:
 
- * Pre-build [release binaries](https://github.com/nehemming/cirocket/releases)
+ * Prebuilt [release binaries](https://github.com/nehemming/cirocket/releases)
  * Homebrew
  * As a [docker image](#docker)
  * Using the Go tool chain
