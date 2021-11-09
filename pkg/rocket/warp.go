@@ -24,6 +24,7 @@ import (
 	multierror "github.com/hashicorp/go-multierror"
 	"github.com/nehemming/cirocket/pkg/loggee"
 	"github.com/nehemming/cirocket/pkg/resource"
+	"github.com/nehemming/fsio"
 	"github.com/pkg/errors"
 )
 
@@ -198,13 +199,13 @@ func swapDir(dir string) (func(), error) {
 		return nil, err
 	}
 
-	err = os.Chdir(dir)
+	err = fsio.Chdir(dir)
 	if err != nil {
 		return nil, err
 	}
 
 	return func() {
-		if e := os.Chdir(cwd); e != nil {
+		if e := fsio.Chdir(cwd); e != nil {
 			panic(e)
 		}
 	}, nil

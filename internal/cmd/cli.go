@@ -33,6 +33,7 @@ import (
 	"github.com/nehemming/cirocket/pkg/loggee"
 	"github.com/nehemming/cirocket/pkg/loggee/apexlog"
 	"github.com/nehemming/cirocket/pkg/rocket"
+	"github.com/nehemming/fsio"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -214,7 +215,7 @@ func (cli *cli) loadMissionAndConfig() {
 
 	// Switch dir if necessary
 	if cli.workingDir != "" {
-		if err := os.Chdir(filepath.FromSlash(cli.workingDir)); err != nil {
+		if err := fsio.Chdir(filepath.FromSlash(cli.workingDir)); err != nil {
 			cli.configError = err
 			return
 		}
