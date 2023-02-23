@@ -15,7 +15,7 @@ require (
 	github.com/pkg/errors v0.8.1
 	github.com/spf13/cobra v1.2.1
 	github.com/spf13/viper v1.8.1
-	golang.org/x/net v0.0.0-20210614182718-04defd469f4e
-	golang.org/x/text v0.3.7 // indirect
+	golang.org/x/net v0.0.0-20220722155237-a158d28d115b
+	golang.org/x/text v0.3.8 // indirect
 	gopkg.in/yaml.v2 v2.4.0
 )
